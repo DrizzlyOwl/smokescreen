@@ -85,7 +85,7 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive }: { severity: S
             ref={scrollRef}
             style={{
               fontFamily: 'monospace',
-              fontSize: '0.8rem',
+              fontSize: '1rem',
               color: isP0 ? 'var(--terminal-red)' : 'rgba(24, 255, 98, 0.9)',
               background: 'rgba(0, 5, 0, 0.95)',
               padding: '8px',

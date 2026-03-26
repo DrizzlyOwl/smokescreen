@@ -78,7 +78,7 @@ export const FakeLogs = ({ severity }: { severity: Severity }) => {
       opacity: 0.15,
       overflow: 'hidden',
       pointerEvents: 'none',
-      fontSize: '0.85rem',
+      fontSize: '1rem',
       padding: '20px',
       color: severity === 'P0' ? 'var(--terminal-red)' : severity === 'P1' ? 'var(--terminal-amber)' : 'var(--terminal-green)',
       zIndex: 0,

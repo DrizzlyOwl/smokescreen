@@ -56,7 +56,7 @@ export const FakeCharts = ({ severity: _severity }: { severity: Severity }) => {
       zIndex: 0
     }}>
       <canvas ref={canvasRef} width={300} height={150} />
-      <div style={{ position: 'absolute', top: 5, left: 5, fontSize: '0.6rem' }}>METRICS: INGRESS_LATENCY_99P</div>
+      <div style={{ position: 'absolute', top: 5, left: 5, fontSize: '1rem' }}>METRICS: INGRESS_LATENCY_99P</div>
     </div>
   );
 };

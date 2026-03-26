@@ -73,7 +73,7 @@ export const BootScreen = ({ operatorName, onComplete }: { operatorName: string,
           marginTop: 'auto', 
           textAlign: 'center', 
           opacity: 0.5, 
-          fontSize: '0.8rem',
+          fontSize: '1rem',
           animation: 'flicker 0.2s infinite'
         }}>
           DECRYPTING INTERFACE...

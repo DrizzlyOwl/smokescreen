@@ -8,6 +8,10 @@
   --scanline-color: rgba(18, 16, 16, 0.1);
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -15,7 +19,7 @@ body {
   font-family: 'VT323', monospace;
   color: var(--terminal-green);
   overflow: hidden;
-  font-size: 26px;
+  font-size: 1.625rem; /* 26px / 16px */
 }
 
 .crt-container {

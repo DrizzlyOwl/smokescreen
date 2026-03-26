@@ -13,6 +13,7 @@ import { BootScreen } from './components/BootScreen';
 import { CommandInput } from './components/CommandInput';
 import { DeploymentStatus } from './components/DeploymentStatus';
 import { BurnRateDashboard } from './components/BurnRateDashboard';
+import { PagerSync } from './components/PagerSync';
 
 function App() {
   const [isAssetsLoaded, setIsAssetsLoaded] = useState(false);
@@ -36,14 +37,16 @@ function App() {
     logs: false,
     map: false,
     deploy: false,
-    burn: false
+    burn: false,
+    pager: false
   });
   const [zIndices, setZIndices] = useState({
     chat: 100,
     logs: 101,
     map: 102,
     deploy: 103,
-    burn: 104
+    burn: 104,
+    pager: 105
   });
   const [maxZ, setMaxZ] = useState(110);
   const [activePane, setActivePane] = useState<keyof typeof panes | null>(null);
@@ -309,15 +312,18 @@ function App() {
     if (cmd === 'hide deploy' || cmd === 'hide k8s') { setPanes(p => ({ ...p, deploy: false })); valid = true; }
     if (cmd === 'show burn' || cmd === 'show cost') { setPanes(p => ({ ...p, burn: true })); bringToFront('burn'); valid = true; }
     if (cmd === 'hide burn' || cmd === 'hide cost') { setPanes(p => ({ ...p, burn: false })); valid = true; }
-    if (cmd === 'hide all') { setPanes({ chat: false, logs: false, map: false, deploy: false, burn: false }); valid = true; }
+    if (cmd === 'show pager' || cmd === 'sync pager') { setPanes(p => ({ ...p, pager: true })); bringToFront('pager'); valid = true; }
+    if (cmd === 'hide pager') { setPanes(p => ({ ...p, pager: false })); valid = true; }
+    if (cmd === 'hide all') { setPanes({ chat: false, logs: false, map: false, deploy: false, burn: false, pager: false }); valid = true; }
     if (cmd === 'show all') { 
-        setPanes({ chat: true, logs: true, map: true, deploy: true, burn: true }); 
+        setPanes({ chat: true, logs: true, map: true, deploy: true, burn: true, pager: true }); 
         // Focus order
         bringToFront('chat');
         bringToFront('map');
         bringToFront('deploy');
         bringToFront('logs');
         bringToFront('burn');
+        bringToFront('pager');
         valid = true; 
     }
     if (cmd === 'nominal') { setSeverity('NOMINAL'); setIsSlowBurn(false); setExcuse(''); setMoneyLost(0); valid = true; }
@@ -376,7 +382,7 @@ function App() {
             <p style={{ fontSize: '1.2rem', opacity: 0.6, maxWidth: '600px', margin: '0 auto', marginBottom: '10px' }}>
                 "Software solutions that work for public services"
             </p>
-            <div style={{ fontSize: '0.9rem', opacity: 0.4, marginBottom: '40px' }}>
+            <div style={{ fontSize: '1rem', opacity: 0.4, marginBottom: '40px' }}>
                 DXW AI HACKATHON 26/03/2026 | BUILT BY GEMINI CLI
             </div>
             <div style={{ maxWidth: '400px', margin: '0 auto', textAlign: 'left', border: '1px solid var(--terminal-green)', padding: '20px', background: 'rgba(24, 255, 98, 0.05)' }}>
@@ -414,6 +420,7 @@ function App() {
       {panes.deploy && <DeploymentStatus severity={severity} zIndex={zIndices.deploy} onFocus={() => bringToFront('deploy')} isActive={activePane === 'deploy'} />}
       {panes.logs && <SystemLog severity={severity} zIndex={zIndices.logs} onFocus={() => bringToFront('logs')} isActive={activePane === 'logs'} />}
       {panes.burn && <BurnRateDashboard severity={severity} zIndex={zIndices.burn} onFocus={() => bringToFront('burn')} isActive={activePane === 'burn'} moneyLost={moneyLost} />}
+      {panes.pager && <PagerSync severity={severity} zIndex={zIndices.pager} onFocus={() => bringToFront('pager')} isActive={activePane === 'pager'} />}
 
       <div className={`crt-container ${isEjecting ? 'glitch' : ''}`}>
         <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
@@ -426,7 +433,7 @@ function App() {
             <div>
               <div style={{ fontSize: '1.2rem', marginBottom: '-5px', opacity: 0.8 }}>SMOKESCREEN OS v4.5</div>
               <h1 style={{ fontSize: '3.5rem', margin: '0', letterSpacing: '2px' }}>SMOKESCREEN</h1>
-              <div style={{ fontSize: '0.9rem', opacity: 0.5, letterSpacing: '4px', marginTop: '-5px', color: 'var(--terminal-green)' }}>
+              <div style={{ fontSize: '1rem', opacity: 0.5, letterSpacing: '4px', marginTop: '-5px', color: 'var(--terminal-green)' }}>
                 FAILURE IS NOT AN OPTION. IT IS A CORPORATE MANDATE.
               </div>
             </div>
@@ -453,7 +460,7 @@ function App() {
             </div>
             {severity !== 'NOMINAL' && (
                 <div style={{ textAlign: 'center', flex: 1, padding: '0 20px' }}>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>ESTIMATED_BURN_RATE</div>
+                    <div style={{ fontSize: '1rem', opacity: 0.6 }}>ESTIMATED_BURN_RATE</div>
                     <div style={{ fontSize: '2rem', color: 'var(--terminal-red)', fontWeight: 'bold' }}>
                         £{moneyLost.toFixed(2)}
                     </div>
@@ -510,6 +517,13 @@ function App() {
                 {panes.burn ? '[ HIDE_BURN ]' : '[ SHOW_BURN ]'}
             </button>
             <button onClick={() => { 
+                const newState = !panes.pager;
+                setPanes(p => ({ ...p, pager: newState })); 
+                if (newState) bringToFront('pager');
+            }} className={`severity-btn ${panes.pager ? 'active' : ''}`} style={{ fontSize: '1rem', background: 'rgba(13, 17, 13, 0.8)' }}>
+                {panes.pager ? '[ HIDE_PAGER ]' : '[ SHOW_PAGER ]'}
+            </button>
+            <button onClick={() => { 
                 const newState = !panes.map;
                 setPanes(p => ({ ...p, map: newState })); 
                 if (newState) bringToFront('map');
@@ -546,7 +560,7 @@ function App() {
               )}
             </div>
           )}
-          <footer style={{ marginTop: '30px', fontSize: '0.8rem', opacity: 0.4, textAlign: 'center', borderTop: '2px solid rgba(24, 255, 98, 0.2)', paddingTop: '15px' }}>
+          <footer style={{ marginTop: '30px', fontSize: '1rem', opacity: 0.4, textAlign: 'center', borderTop: '2px solid rgba(24, 255, 98, 0.2)', paddingTop: '15px' }}>
             DXW | SECURE TERMINAL | BOSS: [CMD+B] | ABORT: [CMD+ENTER] | <a href="https://github.com/DrizzlyOwl/smokescreen" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>COPYRIGHT DRIZZLYOWL</a>
           </footer>
         </div>

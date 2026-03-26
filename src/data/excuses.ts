@@ -11,17 +11,20 @@ const commonJargon: Jargon = {
   systems: [
     'Prometheus scraper', 'Kafka broker cluster', 'Vault secret engine', 'Redis sentinel', 
     'NGINX ingress controller', 'CoreDNS mesh', 'Consul agent', 'sidecar proxy',
-    'service mesh control plane', 'message queue consumer', 'Vector log router'
+    'service mesh control plane', 'message queue consumer', 'Vector log router',
+    'Elasticsearch data node', 'HashiCorp Nomad client', 'internal gRPC gateway'
   ],
   actions: [
     'rotating the TLS certs', 'purging some stale keys', 're-syncing the state', 'patching a zero-day',
     're-balancing the shards', 'draining the worker nodes', 'invalidating the CDN edge cache',
-    'auditing the firewall rules', 're-indexing the search cluster', 'flushing the dead-letter queues'
+    'auditing the firewall rules', 're-indexing the search cluster', 'flushing the dead-letter queues',
+    'manually failing over the primary', 'garbage collecting the heap', 'debugging the race condition'
   ],
   errors: [
     '503 Service Unavailable', 'OOM killer trigger', 'checksum mismatch', 'race condition',
     'TCP window size collapse', 'zombie process accumulation', 'socket leak',
-    'MTU mismatch causing packet fragmentation', 'inode exhaustion', 'heartbeat timeout'
+    'MTU mismatch causing packet fragmentation', 'inode exhaustion', 'heartbeat timeout',
+    'segmentation fault', 'deadlock in the thread pool', 'dangling pointer exception'
   ],
 };
 
@@ -30,68 +33,94 @@ const stackJargon: Record<Stack, Jargon> = {
     systems: [
       'EKS control plane', 'RDS Multi-AZ replica', 'S3 VPC endpoint', 'IAM policy engine', 
       'Kinesis stream shard', 'CloudFront distribution', 'Lambda@Edge runtime', 
-      'Transit Gateway'
+      'Transit Gateway', 'AppMesh mesh', 'DirectConnect circuit', 'Cognito user pool'
     ],
     actions: [
       'draining the Fargate nodes', 're-indexing the DynamoDB shards', 're-announcing BGP via DirectConnect',
-      'modifying the Security Group ingress', 'rotating the IAM access keys', 're-syncing the EBS snapshots'
+      'modifying the Security Group ingress', 'rotating the IAM access keys', 're-syncing the EBS snapshots',
+      'purging the SQS queue', 'attaching the ENI', 're-provisioning the Aurora cluster', 'adjusting the Auto Scaling Group'
     ],
     errors: [
       'eventual consistency lag in US-East-1', 'VPC peering throughput collapse', 'KMS throttling incident',
-      'S3 bucket policy conflict', '504 Gateway Timeout on the ELB'
+      'S3 bucket policy conflict', '504 Gateway Timeout on the ELB', 'Instance Metadata Service timeout',
+      'EBS volume I/O credit exhaustion', 'Route53 propagation delay', 'IAM permission boundary block',
+      'CloudWatch log group limit hit'
     ],
   },
   GCP: {
     systems: [
       'GKE Autopilot cluster', 'Cloud Spanner node', 'BigQuery slot', 'Cloud Armor policy', 
-      'Pub/Sub topic partition', 'Cloud Run instance'
+      'Pub/Sub topic partition', 'Cloud Run instance', 'Anthos Service Mesh', 'Cloud Storage bucket',
+      'Compute Engine instance group', 'Cloud SQL proxy', 'Identity-Aware Proxy'
     ],
     actions: [
       're-balancing the Global Load Balancer', 'migrating the Persistent Disks', 're-configuring Anthos',
-      'adjusting the BigQuery priority jobs', 'rotating the Service Account keys'
+      'adjusting the BigQuery priority jobs', 'rotating the Service Account keys', 'purging the Cloud Tasks queue',
+      're-imaging the GCI instance', 'modifying the VPC network peering', 'flushing the Cloud Memorystore',
+      'validating the Binary Authorization policy'
     ],
     errors: [
       'quorum loss in the multi-region Spanner', 'IAM propagation delay', 'GCE preemption spike',
-      'Shared VPC host project unreachable', 'Cloud Build timeout'
+      'Shared VPC host project unreachable', 'Cloud Build timeout', 'Project quota exceeded',
+      'Cloud Endpoints API key mismatch', 'BigTable tablet split failure', 'Internal Load Balancer health check flap',
+      'GKE master node maintenance lag'
     ],
   },
   AZURE: {
     systems: [
-      'AKS cluster', 'CosmosDB partition', 'Azure Front Door', 'ExpressRoute circuit', 'Entra ID sync'
+      'AKS cluster', 'CosmosDB partition', 'Azure Front Door', 'ExpressRoute circuit', 'Entra ID sync',
+      'Azure SQL database', 'Key Vault HSM', 'Service Bus namespace', 'App Service Plan',
+      'Blob Storage container', 'Log Analytics workspace'
     ],
     actions: [
       're-provisioning the Resource Group', 'purging the Blob Storage container', 're-configuring the Traffic Manager',
-      'rotating the Key Vault secrets'
+      'rotating the Key Vault secrets', 'adjusting the Autoscale settings', 're-syncing the Entra ID tenant',
+      'patching the virtual machine scale set', 'modifying the NSG rules', 'flushing the Redis cache',
+      're-mapping the Private Link'
     ],
     errors: [
       'subscription quota limit', 'Service Bus namespace congestion', 'tenant-level throttling',
-      'ARM template deployment failure'
+      'ARM template deployment failure', 'Regional outage in UK-South', 'Storage Account throughput limit',
+      'Azure DNS resolution failure', 'App Gateway backend health check error', 'ExpressRoute BGP flap',
+      'Key Vault access policy misconfiguration'
     ],
   },
   'ON-PREM': {
     systems: [
-      'VMWare ESXi host', 'SAN storage array', 'Cisco Catalyst switch', 'F5 Big-IP balancer', 'bare-metal blade'
+      'VMWare ESXi host', 'SAN storage array', 'Cisco Catalyst switch', 'F5 Big-IP balancer', 'bare-metal blade',
+      'Active Directory controller', 'NetApp filer', 'Fortinet firewall', 'NFS mount point',
+      'Dell PowerEdge rack', 'APC UPS management card'
     ],
     actions: [
       're-seating the RAID controller', 'clearing the MAC address table', 're-cabling the heartbeat link',
-      're-imaging the PXE boot node'
+      're-imaging the PXE boot node', 'vMotioning the critical VM', 'patching the kernel on the hypervisor',
+      'replacing the SFP+ module', 'manually clearing the tape drive', 're-configuring the VLAN tagging',
+      'running a memory diagnostic'
     ],
     errors: [
       'predictive failure on a parity drive', 'BGP flapping in the core switch', 'air-con failure in Rack B',
-      'memory ECC error'
+      'memory ECC error', 'packet loss on the fiber uplink', 'disk pressure on the root partition',
+      'split-brain in the cluster quorum', 'failed PSU in the chassis', 'broadcast storm on VLAN 10',
+      'stale NFS file handle'
     ],
   },
   SERVERLESS: {
     systems: [
-      'Lambda runtime', 'API Gateway endpoint', 'cold start optimizer', 'Step Function state machine', 'Edge worker'
+      'Lambda runtime', 'API Gateway endpoint', 'cold start optimizer', 'Step Function state machine', 'Edge worker',
+      'DynamoDB stream', 'EventBridge bus', 'AppSync GraphQL API', 'SQS trigger',
+      'CloudWatch event rule', 'Serverless framework stack'
     ],
     actions: [
       'purging the CDN cache', 'warm-starting the concurrency pool', 're-mapping the trigger',
-      'tracing the execution graph'
+      'tracing the execution graph', 're-deploying the CloudFormation template', 'increasing the memory allocation',
+      'adjusting the provisioned concurrency', 're-configuring the CORS policy', 'flushing the global state',
+      'debugging the async callback'
     ],
     errors: [
       'concurrency limit hit', 'execution timeout on a cold start', 'orchestration loop',
-      'ephemeral storage overflow'
+      'ephemeral storage overflow', 'IAM execution role permission denied', 'API Gateway payload size limit',
+      'dead-letter queue overflow', 'unhandled exception in the handler', 'throttling on the downstream RDS',
+      'circular dependency in the Step Function'
     ],
   },
 };
@@ -108,17 +137,14 @@ const indefiniteArticle = (word: string) => {
 export const generateExcuse = (severity: Severity, stack: Stack): { text: string; ticketId: string; timeSaved: number } => {
   if (severity === 'NOMINAL') return { text: '', ticketId: '', timeSaved: 0 };
 
-  const jargon = {
-    systems: [...commonJargon.systems, ...stackJargon[stack].systems],
-    actions: [...commonJargon.actions, ...stackJargon[stack].actions],
-    errors: [...commonJargon.errors, ...stackJargon[stack].errors],
-  };
-
   const getRand = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
-  const system = getRand(jargon.systems);
-  const action = getRand(jargon.actions);
-  const error = getRand(jargon.errors);
+  // Preference for stack-specific jargon (70% chance) to make it feel more "authentic"
+  const useStackSpecific = Math.random() > 0.3;
+  
+  const system = useStackSpecific ? getRand(stackJargon[stack].systems) : getRand(commonJargon.systems);
+  const action = useStackSpecific ? getRand(stackJargon[stack].actions) : getRand(commonJargon.actions);
+  const error = useStackSpecific ? getRand(stackJargon[stack].errors) : getRand(commonJargon.errors);
   const ttr = getRand(recoveryTimes);
   const ticketId = generateTicketId();
 

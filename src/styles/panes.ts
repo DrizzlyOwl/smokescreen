@@ -37,7 +37,7 @@ export const PANE_STYLES = {
     cursor: 'pointer',
     fontFamily: 'inherit',
     fontWeight: 'bold',
-    fontSize: '0.75rem',
+    fontSize: '1rem',
     padding: '0 5px'
   },
   content: (height: string) => ({

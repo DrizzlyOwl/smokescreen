@@ -64,7 +64,7 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
             }}>
                 {/* Total Loss Display */}
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#768390', letterSpacing: '2px' }}>ESTIMATED_INCIDENT_LOSS</div>
+                    <div style={{ fontSize: '1rem', color: '#768390', letterSpacing: '2px' }}>ESTIMATED_INCIDENT_LOSS</div>
                     <div style={{ 
                         fontSize: '3rem', 
                         color: burnColor, 
@@ -109,7 +109,7 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
                     position: 'relative'
                 }}>
                     <div style={{
-                        fontSize: '0.8rem',
+                        fontSize: '1rem',
                         color: burnColor,
                         whiteSpace: 'nowrap',
                         animation: 'ticker 10s linear infinite'
@@ -120,7 +120,7 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
 
                 <div style={{ 
                     marginTop: '10px', 
-                    fontSize: '0.6rem', 
+                    fontSize: '1rem', 
                     color: '#768390',
                     display: 'flex',
                     justifyContent: 'space-between'

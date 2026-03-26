@@ -143,16 +143,16 @@ export const WarRoom = ({ severity, stack, zIndex, onFocus, isActive }: { severi
                 width: '36px', height: '36px', borderRadius: '4px', 
                 background: m.isBot ? '#e01e5a' : '#35373b',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, fontSize: '0.8rem', fontWeight: '900', color: 'white'
+                flexShrink: 0, fontSize: '1rem', fontWeight: '900', color: 'white'
             }}>
                 {m.user.charAt(0).toUpperCase()}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
-                <span style={{ fontWeight: '900', color: 'white', fontSize: '0.92rem' }}>{m.user}</span>
-                <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{m.time}</span>
+                <span style={{ fontWeight: '900', color: 'white', fontSize: '1rem' }}>{m.user}</span>
+                <span style={{ fontSize: '1rem', opacity: 0.5 }}>{m.time}</span>
               </div>
-              <div style={{ lineHeight: '1.46668', fontSize: '0.92rem' }}>
+              <div style={{ lineHeight: '1.46668', fontSize: '1rem' }}>
                 {m.text.split(' ').map((word, idx) => (
                   word.startsWith('@') 
                     ? <span key={idx} style={{ color: '#1264a3', background: 'rgba(29, 155, 209, 0.1)', borderRadius: '3px', padding: '0 4px', fontWeight: 'bold' }}>{word} </span>

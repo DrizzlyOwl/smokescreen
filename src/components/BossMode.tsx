@@ -54,7 +54,7 @@ export const BossMode = ({ active }: { active: boolean }) => {
             transition: 'width 0.5s ease'
           }} />
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 400, opacity: 0.8, letterSpacing: '0.5px' }}>
+        <div style={{ fontSize: '16px', fontWeight: 400, opacity: 0.8, letterSpacing: '0.5px' }}>
           Installing system updates...<br />
           About {Math.ceil((100 - progress) * 0.5)} minutes remaining
         </div>
