@@ -15,8 +15,13 @@ const POD_NAMES = [
   'search-indexer', 'notification-engine', 'billing-sync', 'audit-logger'
 ];
 
-export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean }) => {
-  const [pods, setPods] = useState<PodStatus[]>([]);
+export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, onClose: () => void }) => {
+  const [pods, setPods] = useState<PodStatus[]>(() => POD_NAMES.map(name => ({
+    name: `${name}-${Math.random().toString(36).substring(2, 7)}`,
+    status: 'Running',
+    restarts: 0,
+    age: '12d'
+  })));
   const [tfLog, setTfLog] = useState<string[]>([]);
   const tfScrollRef = useRef<HTMLDivElement>(null);
 
@@ -25,16 +30,6 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive }: { seve
         tfScrollRef.current.scrollTop = tfScrollRef.current.scrollHeight;
     }
   }, [tfLog]);
-
-  useEffect(() => {
-    // Initial pods
-    setPods(POD_NAMES.map(name => ({
-      name: `${name}-${Math.random().toString(36).substring(2, 7)}`,
-      status: 'Running',
-      restarts: 0,
-      age: '12d'
-    })));
-  }, []);
 
   useEffect(() => {
     const updatePods = () => {
@@ -110,11 +105,12 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive }: { seve
       onFocus={onFocus}
       isActive={isActive}
       severityColor={severity === 'P0' ? '#f47067' : undefined}
+      onClose={onClose}
     >
-      <div style={{ fontFamily: 'monospace', padding: '12px', boxSizing: 'border-box' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '1rem' }}>
+      <div style={{ flex: 1, overflow: 'auto', fontFamily: 'monospace', padding: '12px', boxSizing: 'border-box' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: 'var(--text-l4)' }}>
           <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '1px solid #2d333b', color: '#768390' }}>
+            <tr style={{ textAlign: 'left', borderBottom: '1px solid #2d333b', color: '#768390', fontWeight: 'bold' }}>
               <th style={{ padding: '4px' }}>NAME</th>
               <th style={{ padding: '4px' }}>STATUS</th>
               <th style={{ padding: '4px' }}>RESTARTS</th>
@@ -127,7 +123,8 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive }: { seve
                 <td style={{ padding: '4px' }}>{pod.name}</td>
                 <td style={{ 
                   padding: '4px', 
-                  color: pod.status === 'Running' ? '#57ab5a' : pod.status === 'Pending' ? '#c69026' : '#f47067' 
+                  color: pod.status === 'Running' ? '#57ab5a' : pod.status === 'Pending' ? '#c69026' : '#f47067',
+                  fontWeight: pod.status !== 'Running' ? 'bold' : 'normal'
                 }}>
                   {pod.status}
                 </td>
@@ -139,8 +136,8 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive }: { seve
         </table>
 
         <div style={{ background: '#000', padding: '10px', borderRadius: '4px', border: '1px solid #2d333b' }}>
-          <div style={{ color: '#768390', marginBottom: '5px', fontSize: '1rem' }}>TERRAFORM_APPLY_STDOUT</div>
-          <div ref={tfScrollRef} style={{ height: '80px', overflowY: 'auto', fontSize: '1rem' }}>
+          <div style={{ color: '#768390', marginBottom: '5px', fontSize: 'var(--text-l4)', fontWeight: 'bold' }}>TERRAFORM_APPLY_STDOUT</div>
+          <div ref={tfScrollRef} style={{ height: '80px', overflowY: 'auto', fontSize: 'var(--text-l4)' }}>
             {tfLog.map((log, i) => (
               <div key={i} style={{ 
                 color: log.includes('Error') ? '#f47067' : log.includes('Warning') ? '#c69026' : '#adbac7',

@@ -62,7 +62,7 @@ export const FakeLogs = ({ severity }: { severity: Severity }) => {
       setLogs((prev) => {
         const pool = LOG_POOLS[severity];
         const newLog = `[${new Date().toLocaleTimeString('en-GB')}] ${pool[Math.floor(Math.random() * pool.length)]}`;
-        return [...prev, newLog].slice(-40);
+        return [newLog, ...prev].slice(0, 40);
       });
     }, delay);
     return () => clearInterval(interval);
@@ -80,9 +80,12 @@ export const FakeLogs = ({ severity }: { severity: Severity }) => {
       pointerEvents: 'none',
       fontSize: '1rem',
       padding: '20px',
+      paddingBottom: '180px',
       color: severity === 'P0' ? 'var(--terminal-red)' : severity === 'P1' ? 'var(--terminal-amber)' : 'var(--terminal-green)',
       zIndex: 0,
-      transition: 'color 0.5s ease'
+      transition: 'color 0.5s ease',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       {logs.map((log, i) => (
         <div key={i} style={{ marginBottom: '2px' }}>{log}</div>

@@ -1,16 +1,17 @@
 import { useEffect, useRef } from 'react';
 import type { Severity } from '../data/excuses';
 
-export const FakeCharts = ({ severity: _severity }: { severity: Severity }) => {
+export const FakeCharts = ({ severity }: { severity: Severity }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // console.log('Severity:', severity);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let points: number[] = Array(50).fill(50);
+    const points: number[] = Array(50).fill(50);
     let animationId: number;
 
     const render = () => {
@@ -19,8 +20,11 @@ export const FakeCharts = ({ severity: _severity }: { severity: Severity }) => {
       // Shift and add new point
       points.shift();
       const lastPoint = points[points.length - 1];
-      // Simulate a crash (sudden drop or spike)
-      const nextPoint = Math.max(0, Math.min(100, lastPoint + (Math.random() - 0.5) * 10 - (lastPoint > 80 ? 5 : 0)));
+      
+      // Spikier charts for higher severity
+      const volatility = severity === 'P0' ? 20 : severity === 'P1' ? 10 : 5;
+      const nextPoint = Math.max(0, Math.min(100, lastPoint + (Math.random() - 0.5) * volatility));
+      
       points.push(nextPoint);
 
       ctx.beginPath();
@@ -41,7 +45,7 @@ export const FakeCharts = ({ severity: _severity }: { severity: Severity }) => {
 
     render();
     return () => cancelAnimationFrame(animationId);
-  }, []);
+  }, [severity]);
 
   return (
     <div style={{

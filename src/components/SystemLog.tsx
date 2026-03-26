@@ -45,27 +45,35 @@ const KERNEL_LOGS: Record<Severity, string[]> = {
     ]
 };
 
-export const SystemLog = ({ severity, zIndex, onFocus, isActive }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean }) => {
+export const SystemLog = ({ severity, zIndex, onFocus, isActive, uplinkId, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, uplinkId: string, onClose: () => void }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (scrollRef.current && scrollRef.current.parentElement) {
-            scrollRef.current.parentElement.scrollTop = scrollRef.current.parentElement.scrollHeight;
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [logs]);
 
     useEffect(() => {
+        const channel = new BroadcastChannel(`smokescreen_room_${uplinkId}`);
         const delay = severity === 'P0' ? 100 : severity === 'P1' ? 400 : severity === 'P3' ? 1200 : 2500;
+        
         const interval = setInterval(() => {
-            setLogs(prev => {
-                const pool = KERNEL_LOGS[severity];
-                const newLog = pool[Math.floor(Math.random() * pool.length)];
-                return [...prev, newLog].slice(-200);
-            });
+            const pool = KERNEL_LOGS[severity];
+            const newLog = pool[Math.floor(Math.random() * pool.length)];
+            
+            // Broadcast to mobile
+            channel.postMessage({ type: 'LOG_MESSAGE', log: newLog });
+            
+            setLogs(prev => [...prev, newLog].slice(-200));
         }, delay);
-        return () => clearInterval(interval);
-    }, [severity]);
+
+        return () => {
+            clearInterval(interval);
+            channel.close();
+        };
+    }, [severity, uplinkId]);
 
     const isP0 = severity === 'P0';
 
@@ -80,12 +88,15 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive }: { severity: S
           onFocus={onFocus}
           isActive={isActive}
           severityColor={isP0 ? 'var(--terminal-red)' : undefined}
+          onClose={onClose}
         >
           <div 
             ref={scrollRef}
             style={{
+              flex: 1,
+              overflow: 'auto',
               fontFamily: 'monospace',
-              fontSize: '1rem',
+              fontSize: 'var(--text-l4)',
               color: isP0 ? 'var(--terminal-red)' : 'rgba(24, 255, 98, 0.9)',
               background: 'rgba(0, 5, 0, 0.95)',
               padding: '8px',

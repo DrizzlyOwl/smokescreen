@@ -13,15 +13,17 @@ const TICKER_ITEMS = [
     'COFFEE_CONSUMPTION: 4.2L/hr'
 ];
 
-export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLost }: { 
+export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLost, onClose }: { 
     severity: Severity, 
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean,
-    moneyLost: number
+    moneyLost: number,
+    onClose: () => void
 }) => {
     const [tickerIndex, setTickerIndex] = useState(0);
     const [history, setHistory] = useState<number[]>(Array(30).fill(0));
+    const [opCostId] = useState(() => Math.random().toString(36).substring(7).toUpperCase());
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -52,6 +54,7 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
           onFocus={onFocus}
           isActive={isActive}
           severityColor={severity === 'NOMINAL' ? undefined : burnColor}
+          onClose={onClose}
         >
             <div style={{
                 height: '100%',
@@ -64,9 +67,9 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
             }}>
                 {/* Total Loss Display */}
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ fontSize: '1rem', color: '#768390', letterSpacing: '2px' }}>ESTIMATED_INCIDENT_LOSS</div>
+                    <div style={{ fontSize: 'var(--text-l4)', color: '#768390', letterSpacing: '2px', fontWeight: 'bold' }}>ESTIMATED_INCIDENT_LOSS</div>
                     <div style={{ 
-                        fontSize: '3rem', 
+                        fontSize: 'var(--text-l2)', 
                         color: burnColor, 
                         fontWeight: 'bold',
                         textShadow: `0 0 10px ${burnColor}44`
@@ -109,10 +112,11 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
                     position: 'relative'
                 }}>
                     <div style={{
-                        fontSize: '1rem',
+                        fontSize: 'var(--text-l4)',
                         color: burnColor,
                         whiteSpace: 'nowrap',
-                        animation: 'ticker 10s linear infinite'
+                        animation: 'ticker 10s linear infinite',
+                        fontWeight: 'bold'
                     }}>
                         {TICKER_ITEMS[tickerIndex]} | {TICKER_ITEMS[(tickerIndex + 1) % TICKER_ITEMS.length]} | {TICKER_ITEMS[(tickerIndex + 2) % TICKER_ITEMS.length]}
                     </div>
@@ -120,13 +124,14 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
 
                 <div style={{ 
                     marginTop: '10px', 
-                    fontSize: '1rem', 
+                    fontSize: 'var(--text-l4)', 
                     color: '#768390',
                     display: 'flex',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    fontWeight: 'bold'
                 }}>
                     <span>STATUS: {severity}</span>
-                    <span>OP_COST_ID: {Math.random().toString(36).substring(7).toUpperCase()}</span>
+                    <span>OP_COST_ID: {opCostId}</span>
                 </div>
             </div>
         </Pane>

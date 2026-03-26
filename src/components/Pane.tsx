@@ -17,6 +17,7 @@ interface PaneProps {
   isActive?: boolean;
   defaultMinimized?: boolean;
   onMinimizeToggle?: (minimized: boolean) => void;
+  onClose?: () => void;
 }
 
 export const Pane = ({
@@ -32,7 +33,8 @@ export const Pane = ({
   isMinimized: controlledMinimized,
   isActive = false,
   defaultMinimized = false,
-  onMinimizeToggle
+  onMinimizeToggle,
+  onClose
 }: PaneProps) => {
   const [internalMinimized, setInternalMinimized] = useState(defaultMinimized);
   const isMinimized = controlledMinimized !== undefined ? controlledMinimized : internalMinimized;
@@ -78,6 +80,13 @@ export const Pane = ({
             style={PANE_STYLES.minimizeBtn}>
             {isMinimized ? '[+]' : '[−]'}
           </button>
+          {onClose && (
+            <button 
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                style={{ ...PANE_STYLES.minimizeBtn, color: 'var(--terminal-red)' }}>
+                [X]
+            </button>
+          )}
         </div>
       </div>
 

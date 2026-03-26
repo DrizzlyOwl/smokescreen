@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
-import type { Severity } from '../data/excuses';
+import { useState } from 'react';
+import type { Severity, Stack } from '../data/excuses';
 import { Pane } from './Pane';
 import { QRCodeSVG } from 'qrcode.react';
 
-export const PagerSync = ({ severity, zIndex, onFocus, isActive }: { 
+export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId, onClose }: { 
     severity: Severity, 
+    stack: Stack,
     zIndex: number, 
     onFocus: () => void, 
-    isActive: boolean 
+    isActive: boolean,
+    uplinkId: string,
+    onClose: () => void
 }) => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [isLinked, setIsLinked] = useState(false);
-    const [uplinkId] = useState(() => Math.random().toString(36).substring(2, 10).toUpperCase());
 
     const handleSync = () => {
         setIsSyncing(true);
@@ -22,7 +24,7 @@ export const PagerSync = ({ severity, zIndex, onFocus, isActive }: {
     };
 
     const isHighSeverity = severity === 'P0' || severity === 'P1';
-    const pagerUrl = `https://drizzlyowl.github.io/smokescreen/?pager=${uplinkId}`;
+    const pagerUrl = `https://drizzlyowl.github.io/smokescreen/?pager=${uplinkId}&sev=${severity}&stack=${stack}`;
 
     return (
         <Pane
@@ -34,6 +36,7 @@ export const PagerSync = ({ severity, zIndex, onFocus, isActive }: {
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
+          onClose={onClose}
         >
             <div style={{
                 height: '100%',

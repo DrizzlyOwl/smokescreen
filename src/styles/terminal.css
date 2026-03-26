@@ -6,10 +6,23 @@
   --terminal-red: #ff3b3b;
   --terminal-amber: #ffb000;
   --scanline-color: rgba(18, 16, 16, 0.1);
+  
+  /* Typography Hierarchy */
+  --text-l1: 4rem;
+  --text-l2: 2rem;
+  --text-l3: 1.2rem;
+  --text-l4: 1rem;
 }
 
 html {
   font-size: 16px;
+  /* 80s Pixel Cursor - Pip-Boy Green with dark stroke */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h8v2H2v6H0V0zm16 0h8v8h-2V2h-6V0zM0 16h2v6h6v2H0v-8zm16 8v-2h6v-6h2v8h-8z' fill='%2318ff62' stroke='%23000' stroke-width='0.5'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%2318ff62' fill-opacity='0.5' stroke='%23000' stroke-width='0.5'/%3E%3C/svg%3E") 12 12, auto;
+}
+
+/* Hover Cursor for Buttons, Links, and Drag Handles */
+button, a, .drag-handle, [role="button"], input[type="submit"] {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0V0z' fill='%2318ff62' fill-opacity='0.2'/%3E%3Cpath d='M0 0h8v2H2v6H0V0zm16 0h8v8h-2V2h-6V0zM0 16h2v6h6v2H0v-8zm16 8v-2h6v-6h2v8h-8z' fill='%2318ff62' stroke='%23000' stroke-width='0.5'/%3E%3Crect x='6' y='6' width='12' height='12' fill='%2318ff62' stroke='%23000' stroke-width='0.5'/%3E%3C/svg%3E") 12 12, pointer !important;
 }
 
 body {
@@ -19,7 +32,8 @@ body {
   font-family: 'VT323', monospace;
   color: var(--terminal-green);
   overflow: hidden;
-  font-size: 1.625rem; /* 26px / 16px */
+  font-size: var(--text-l4);
+  line-height: 1.5;
 }
 
 .crt-container {
@@ -74,7 +88,7 @@ body {
   color: var(--terminal-green);
   padding: 30px 60px;
   font-family: 'VT323', monospace;
-  font-size: 4rem;
+  font-size: var(--text-l1);
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s ease;
@@ -90,13 +104,13 @@ body {
 }
 
 .excuse-text {
-  font-size: 2.2rem;
+  font-size: var(--text-l3);
   min-height: 180px;
   border: 2px solid var(--terminal-green);
   padding: 30px;
   margin-top: 20px;
   background: rgba(0, 255, 65, 0.03);
-  line-height: 1.2;
+  line-height: 1.4;
 }
 
 .severity-btn {
@@ -106,8 +120,9 @@ body {
   padding: 10px 20px;
   font-family: 'VT323', monospace;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: var(--text-l3);
   text-shadow: 0 0 5px var(--terminal-green);
+  font-weight: bold;
 }
 
 .severity-btn.active {
@@ -151,11 +166,12 @@ body {
     border: 2px solid var(--terminal-green);
     color: var(--terminal-green);
     font-family: 'VT323', monospace;
-    font-size: 2.5rem;
+    font-size: var(--text-l2);
     padding: 20px 50px;
     cursor: pointer;
     box-shadow: 0 0 10px var(--terminal-green);
     transition: all 0.2s;
+    font-weight: bold;
 }
 
 .fallout-btn:hover {
@@ -163,3 +179,6 @@ body {
     color: var(--terminal-bg);
     box-shadow: 0 0 30px var(--terminal-green);
 }
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+@keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }

@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# 📟 SMOKESCREEN
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Theater-as-a-Service for Platform and DevOps Engineers.**
 
-Currently, two official plugins are available:
+SMOKESCREEN is a tactical cover generator designed to help engineers exit unnecessary meetings with high-fidelity, hyper-technical, and completely fabricated evidence of a system-wide catastrophic failure.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![SMOKESCREEN Banner](src/assets/hero.png)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🎭 The Concept
+"I'm sorry, I have to drop. The Prometheus scraper is reporting an OOM killer trigger on the EKS control plane. I need to start draining the Fargate nodes immediately."
 
-## Expanding the ESLint configuration
+SMOKESCREEN turns that sentence into a full-scale digital production. It simulates a high-stakes SRE incident on your second monitor, complete with flickering CRT filters, scrolling kernel logs, and panicking Slack messages, giving you the perfect "eject" button for any meeting.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Core Features (v4.5)
+- **📟 DXW Secure Gateway:** A branded, immersive boot sequence and operator identification system.
+- **🖥️ CRT Terminal Aesthetic:** Authentic Fallout-style terminal interface with Gaussian flicker, scanlines, and radial glow.
+- **🎛️ Command-Line Interface:** Keyboard-navigable prompt to control the entire simulation.
+- **📊 Dynamic Evidence Panes:**
+    - **Incident Chat:** Simulated Slack/incident.io conversation with DXW technical staff.
+    - **System Log:** Real-time tailing of a simulated `/VAR/LOG/KERN.LOG` with syntax highlighting.
+    - **Outage Map:** A global region map with active incident indicators.
+    - **Deployment Status:** Live visualization of a failing Kubernetes/Terraform rollout.
+- **🔥 Slow Burn Mode:** A scripted 90-second escalation from "Nominal" to "Catastrophic Failure," including countdowns and automated alerts.
+- **🕴️ Boss Mode (Cmd+B):** Instant high-fidelity macOS update cover screen for when the *actual* boss walks by.
+- **🤖 Excuse Engine:** Stack-aware jargon generator (AWS, GCP, Azure, On-Prem, Serverless) that provides Ticket IDs and 403-Restricted alibi pages.
+- **⏳ Life Reclaimed:** A local storage tracker for every minute you've saved from unnecessary meetings.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Technical Stack
+- **Frontend:** React 19 (TypeScript)
+- **Build Tool:** Vite
+- **Styling:** Vanilla CSS (Advanced CRT filters, radial gradients, CSS animations).
+- **Audio:** Web Audio API (Procedural synthesis of Slack/Teams pings and incident sirens).
+- **QR/Sync:** `qrcode.react` for mobile pager synchronization.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## ⌨️ Operational Controls
+| Command | Action |
+| :--- | :--- |
+| **Double-ESC** | Quick Abort (Trigger Emergency Extraction) |
+| **Cmd+B / Ctrl+B** | Toggle Boss Mode (macOS Update Screen) |
+| **`help`** | View all available terminal commands |
+| **`show [pane]`** | Open panes: `chat`, `logs`, `map`, `deploy`, `burn`, `pager` |
+| **`p0 / p1 / p3`** | Manually set the incident threat level |
+| **`aws / gcp / azure`** | Switch the cloud stack jargon |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 📦 Getting Started
+
+### Prerequisites
+- Node.js (v20+)
+- npm / yarn
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/DrizzlyOwl/smokescreen.git
+
+# Navigate to the project directory
+cd smokescreen
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## ⚖️ Disclaimer
+This project is for **educational and entertainment purposes only**. Use SMOKESCREEN responsibly. We are not liable for any sprint goals missed while you were "re-indexing the DynamoDB shards."
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+**Copyright © 2026 DrizzlyOwl | DXW AI Hackathon**

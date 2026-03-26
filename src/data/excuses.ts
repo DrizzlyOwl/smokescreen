@@ -160,7 +160,7 @@ export const generateExcuse = (severity: Severity, stack: Stack): { text: string
   ];
 
   let excuse = getRand(templates);
-  let timeSaved = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
+  const timeSaved = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
 
   if (severity === 'P1') {
     excuse = `[P1 INCIDENT] ` + excuse;

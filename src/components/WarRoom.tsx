@@ -17,7 +17,6 @@ const DXW_TECH_PEOPLE = [
     'Sim Brody', 'Steph Troeth', 'Stuart Harrison', 'Vicky Hallam', 'William Man', 'Ynda Jas'
 ];
 
-const SENIORS = ['Steph Troeth', 'Lee Maguire', 'Ash Davies', 'David McKee', 'Nick Jackson'];
 const BOT_NAME = 'incident_io';
 
 const MESSAGES: Record<Severity, string[]> = {
@@ -68,15 +67,33 @@ interface ChatMessage {
     isBot: boolean;
 }
 
-export const WarRoom = ({ severity, stack, zIndex, onFocus, isActive }: { severity: Severity, stack: string, zIndex: number, onFocus: () => void, isActive: boolean }) => {
+export const WarRoom = ({ 
+    severity, 
+    stack, 
+    zIndex, 
+    onFocus, 
+    isActive, 
+    uplinkId, 
+    onClose, 
+    playPing,
+    playTagPing,
+    onNewMessage,
+    operatorName
+}: { 
+    severity: Severity, 
+    stack: string, 
+    zIndex: number, 
+    onFocus: () => void, 
+    isActive: boolean, 
+    uplinkId: string, 
+    onClose: () => void, 
+    playPing?: () => void,
+    playTagPing?: () => void,
+    onNewMessage?: () => void,
+    operatorName: string
+}) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current && scrollRef.current.parentElement) {
-      scrollRef.current.parentElement.scrollTop = scrollRef.current.parentElement.scrollHeight;
-    }
-  }, [messages]);
 
   useEffect(() => {
     const systemMsg = {
@@ -85,33 +102,59 @@ export const WarRoom = ({ severity, stack, zIndex, onFocus, isActive }: { severi
         time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
         isBot: true
     };
-    setMessages(prev => [...prev, systemMsg].slice(-100));
+    // Use a small timeout to avoid synchronous setState in effect
+    const timer = setTimeout(() => {
+        setMessages(prev => [...prev, systemMsg].slice(-100));
+    }, 0);
+    return () => clearTimeout(timer);
   }, [severity, stack]);
 
   useEffect(() => {
-    const delay = severity === 'P0' ? 1200 : severity === 'P1' ? 2500 : severity === 'P3' ? 5000 : 8000;
-    const interval = setInterval(() => {
-      setMessages(prev => {
-        const pool = MESSAGES[severity];
-        const user = DXW_TECH_PEOPLE[Math.floor(Math.random() * DXW_TECH_PEOPLE.length)];
-        let text = pool[Math.floor(Math.random() * pool.length)];
-        
-        if (Math.random() > 0.7) {
-            const senior = SENIORS[Math.floor(Math.random() * SENIORS.length)];
-            text = `@${senior.split(' ')[0].toLowerCase()} ${text}`;
-        }
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-        const newMessage = {
-            user,
-            text,
-            time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-            isBot: false
-        };
-        return [...prev, newMessage].slice(-100);
-      });
-    }, delay);
-    return () => clearInterval(interval);
-  }, [severity]);
+// Human technical commentary
+useEffect(() => {
+  const channel = new BroadcastChannel(`smokescreen_room_${uplinkId}`);
+  const delay = severity === 'P0' ? 1200 : severity === 'P1' ? 2500 : severity === 'P3' ? 5000 : 8000;
+
+  const interval = setInterval(() => {
+    const pool = MESSAGES[severity];
+    const user = DXW_TECH_PEOPLE[Math.floor(Math.random() * DXW_TECH_PEOPLE.length)];
+    let text = pool[Math.floor(Math.random() * pool.length)];
+
+    if (Math.random() > 0.7) {
+        const tag = operatorName.split(' ')[0].toLowerCase() || 'operator';
+        text = `@${tag} ${text}`;
+    }
+
+    const newMessage = {
+        user,
+        text,
+        time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+        isBot: false
+    };
+
+    // Broadcast to mobile/companion view
+    channel.postMessage({ type: 'CHAT_MESSAGE', message: newMessage });
+
+    if (text.includes('@')) {
+        playTagPing?.();
+    } else {
+        playPing?.();
+    }
+    
+    onNewMessage?.();
+    setMessages(prev => [...prev, newMessage].slice(-100));
+  }, delay);
+
+  return () => {
+      clearInterval(interval);
+      channel.close();
+  };
+}, [severity, uplinkId, playPing, playTagPing, onNewMessage, operatorName]);
 
   const slackFontStack = '"Slack-Lato", "appleLogo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
 
@@ -126,11 +169,13 @@ export const WarRoom = ({ severity, stack, zIndex, onFocus, isActive }: { severi
       onFocus={onFocus}
       isActive={isActive}
       defaultMinimized={false} 
+      onClose={onClose}
     >
       <div 
         ref={scrollRef}
         style={{ 
-          height: '100%',
+          flex: 1,
+          overflowY: 'auto',
           display: 'flex', 
           flexDirection: 'column', 
           fontFamily: slackFontStack,
@@ -143,16 +188,16 @@ export const WarRoom = ({ severity, stack, zIndex, onFocus, isActive }: { severi
                 width: '36px', height: '36px', borderRadius: '4px', 
                 background: m.isBot ? '#e01e5a' : '#35373b',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, fontSize: '1rem', fontWeight: '900', color: 'white'
+                flexShrink: 0, fontSize: 'var(--text-l4)', fontWeight: '900', color: 'white'
             }}>
                 {m.user.charAt(0).toUpperCase()}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
-                <span style={{ fontWeight: '900', color: 'white', fontSize: '1rem' }}>{m.user}</span>
-                <span style={{ fontSize: '1rem', opacity: 0.5 }}>{m.time}</span>
+                <span style={{ fontWeight: '900', color: 'white', fontSize: 'var(--text-l4)' }}>{m.user}</span>
+                <span style={{ fontSize: 'var(--text-l4)', opacity: 0.5 }}>{m.time}</span>
               </div>
-              <div style={{ lineHeight: '1.46668', fontSize: '1rem' }}>
+              <div style={{ lineHeight: '1.46668', fontSize: 'var(--text-l4)' }}>
                 {m.text.split(' ').map((word, idx) => (
                   word.startsWith('@') 
                     ? <span key={idx} style={{ color: '#1264a3', background: 'rgba(29, 155, 209, 0.1)', borderRadius: '3px', padding: '0 4px', fontWeight: 'bold' }}>{word} </span>
@@ -162,6 +207,46 @@ export const WarRoom = ({ severity, stack, zIndex, onFocus, isActive }: { severi
             </div>
           </div>
         ))}
+      </div>
+      
+      {/* Dummy Input */}
+      <div style={{ 
+          padding: '12px', 
+          borderTop: '1px solid #35373b', 
+          background: '#121519',
+          display: 'flex',
+          gap: '10px'
+      }}>
+        <input 
+            type="text" 
+            placeholder="Type a message..." 
+            disabled
+            style={{ 
+                flex: 1, 
+                background: '#1a1d21', 
+                border: '1px solid #35373b', 
+                borderRadius: '4px', 
+                padding: '8px 12px', 
+                color: '#adbac7',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-l4)',
+                outline: 'none',
+                cursor: 'not-allowed'
+            }} 
+        />
+        <div style={{ 
+            width: '32px', 
+            height: '32px', 
+            background: '#35373b', 
+            borderRadius: '4px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            opacity: 0.5,
+            fontSize: 'var(--text-l4)'
+        }}>
+            ⏎
+        </div>
       </div>
     </Pane>
   );

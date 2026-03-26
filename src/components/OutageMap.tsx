@@ -21,7 +21,7 @@ const REGIONS = [
     { label: 'AF-SOUTH-1 (Cape Town)', lat: -33.9, lng: 18.4 }
 ];
 
-export const OutageMap = ({ severity, zIndex, onFocus, isActive }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean }) => {
+export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, onClose: () => void }) => {
     const [nodes, setNodes] = useState<IncidentNode[]>([]);
 
     useEffect(() => {
@@ -76,6 +76,7 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive }: { severity: S
           onFocus={onFocus}
           isActive={isActive}
           severityColor={severity === 'NOMINAL' ? undefined : (isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)')}
+          onClose={onClose}
         >
             <div style={{
                 height: '100%',

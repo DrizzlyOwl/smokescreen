@@ -22,7 +22,7 @@ export const PANE_STYLES = {
     cursor: isDragging ? 'grabbing' : 'grab',
     userSelect: 'none' as const,
     background: isActive ? '#1e231e' : '#121519',
-    fontSize: '1rem',
+    fontSize: 'var(--text-l3)',
     borderBottom: isActive ? '1px solid rgba(24, 255, 98, 0.2)' : '1px solid transparent'
   }),
   headerTitle: {
@@ -37,14 +37,16 @@ export const PANE_STYLES = {
     cursor: 'pointer',
     fontFamily: 'inherit',
     fontWeight: 'bold',
-    fontSize: '1rem',
+    fontSize: 'var(--text-l3)',
     padding: '0 5px'
   },
   content: (height: string) => ({
     height,
-    overflow: 'auto' as const,
+    overflow: 'hidden' as const,
     padding: '0',
     background: '#1a1d21',
-    boxSizing: 'border-box' as const
+    boxSizing: 'border-box' as const,
+    display: 'flex',
+    flexDirection: 'column' as const
   })
 };
