@@ -34,6 +34,7 @@ export const SyncProvider = ({
   }, [onPeerConnected]);
 
   const uplinkId = terminal?.uplinkId;
+  const setUplinkId = terminal?.setUplinkId;
 
   const broadcast = useCallback((data: any, excludePeerId?: string) => {
     connections.forEach(conn => {
@@ -88,7 +89,12 @@ export const SyncProvider = ({
         console.error('PeerJS Error:', err);
         if (err.type === 'peer-unavailable' && !isHost) {
             setIsConnected(false);
-            // Could implement retry logic here
+        }
+
+        if (err.type === 'unavailable-id' && isHost && setUplinkId) {
+            console.warn('Uplink ID collision, generating new code...');
+            const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+            setUplinkId(`SRE-${random}`);
         }
     });
 
@@ -126,7 +132,7 @@ export const SyncProvider = ({
     return () => {
       newPeer.destroy();
     };
-  }, [uplinkId, isHost, broadcast]);
+  }, [uplinkId, isHost, broadcast, setUplinkId, connections.length]);
 
   return (
     <SyncContext.Provider value={{

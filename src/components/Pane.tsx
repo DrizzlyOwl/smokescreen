@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from './Button';
 import { useDraggable } from '../hooks/useDraggable';
 import { useResizable } from '../hooks/useResizable';
+import { MinimizeIcon, MaximizeIcon, CloseIcon } from './Icons';
 
 interface PaneProps {
   title: string;
@@ -54,14 +55,15 @@ export const Pane = ({
   return (
     <div 
       onMouseDown={onFocus}
-      className={`pane ${isActive ? 'active' : ''} ${isMinimized ? 'minimized' : ''}`}
+      className={`pane ${isActive ? 'active' : ''} ${isMinimized ? 'minimized' : ''} ${isDragging ? 'dragging' : ''}`}
       style={{
         left: position.x,
         top: position.y,
         width: size.width,
         zIndex,
         borderColor: severityColor || undefined,
-        transition: isResizing ? 'none' : undefined
+        transition: isResizing ? 'none' : undefined,
+        opacity: isDragging ? 0.7 : 1
       }}
     >
       {/* Header / Drag Handle */}
@@ -89,19 +91,19 @@ export const Pane = ({
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <Button 
             onClick={toggleMinimize}
-            size="small inline"
-            style={{ width: '40px' }}
+            size="x-small"
+            style={{ width: '36px', height: '24px' }}
           >
-            {isMinimized ? '+' : '−'}
+            {isMinimized ? <MaximizeIcon /> : <MinimizeIcon />}
           </Button>
           {onClose && (
             <Button 
                 onClick={(e) => { e.stopPropagation(); onClose(); }}
                 variant="danger"
-                size="small inline"
-                style={{ width: '40px' }}
+                size="x-small"
+                style={{ width: '36px', height: '24px' }}
             >
-                X
+                <CloseIcon />
             </Button>
           )}
         </div>

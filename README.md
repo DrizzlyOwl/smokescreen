@@ -1,8 +1,8 @@
 # 📟 SMOKESCREEN
 
-**Theater-as-a-Service for Platform and DevOps Engineers.**
+**Technical Incident Theatre for Platform and DevOps Engineers.**
 
-SMOKESCREEN is a tactical cover generator designed to help engineers exit unnecessary meetings with high-fidelity, hyper-technical, and completely fabricated evidence of a system-wide catastrophic failure.
+SMOKESCREEN is a tactical performance suite designed to help engineers exit unnecessary meetings with high-fidelity, hyper-technical, and completely fabricated evidence of a system-wide catastrophic failure.
 
 ![SMOKESCREEN Banner](src/assets/hero.png)
 
@@ -13,36 +13,38 @@ SMOKESCREEN is a tactical cover generator designed to help engineers exit unnece
 
 SMOKESCREEN turns that sentence into a full-scale digital production. It simulates a high-stakes SRE incident on your second monitor, complete with flickering CRT filters, scrolling kernel logs, and panicking Slack messages, giving you the perfect "eject" button for any meeting.
 
-## 🚀 Core Features (v4.5)
-- **📟 Secure Gateway:** A branded, immersive boot sequence and operator identification system.
-- **🖥️ CRT Terminal Aesthetic:** Authentic vintage terminal interface with Gaussian flicker, scanlines, and radial glow.
-- **🎛️ Command-Line Interface:** Keyboard-navigable prompt to control the entire simulation.
-- **📊 Dynamic Evidence Panes:**
-    - **Incident Chat:** Simulated Slack/incident.io conversation with technical staff.
-    - **System Log:** Real-time tailing of a simulated `/VAR/LOG/KERN.LOG` with syntax highlighting.
-    - **Outage Map:** A global region map with active incident indicators.
-    - **Deployment Status:** Live visualization of a failing Kubernetes/Terraform rollout.
-- **🔥 Slow Burn Mode:** A scripted 90-second escalation from "Nominal" to "Catastrophic Failure," including countdowns and automated alerts.
-- **🕴️ Boss Mode (Cmd+B):** Instant high-fidelity macOS update cover screen for when the *actual* boss walks by.
-- **🤖 Excuse Engine:** Stack-aware jargon generator (AWS, GCP, Azure, On-Prem, Serverless) that provides Ticket IDs and 403-Restricted alibi pages.
-- **⏳ Life Reclaimed:** A local storage tracker for every minute you've saved from unnecessary meetings.
+## 🚀 Core Features (v5.0)
+- **📟 Secure Gateway:** Immersive boot sequence and operator identification system. Now includes a **Manual Uplink** feature for joining active sessions via room codes.
+- **🖥️ CRT Terminal Aesthetic:** Authentic vintage terminal interface with Gaussian flicker, scanlines, and radial glow. Theme-aware styling supports **Classic (Green)**, **Amber**, and **Cobalt** modes.
+- **📱 P2P Mobile Pager:** Real-time WebRTC synchronization between your terminal and mobile device. Use your phone as a "secondary evidence screen" with the **SRE-XXXX** room code system.
+- **🤖 Gemini AI Integration:** Optional AI-enhanced excuse generation via Google Gemini 1.5 Flash. Supply an API key in settings for hyper-realistic, context-aware incident reports.
+- **🔥 Slow Burn Protocol:** Scripted escalation from Nominal to Catastrophic Failure, triggering coordinated metric spikes and audio alerts.
 
-## 🛠️ Technical Stack
-- **Frontend:** React 19 (TypeScript)
-- **Build Tool:** Vite
-- **Styling:** Vanilla CSS (Advanced CRT filters, radial gradients, CSS animations).
-- **Audio:** Web Audio API (Procedural synthesis of Slack/Teams pings and incident sirens).
-- **QR/Sync:** `qrcode.react` for mobile pager synchronization.
+## 🖥️ The Action Panes
+SMOKESCREEN features 10 specialized panes to build your technical alibi:
+
+1.  **Incident War Room**: Simulated Slack/incident.io conversation with technical staff.
+2.  **System Log**: Real-time tailing of a simulated `/VAR/LOG/KERN.LOG` with syntax highlighting and kernel panic modes.
+3.  **Outage Map**: A global region map with active incident indicators and pulsing failure nodes.
+4.  **Deployment Status**: Live visualization of failing Kubernetes workloads and Terraform rollouts.
+5.  **Financial Burn Monitor**: A high-impact currency counter tracking estimated incident costs in real-time.
+6.  **PagerSync**: Your centralized uplink hub with dynamic QR codes and room code management.
+7.  **Ingress Metrics**: Live-canvas P99 latency charts that spike during catastrophic failures.
+8.  **Debug Console**: Real-time telemetry tracking internal simulation state and WebRTC handshakes.
+9.  **Operator Manual**: Classified "Top Secret" SOP documentation for simulation protocols.
+10. **System Settings**: Theme configuration and secure Gemini API key management.
 
 ## ⌨️ Operational Controls
 | Command | Action |
 | :--- | :--- |
-| **Double-ESC** | Quick Abort (Trigger Emergency Extraction) |
+| **ESC** | Close Active Pane / Reset Input |
+| **Double-ESC** | Emergency Extraction (Reset Simulation) |
 | **Cmd+B / Ctrl+B** | Toggle Boss Mode (macOS Update Screen) |
 | **`help`** | View all available terminal commands |
-| **`show [pane]`** | Open panes: `chat`, `logs`, `map`, `deploy`, `burn`, `pager` |
+| **`show [pane]`** | Open specific action panes |
 | **`p0 / p1 / p3`** | Manually set the incident threat level |
 | **`aws / gcp / azure`** | Switch the cloud stack jargon |
+| **`resolve`** | Restore nominal operations and clear alerts |
 
 ## 📦 Getting Started
 

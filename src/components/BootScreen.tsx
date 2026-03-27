@@ -1,14 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 
-const LOGO_ART = [
-  '  ___ __ __  __  _  _____ ___  ___ ___  ___ ___ _ _ ',
-  ' / __|  V  |/  \\| |/ | __/ __|/ __| _ \\ __| __| \\ |',
-  ' \\__ \\ \\_/ | () |   <| _|\\__ \\ (__|   / _|| _|| . |',
-  ' |___/_| |_|\\__/|_|\\_\\___|___/\\___|_|_\\___|___|_|\\_|',
-  '',
-  '----------------------------------------------------'
-];
-
 interface NavigatorUAData {
   getHighEntropyValues: (hints: string[]) => Promise<{
     architecture?: string;
@@ -102,8 +93,6 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
   });
 
   const logs = useMemo(() => [
-    ...LOGO_ART,
-    '',
     'SMOKESCREEN-BIOS v1.0.42 (C) 1984 SRE_CORP',
     `CPU: ${hardware.platform.toUpperCase()} @ ${hardware.cpuCores} CORES`,
     'SYSTEM_MEM_CHECK',
@@ -118,7 +107,7 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
     'MOUNTING /VAR/LOG/KERN.LOG... [OK]',
     'ESTABLISHING WAR ROOM UPLINK... [CONNECTED]',
     '',
-    'WELCOME TO SMOKESCREEN OS v4.5',
+    'WELCOME TO SMOKESCREEN OS v5.0',
     `USER: ${operatorName.toUpperCase()}`,
     `REGION: ${hardware.timezone.toUpperCase()}`,
     'STATUS: NOMINAL',
@@ -171,8 +160,7 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
         return () => clearTimeout(timer);
     }
 
-    const isLogoPart = index < LOGO_ART.length;
-    const delay = isLogoPart ? 50 : Math.random() * 200 + 100;
+    const delay = Math.random() * 200 + 100;
     
     const timeout = setTimeout(() => {
       setVisibleLines(prev => [...prev, logs[index]]);
@@ -218,7 +206,6 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
       justifyContent: 'flex-start',
       overflow: 'hidden',
       color: 'var(--terminal-green)',
-      fontFamily: 'monospace',
       fontSize: 'var(--text-l3)',
     }}>
       <div style={{ textShadow: '0 0 10px var(--terminal-green)', whiteSpace: 'pre' }}>
@@ -226,7 +213,7 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
           <div key={i} style={{ marginBottom: '5px', minHeight: '1.2em' }}>
             {['SYSTEM_MEM_CHECK', 'SYSTEM_KB_PROBE', 'SYSTEM_DISK_PROBE', 'SYSTEM_POST_BEEP'].includes(line) 
                 ? null 
-                : (line ? (LOGO_ART.includes(line) || line === '----------------------------------------------------' ? line : `> ${line}`) : '')}
+                : (line ? `> ${line}` : '')}
           </div>
         ))}
         {isMemoryChecking && (

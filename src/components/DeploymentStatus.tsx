@@ -109,7 +109,7 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
       onClose={onClose}
     >
       <div style={{ flex: 1, overflow: 'auto', fontFamily: 'monospace', padding: '12px', boxSizing: 'border-box' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: 'var(--text-l4)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '16px' }}>
           <thead>
             <tr style={{ textAlign: 'left', borderBottom: '1px solid #2d333b', color: '#768390', fontWeight: 'bold' }}>
               <th style={{ padding: '4px' }}>NAME</th>
@@ -137,8 +137,8 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
         </table>
 
         <div style={{ background: '#000', padding: '10px', borderRadius: '4px', border: '1px solid #2d333b' }}>
-          <div style={{ color: '#768390', marginBottom: '5px', fontSize: 'var(--text-l4)', fontWeight: 'bold' }}>TERRAFORM_APPLY_STDOUT</div>
-          <div ref={tfScrollRef} style={{ height: '80px', overflowY: 'auto', fontSize: 'var(--text-l4)' }}>
+          <div style={{ color: '#768390', marginBottom: '5px', fontSize: '16px', fontWeight: 'bold' }}>TERRAFORM_APPLY_STDOUT</div>
+          <div ref={tfScrollRef} style={{ height: '80px', overflowY: 'auto', fontSize: '16px' }}>
             {tfLog.map((log, i) => (
               <div key={i} style={{ 
                 color: log.includes('Error') ? '#f47067' : log.includes('Warning') ? '#c69026' : '#adbac7',

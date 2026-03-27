@@ -98,7 +98,7 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive, uplinkId, onClo
               flex: 1,
               overflow: 'auto',
               fontFamily: 'monospace',
-              fontSize: 'var(--text-l4)',
+              fontSize: '16px',
               color: isP0 ? 'var(--terminal-red)' : 'rgba(24, 255, 98, 0.9)',
               background: 'rgba(0, 5, 0, 0.95)',
               padding: '8px',

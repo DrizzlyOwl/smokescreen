@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Pane } from './Pane';
 import { useIncident } from '../hooks/useIncident';
 import { MetricsIcon } from './Icons';
+import { useTerminal } from '../hooks/useTerminal';
 
 export const LatencyPane = ({ 
     zIndex, 
@@ -16,6 +17,7 @@ export const LatencyPane = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { severity } = useIncident();
+  const { isEcoMode } = useTerminal();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -25,8 +27,17 @@ export const LatencyPane = ({
 
     const points: number[] = Array(50).fill(50);
     let animationId: number;
+    let lastTime = 0;
+    const fps = isEcoMode ? 15 : 60;
+    const interval = 1000 / fps;
 
-    const render = () => {
+    const render = (timestamp: number) => {
+      animationId = requestAnimationFrame(render);
+
+      const delta = timestamp - lastTime;
+      if (delta < interval) return;
+      lastTime = timestamp - (delta % interval);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       points.shift();
@@ -49,7 +60,8 @@ export const LatencyPane = ({
       }
 
       ctx.beginPath();
-      ctx.strokeStyle = nextPoint > 80 ? '#ff0000' : '#18ff62';
+      const themeColor = getComputedStyle(document.body).getPropertyValue('--terminal-green').trim() || '#18ff62';
+      ctx.strokeStyle = nextPoint > 80 ? '#ff0000' : themeColor;
       ctx.lineWidth = 2;
       
       const step = canvas.width / (points.length - 1);
@@ -61,12 +73,11 @@ export const LatencyPane = ({
       });
       
       ctx.stroke();
-      animationId = requestAnimationFrame(render);
     };
 
-    render();
+    animationId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animationId);
-  }, [severity]);
+  }, [severity, isEcoMode]);
 
   return (
     <Pane

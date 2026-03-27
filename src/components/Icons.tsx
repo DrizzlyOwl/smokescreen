@@ -53,6 +53,20 @@ export const BurnIcon = () => (
   </IconBase>
 );
 
+export const ActivityIcon = () => (
+  <IconBase>
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+  </IconBase>
+);
+
+export const AudioIcon = () => (
+  <IconBase>
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+  </IconBase>
+);
+
 export const PagerIcon = () => (
   <IconBase>
     <rect x="2" y="5" width="20" height="14" rx="2" />
@@ -89,6 +103,26 @@ export const BugIcon = () => (
     <path d="M4 13h4" />
     <path d="m10 4 1 2" />
     <path d="m14 4-1 2" />
+  </IconBase>
+);
+
+export const MinimizeIcon = () => (
+  <IconBase>
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </IconBase>
+);
+
+export const MaximizeIcon = () => (
+  <IconBase>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <line x1="3" y1="9" x2="21" y2="9" />
+  </IconBase>
+);
+
+export const CloseIcon = () => (
+  <IconBase>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
   </IconBase>
 );
 

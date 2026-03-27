@@ -3,7 +3,7 @@ import React from 'react';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'terminal' | 'primary' | 'danger' | 'mobile' | 'mobile-outline';
   active?: boolean;
-  size?: 'small inline' | 'medium inline' | 'small' | 'large';
+  size?: 'x-small' | 'small inline' | 'medium inline' | 'small' | 'large';
   fullWidth?: boolean;
 }
 
@@ -19,6 +19,7 @@ export const Button = ({
 }: ButtonProps) => {
   const getPaddingAndFontSize = () => {
     switch (size) {
+        case 'x-small': return { padding: '4px 8px', fontSize: '0.75rem' };
         case 'small inline': return { padding: '6px 12px', fontSize: 'var(--text-l4)' };
         case 'medium inline': return { padding: '10px 18px', fontSize: 'var(--text-l3)' };
         case 'small': return { padding: '14px 28px', fontSize: 'var(--text-l3)' };

@@ -9,6 +9,13 @@ import { CommandInput } from './components/CommandInput';
 import { MobilePager } from './components/MobilePager';
 import { Button } from './components/Button';
 import { ShutdownScreen } from './components/ShutdownScreen';
+import { ActivityIcon } from './components/Icons';
+import { AudioToggle } from './components/AudioToggle';
+import { Footer } from './components/Footer';
+import { ActionGroup } from './components/ActionGroup';
+import { ReadoutBox } from './components/ReadoutBox';
+import { StatReadout } from './components/StatReadout';
+
 
 import { useWindowManager, type PaneId, type PanesState } from './hooks/useWindowManager';
 import { useCommandRegistry, type Command } from './hooks/useCommandRegistry';
@@ -36,12 +43,11 @@ import { useDebugLogger } from './hooks/useDebugLogger';
 function App() {
   const [isAssetsLoaded, setIsAssetsLoaded] = useState(false);
   const [displayText, setDisplayText] = useState('');
-  const [footerText, setFooterText] = useState('');
   const [view, setView] = useState<'HOME' | 'TICKET'>('HOME');
   const [isBossMode, setIsBossMode] = useState(false);
-  const [currentEggIndex, setCurrentEggIndex] = useState(0);
   const [unreadChat, setUnreadChat] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [tempJoinId, setTempJoinId] = useState('');
 
   const { 
     appState, setAppState, 
@@ -70,7 +76,7 @@ function App() {
 
 
   const {
-    isAudioOn, setIsAudioOn, initAudio,
+    setIsAudioOn, initAudio,
     playSlackPing, playTagPing, playAlert,
     playLoginChime, playLogoutChime, playPostBeep, stopAllSounds
   } = useAudio();
@@ -103,7 +109,7 @@ function App() {
     }
   }, [panes.chat, activePane, bringToFront]);
 
-  const { messages } = useIncidentChat(severity, stack, operatorName, uplinkId, handleNewChatMessage, playSlackPing, playTagPing, appState === 'READY');
+  const { messages, sendMessage } = useIncidentChat(severity, stack, operatorName, uplinkId, handleNewChatMessage, playSlackPing, playTagPing, appState === 'READY');
 
   const handleUrlUpdate = useCallback((updates: Partial<{ severity: Severity; stack: Stack; panes: PanesState }>) => {
     if (updates.severity) setSeverity(updates.severity);
@@ -198,6 +204,7 @@ function App() {
         setTheme(t);
     },
     handleEject: loggedHandleDeclare,
+    handleCease: loggedCeaseTheatre,
     handleLogout,
     copyExcuse: () => { 
         if (isDebugMode) log('ACTION', { type: 'COPY_REPORT' });
@@ -224,7 +231,7 @@ function App() {
     }
   }), [
     loggedTogglePane, openPane, closePane, openAll, closeAll, loggedSetSeverity, loggedSetStack, loggedSetIsSlowBurn, initAudio, 
-    setIsAudioOn, setTheme, loggedHandleDeclare, handleLogout, incidentReport, setIncidentReport, isDebugMode, log
+    setIsAudioOn, setTheme, loggedHandleDeclare, loggedCeaseTheatre, handleLogout, incidentReport, setIncidentReport, isDebugMode, log
   ]);
 
   const { handleCommand: registryHandleCommand } = useCommandRegistry(commandActions);
@@ -254,51 +261,6 @@ function App() {
     'RECALIBRATING PARSECS... [DONE]'
   ], []);
 
-  // Typewriter effect for footer eggs
-  useEffect(() => {
-    if (appState !== 'READY') return;
-    
-    let isMounted = true;
-    let currentIdx = currentEggIndex;
-    let charIdx = 0;
-    let isDeleting = false;
-    let timeoutId: number;
-
-    const type = () => {
-        const fullText = easterEggs[currentIdx];
-        let typingSpeed = isDeleting ? 50 : 100;
-        
-        if (isDeleting) {
-            setFooterText(fullText.substring(0, charIdx - 1));
-            charIdx--;
-        } else {
-            setFooterText(fullText.substring(0, charIdx + 1));
-            charIdx++;
-        }
-
-        if (!isDeleting && charIdx === fullText.length) {
-            isDeleting = true;
-            typingSpeed = 3000; 
-        } else if (isDeleting && charIdx === 0) {
-            isDeleting = false;
-            currentIdx = (currentIdx + 1) % easterEggs.length;
-            setCurrentEggIndex(currentIdx);
-            typingSpeed = 500; 
-        }
-
-        if (isMounted) {
-            timeoutId = window.setTimeout(type, typingSpeed);
-        }
-    };
-
-    const initialTimeout = window.setTimeout(type, 1000);
-    return () => {
-        isMounted = false;
-        window.clearTimeout(initialTimeout);
-        window.clearTimeout(timeoutId);
-    };
-  }, [appState, easterEggs, currentEggIndex]);
-
   // Auto-open HowTo for first-time users
   useEffect(() => {
     const hasSeenHowTo = localStorage.getItem('smokescreen_seen_howto');
@@ -309,11 +271,6 @@ function App() {
   }, [appState, openPane]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('pager') && appState !== 'MOBILE_PAGER') {
-        setAppState('MOBILE_PAGER');
-    }
-
     if ('fonts' in document) {
       (document as unknown as { fonts: { load: (f: string) => Promise<void> } }).fonts.load('1em "VT323"').then(() => {
         setTimeout(() => setIsAssetsLoaded(true), 500);
@@ -321,7 +278,7 @@ function App() {
     } else {
       setIsAssetsLoaded(true);
     }
-  }, [appState, setAppState]);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -408,15 +365,14 @@ function App() {
         <div className="gateway-console">
           <div className="gateway-technical-readout">
             <div>
-                <span className="stat-label">OS_V:</span> <span className="stat-value">4.5.0</span><br/>
-                <span className="stat-label">GPU:</span> <span className="stat-value">{clientStats.gpu}</span>
+                <StatReadout label="OS_V" value="5.0.0" /><br/>
+                <StatReadout label="GPU" value={clientStats.gpu} />
             </div>
             <div style={{ textAlign: 'right' }}>
-                <span className="stat-label">PWR:</span> <span className="stat-value">
-                    {clientStats.batteryLevel !== null ? `${clientStats.batteryLevel}%` : 'AC_POWER'} 
-                    {clientStats.isCharging ? ' (CHARGING)' : ''}
-                </span><br/>
-                <span className="stat-label">SIGNAL:</span> <span className="stat-value">{clientStats.connectionType}</span>
+                <StatReadout label="PWR" value={
+                    `${clientStats.batteryLevel !== null ? `${clientStats.batteryLevel}%` : 'AC_POWER'}${clientStats.isCharging ? ' (CHARGING)' : ''}`
+                } /><br/>
+                <StatReadout label="SIGNAL" value={clientStats.connectionType} />
             </div>
           </div>
 
@@ -426,30 +382,20 @@ function App() {
             TECHNICAL_INCIDENT_THEATRE
           </div>
 
-          <div style={{ marginBottom: '40px', textAlign: 'left' }}>
-            <label style={{ display: 'block', marginBottom: '15px', fontSize: 'var(--text-l3)', color: 'var(--terminal-green)', fontWeight: 'bold' }}>
+          <div className="gateway-input-group">
+            <label>
               {'>'} IDENTIFY_OPERATOR:
             </label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <span style={{ position: 'absolute', left: '15px', color: 'var(--terminal-green)', fontSize: 'var(--text-l3)' }}>_</span>
+            <div className="gateway-input-wrapper">
+                <span className="cursor">_</span>
                 <input 
                     autoFocus
                     type="text" 
                     value={operatorName}
                     placeholder="NAME_REQUIRED"
+                    className="gateway-input"
                     onChange={(e) => setOperatorName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && operatorName.trim() && setAppState('BOOT')}
-                    style={{ 
-                        background: 'rgba(0, 0, 0, 0.3)', 
-                        border: '1px solid var(--terminal-green)', 
-                        color: 'var(--terminal-green)', 
-                        fontSize: 'var(--text-l3)', 
-                        padding: '15px 15px 15px 35px',
-                        outline: 'none', 
-                        width: '100%',
-                        fontFamily: 'monospace',
-                        textTransform: 'uppercase'
-                    }}
                 />
             </div>
           </div>
@@ -459,25 +405,53 @@ function App() {
             disabled={!operatorName.trim()} 
             variant="primary"
             size="large"
-            style={{ width: '100%' }}
+            fullWidth
           >
             INITIATE_SYSTEM_BOOT
           </Button>
 
           <div style={{ marginTop: '20px' }}>
-            <Button 
-                onClick={() => { initAudio(); setIsAudioOn(!isAudioOn); }} 
-                active={isAudioOn}
-                size="small"
-                style={{ width: '100%' }}
-            >
-                AUDIO_SYSTEM: {isAudioOn ? 'ACTIVE' : 'SILENCED'}
-            </Button>
+            <AudioToggle 
+                fullWidth 
+                size="small" 
+                labelPrefix="AUDIO"
+                activeLabel="ON"
+                inactiveLabel="OFF"
+            />
           </div>
 
           <div style={{ marginTop: '30px', opacity: 0.3, fontSize: 'var(--text-l4)', textAlign: 'center' }}>
             UNAUTHORIZED ACCESS IS PROHIBITED<br/>
             (C) 1984 SRE DIVISION
+          </div>
+
+          <div className="gateway-pager-link">
+             <div className="gateway-pager-link-label">
+              {">"} LINK_COMPANION_PAGER:
+            </div>
+            <div className="flex gap-2">
+                <input 
+                    type="text" 
+                    placeholder="SRE-XXXX"
+                    value={tempJoinId}
+                    onChange={(e) => setTempJoinId(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === 'Enter' && tempJoinId && (window.location.search = `?pager=${tempJoinId}&theme=${theme}`)}
+                    className="gateway-input"
+                    style={{ padding: '10px' }} // Local override for smaller size
+                />
+                <Button 
+                    onClick={() => {
+                        if (tempJoinId) {
+                            window.location.search = `?pager=${tempJoinId}&theme=${theme}`;
+                        }
+                    }}
+                    size="small"
+                    disabled={!tempJoinId}
+                    style={{ minWidth: '100px' }}
+                >
+                    CONNECT
+                </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -519,7 +493,16 @@ function App() {
     <>
       <BossMode active={isBossMode} />
       <Suspense fallback={null}>
-        {panes.chat && <WarRoom messages={messages} zIndex={zIndices.chat} onFocus={() => bringToFront('chat')} isActive={activePane === 'chat'} onClose={() => loggedTogglePane('chat')} />}
+        {panes.chat && <WarRoom 
+            messages={messages} 
+            zIndex={zIndices.chat} 
+            onFocus={() => bringToFront('chat')} 
+            isActive={activePane === 'chat'} 
+            onClose={() => loggedTogglePane('chat')}
+            sendMessage={sendMessage}
+            isDeclared={isDeclared}
+            operatorName={operatorName}
+        />}
         {panes.map && <OutageMap severity={severity} zIndex={zIndices.map} onFocus={() => bringToFront('map')} isActive={activePane === 'map'} onClose={() => loggedTogglePane('map')} />}
         {panes.deploy && <DeploymentStatus severity={severity} zIndex={zIndices.deploy} onFocus={() => bringToFront('deploy')} isActive={activePane === 'deploy'} onClose={() => loggedTogglePane('deploy')} />}
         {panes.logs && <SystemLog severity={severity} zIndex={zIndices.logs} onFocus={() => bringToFront('logs')} isActive={activePane === 'logs'} uplinkId={uplinkId} onClose={() => loggedTogglePane('logs')} />}
@@ -561,7 +544,7 @@ function App() {
                 </div>
               )}
               <div style={{ fontSize: 'var(--text-l4)', opacity: 0.6 }}>
-                OP: {operatorName || 'UNKNOWN'} | UPLINK: <a href={`https://drizzlyowl.github.io/smokescreen/?pager=${uplinkId}&sev=${severity}&stack=${stack}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>{uplinkId}</a>
+                OP: {operatorName || 'UNKNOWN'} | UPLINK: <a href={`${window.location.origin}${window.location.pathname}?pager=${uplinkId}&sev=${severity}&stack=${stack}&theme=${theme}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>{uplinkId}</a>
               </div>
               <div style={{ marginTop: '10px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <Button onClick={() => loggedTogglePane('howTo')} active={panes.howTo} size="small inline" title="Operator Manual">
@@ -582,9 +565,7 @@ function App() {
             </div>
           </header>
 
-          <div className="action-group">
-            <label className="action-label">[ THEATRE_CONTROLS ]</label>
-            <div className="action-buttons">
+          <ActionGroup label="[ THEATRE_CONTROLS ]">
                 <Button onClick={() => loggedTogglePane('chat')} active={panes.chat} size="medium inline">
                     WAR_ROOM ({unreadChat})
                 </Button>
@@ -611,13 +592,10 @@ function App() {
                         DEBUG
                     </Button>
                 )}
-            </div>
-          </div>
+          </ActionGroup>
 
           <div className="selector-container">
-            <div className="selector-group">
-              <label style={{ fontSize: 'var(--text-l3)', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>[ CLOUD_STACK_SELECT ]</label>
-              <div className="severity-selector" style={{ marginBottom: '10px' }}>
+            <ActionGroup label="[ CLOUD_STACK_SELECT ]" style={{ flex: 1 }}>
                 {(['AWS', 'GCP', 'AZURE', 'ON-PREM', 'SERVERLESS'] as Stack[]).map((s) => (
                   <Button 
                     key={s} 
@@ -628,11 +606,8 @@ function App() {
                     {s}
                   </Button>
                 ))}
-              </div>
-            </div>
-            <div className="selector-group">
-              <label style={{ fontSize: 'var(--text-l3)', display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>[ THREAT_LEVEL ]</label>
-              <div className="severity-selector" style={{ marginBottom: '10px' }}>
+            </ActionGroup>
+            <ActionGroup label="[ THREAT_LEVEL ]" style={{ flex: 1 }}>
                 {(['NOMINAL', 'P3', 'P1', 'P0'] as Severity[]).map((level) => (
                   <Button 
                     key={level} 
@@ -644,8 +619,7 @@ function App() {
                     {level}
                   </Button>
                 ))}
-              </div>
-            </div>
+            </ActionGroup>
           </div>
 
           <CommandInput onCommand={handleCommand} />
@@ -656,80 +630,56 @@ function App() {
                     onClick={() => loggedSetIsSlowBurn(!isSlowBurn)} 
                     active={isSlowBurn} 
                     size="small"
-                    style={{ width: '180px' }}
+                    style={{ minWidth: '220px', whiteSpace: 'nowrap' }}
                 >
+                    <ActivityIcon />
                     SLOW BURN: {isSlowBurn ? `${slowBurnCountdown}s` : 'OFF'}
                 </Button>
-                <Button 
-                    onClick={() => { initAudio(); setIsAudioOn(!isAudioOn); }} 
-                    active={isAudioOn} 
-                    size="small"
-                    style={{ width: '120px' }}
-                >
-                    AUDIO: {isAudioOn ? 'ON' : 'OFF'}
-                </Button>
+                <AudioToggle 
+                    size="small" 
+                    labelPrefix="AUDIO"
+                    activeLabel="ON"
+                    inactiveLabel="OFF"
+                    style={{ minWidth: '160px', whiteSpace: 'nowrap' }} 
+                />
             </div>
             <div style={{ display: 'flex', gap: '15px' }}>
                 <Button 
-                    onClick={loggedCeaseTheatre}
-                    disabled={severity === 'NOMINAL' && !isDeclared}
-                    variant="danger"
-                    size="large"
-                    style={{ width: '200px' }}
-                >
-                    CEASE_THEATRICS
-                </Button>
-                <Button 
-                    variant="primary" 
-                    onClick={loggedHandleDeclare} 
-                    disabled={severity === 'NOMINAL' || isDeclared}
+                    variant={isDeclared ? "danger" : "primary"}
+                    onClick={isDeclared ? loggedCeaseTheatre : loggedHandleDeclare} 
+                    disabled={severity === 'NOMINAL'}
                     size="large"
                     style={{ flex: 1 }}
                 >
-                    DECLARE_CRITICAL_INCIDENT
+                    {isDeclared ? 'RESOLVE_INCIDENT' : 'DECLARE_INCIDENT'}
                 </Button>
             </div>
           </div>
 
           {incidentReport && (
-            <div className="excuse-text excuse-box">
-              <div className="excuse-header">
-                <div className="excuse-label">
-                  {`> INCIDENT_TECHNICAL_PLAYBOOK [${stack}]:`}
-                </div>
-                {localStorage.getItem('gemini_api_key') && (
+            <ReadoutBox 
+                label={`> INCIDENT_TECHNICAL_PLAYBOOK [${stack}]:`}
+                className="excuse-text"
+                headerRight={localStorage.getItem('gemini_api_key') && (
                     <div className="ai-badge">
                         AI_ENHANCED
                     </div>
                 )}
-              </div>
+                footer={displayText === incidentReport && incidentReport !== 'HELP_DISPLAYED' && !incidentReport.startsWith('COMMAND_NOT_RECOGNIZED') && (
+                    <div className="flex gap-3">
+                      <Button onClick={() => { navigator.clipboard.writeText(incidentReport); setDisplayText('>>> CLIPBOARD_SYNC_COMPLETE <<<'); setTimeout(() => setDisplayText(incidentReport), 1500); }} active size="x-small">
+                        [ COPY_PLAYBOOK ]
+                      </Button>
+                      <Button onClick={() => setView('TICKET')} size="x-small">
+                        [ VIEW_RESTRICTED_TICKET ]
+                      </Button>
+                    </div>
+                )}
+            >
               <div style={{ lineHeight: '1.4', fontSize: 'var(--text-l3)', whiteSpace: 'pre-wrap' }}>{displayText}</div>
-              {displayText === incidentReport && incidentReport !== 'HELP_DISPLAYED' && !incidentReport.startsWith('COMMAND_NOT_RECOGNIZED') && (
-                <div style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>
-                  <Button onClick={() => { navigator.clipboard.writeText(incidentReport); setDisplayText('>>> CLIPBOARD_SYNC_COMPLETE <<<'); setTimeout(() => setDisplayText(incidentReport), 1500); }} active size="medium inline">
-                    [ COPY_PLAYBOOK ]
-                  </Button>
-                  <Button onClick={() => setView('TICKET')} size="medium inline">
-                    [ VIEW_RESTRICTED_TICKET ]
-                  </Button>
-                </div>
-              )}
-            </div>
+            </ReadoutBox>
           )}
-          <footer style={{ marginTop: '30px', borderTop: '2px solid rgba(24, 255, 98, 0.2)', paddingTop: '15px', textAlign: 'center' }}>
-            <div style={{ 
-                fontSize: 'var(--text-l4)', 
-                opacity: 0.4, 
-                letterSpacing: '2px',
-                minHeight: '1.2em',
-                marginBottom: '10px'
-            }}>
-                {footerText}<span style={{ borderLeft: '8px solid currentColor', marginLeft: '4px', animation: 'flicker 0.5s infinite' }}></span>
-            </div>
-            <div style={{ fontSize: 'var(--text-l4)', opacity: 0.4 }}>
-                <a href="https://github.com/DrizzlyOwl/smokescreen" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>COPYRIGHT DRIZZLYOWL</a>
-            </div>
-          </footer>
+          <Footer appState={appState} easterEggs={easterEggs} />
         </div>
       </div>
     </>

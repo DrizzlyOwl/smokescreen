@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Pane } from './Pane';
 import { ChatIcon } from './Icons';
 import { type ChatMessage } from '../hooks/useIncidentChat';
@@ -8,21 +8,36 @@ export const WarRoom = ({
     zIndex, 
     onFocus, 
     isActive, 
-    onClose, 
+    onClose,
+    sendMessage,
+    isDeclared,
+    operatorName
 }: { 
     messages: ChatMessage[],
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean, 
-    onClose: () => void, 
+    onClose: () => void,
+    sendMessage: (text: string, user: string) => void,
+    isDeclared: boolean,
+    operatorName: string
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [inputText, setInputText] = useState('');
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputText.trim() && isDeclared) {
+        sendMessage(inputText, operatorName);
+        setInputText('');
+    }
+  };
 
   const slackFontStack = '"Slack-Lato", "appleLogo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
 
@@ -40,81 +55,70 @@ export const WarRoom = ({
     >
       <div 
         ref={scrollRef}
-        style={{ 
-          flex: 1,
-          overflowY: 'auto',
-          display: 'flex', 
-          flexDirection: 'column', 
-          fontFamily: slackFontStack,
-          padding: '12px',
-          boxSizing: 'border-box'
-      }}>
-        {messages.map((m, i) => (
-          <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-                width: '36px', height: '36px', borderRadius: '4px', 
-                background: m.isBot ? '#e01e5a' : '#35373b',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, fontSize: 'var(--text-l4)', fontWeight: '900', color: 'white'
-            }}>
-                {m.user.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
-                <span style={{ fontWeight: '900', color: 'white', fontSize: 'var(--text-l4)' }}>{m.user}</span>
-                <span style={{ fontSize: 'var(--text-l4)', opacity: 0.5 }}>{m.time}</span>
+        className="war-room__chat-container"
+        style={{ fontFamily: slackFontStack }}
+      >
+        {messages.map((m, i) => {
+          // Determine color based on role in user string (e.g. "Name (Role)")
+          let avatarColor = '#35373b'; // Default
+          if (m.isBot) avatarColor = '#e01e5a';
+          else if (m.user.includes('DBA') || m.user.includes('Arch')) avatarColor = 'var(--terminal-amber)';
+          else if (m.user.includes('SRE') || m.user.includes('Sec')) avatarColor = 'var(--terminal-green)';
+          else if (m.user.includes('Lead') || m.user.includes('Architect')) avatarColor = 'var(--terminal-red)';
+          else if (m.user.includes('Backend') || m.user.includes('Platform')) avatarColor = '#7c4dff';
+          
+          return (
+            <div key={i} className="war-room__message">
+              <div 
+                className={`war-room__message-avatar war-room__message-avatar--${m.isBot ? 'bot' : 'user'}`}
+                style={{ backgroundColor: avatarColor }}
+              >
+                  {m.user.charAt(0).toUpperCase()}
               </div>
-              <div style={{ lineHeight: '1.46668', fontSize: 'var(--text-l4)' }}>
-                {m.text.split(' ').map((word, idx) => (
-                  word.startsWith('@') 
-                    ? <span key={idx} style={{ color: '#1264a3', background: 'rgba(29, 155, 209, 0.1)', borderRadius: '3px', padding: '0 4px', fontWeight: 'bold' }}>{word} </span>
-                    : word + ' '
-                ))}
+              <div className="war-room__message-content">
+                <div className="war-room__message-header">
+                  <span className="war-room__message-header-user">{m.user}</span>
+                  <span className="war-room__message-header-time">{m.time}</span>
+                </div>
+                <div className="war-room__message-body">
+                  {m.text.split(' ').map((word, idx) => (
+                    word.startsWith('@') 
+                      ? <span key={idx} className="war-room__message-tag">{word} </span>
+                      : word + ' '
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
-      {/* Dummy Input */}
-      <div style={{ 
-          padding: '12px', 
-          borderTop: '1px solid #35373b', 
-          background: '#121519',
-          display: 'flex',
-          gap: '10px'
-      }}>
+      {/* Input Area */}
+      <form onSubmit={handleSend} className="war-room__input-area">
         <input 
             type="text" 
-            placeholder="Type a message..." 
-            disabled
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={isDeclared ? "Type a message..." : "SYSTEM_LOCKED: INCIDENT_NOT_DECLARED"} 
+            disabled={!isDeclared}
+            className="war-room__input-area-field"
             style={{ 
-                flex: 1, 
-                background: '#1a1d21', 
-                border: '1px solid #35373b', 
-                borderRadius: '4px', 
-                padding: '8px 12px', 
-                color: '#adbac7',
-                fontFamily: 'inherit',
-                fontSize: 'var(--text-l4)',
-                outline: 'none',
-                cursor: 'not-allowed'
-            }} 
+                cursor: isDeclared ? 'text' : 'not-allowed',
+                opacity: isDeclared ? 1 : 0.5
+            }}
         />
-        <div style={{ 
-            width: '32px', 
-            height: '32px', 
-            background: '#35373b', 
-            borderRadius: '4px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            opacity: 0.5,
-            fontSize: 'var(--text-l4)'
-        }}>
+        <button 
+            type="submit"
+            disabled={!isDeclared || !inputText.trim()}
+            className="war-room__input-area-icon"
+            style={{ 
+                border: 'none', 
+                cursor: isDeclared ? 'pointer' : 'not-allowed' 
+            }}
+        >
             ⏎
-        </div>
-      </div>
+        </button>
+      </form>
     </Pane>
   );
 };

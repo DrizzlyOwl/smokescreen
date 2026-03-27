@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MapIcon } from './Icons';
 import type { Severity } from '../data/excuses';
 import { Pane } from './Pane';
+import { useTerminal } from '../hooks/useTerminal';
 
 interface IncidentNode {
     id: string;
@@ -24,6 +25,7 @@ const REGIONS = [
 
 export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, onClose: () => void }) => {
     const [nodes, setNodes] = useState<IncidentNode[]>([]);
+    const { isEcoMode } = useTerminal();
 
     useEffect(() => {
         // Map regions to nodes with status based on severity
@@ -79,14 +81,7 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
           severityColor={severity === 'NOMINAL' ? undefined : (isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)')}
           onClose={onClose}
         >
-            <div style={{
-                height: '100%',
-                background: '#0a0c0f',
-                position: 'relative',
-                overflow: 'hidden',
-                padding: '0', // Full bleed for the map
-                boxSizing: 'border-box'
-            }}>
+            <div className="h-full bg-[#0a0c0f] relative overflow-hidden p-0 border-box">
                 {/* SVG World Map Outline */}
                 <svg 
                     viewBox="0 0 1000 500" 
@@ -94,10 +89,10 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
                     style={{ 
                         width: '100%', 
                         height: '100%', 
-                        opacity: 0.3,
-                        fill: '#1c2128',
-                        stroke: '#2d333b',
-                        strokeWidth: 1
+                        opacity: 0.6,
+                        fill: '#24292e',
+                        stroke: '#444c56',
+                        strokeWidth: 1.5
                     }}
                 >
                     <path d="M150,120 L180,110 L220,115 L250,140 L240,180 L200,210 L160,200 L140,160 Z" /> {/* N. America simplified */}
@@ -123,7 +118,7 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
                             zIndex: 5
                         }}>
                             {/* Pulse effect for non-healthy nodes */}
-                            {node.status !== 'healthy' && (
+                            {node.status !== 'healthy' && !isEcoMode && (
                                 <div style={{
                                     position: 'absolute',
                                     width: '20px',
@@ -143,22 +138,14 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
                                 height: '10px',
                                 borderRadius: '50%',
                                 background: color,
-                                boxShadow: `0 0 10px ${color}`,
+                                boxShadow: isEcoMode ? 'none' : `0 0 10px ${color}`,
                                 cursor: 'help'
                             }} title={node.label} />
                             
                             {/* Label */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '12px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                fontSize: '1rem',
+                            <div className="absolute top-[12px] left-1/2 translate-x-[-50%] text-[0.8rem] whitespace-nowrap text-shadow-[0_0_4px_#000] pointer-events-none" style={{
                                 color: node.status === 'healthy' ? '#768390' : color,
-                                whiteSpace: 'nowrap',
                                 fontWeight: node.status === 'healthy' ? 'normal' : 'bold',
-                                textShadow: '0 0 4px #000',
-                                pointerEvents: 'none'
                             }}>
                                 {node.label}
                             </div>
@@ -167,27 +154,15 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
                 })}
 
                 {/* Map Legend */}
-                <div style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    left: '10px',
-                    fontSize: '1rem',
-                    color: '#768390',
-                    display: 'flex',
-                    gap: '15px',
-                    background: 'rgba(10, 12, 15, 0.8)',
-                    padding: '5px',
-                    borderRadius: '4px',
-                    border: '1px solid #1c2128'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--terminal-green)' }} /> NOMINAL
+                <div className="absolute bottom-[10px] left-[10px] text-[0.8rem] text-[#768390] flex gap-[15px] bg-[rgba(10,12,15,0.8)] p-[5px] rounded-[4px] border border-solid border-[#1c2128]">
+                    <div className="flex items-center gap-1">
+                        <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'var(--terminal-green)' }} /> NOMINAL
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--terminal-amber)' }} /> WARNING
+                    <div className="flex items-center gap-1">
+                        <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'var(--terminal-amber)' }} /> WARNING
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--terminal-red)' }} /> CRITICAL
+                    <div className="flex items-center gap-1">
+                        <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'var(--terminal-red)' }} /> CRITICAL
                     </div>
                 </div>
             </div>

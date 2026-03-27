@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pane } from './Pane';
+import { TechnicalTypography as Ty } from '../styles/Typography';
 
 interface TechnicalPaneProps {
   title: string;
@@ -50,7 +51,7 @@ export const TechnicalPane = ({
         style={{
           height: '100%',
           background: '#0a0c0f',
-          padding: '30px',
+          padding: '20px',
           boxSizing: 'border-box',
           fontFamily: 'monospace',
           color: '#adbac7',
@@ -58,35 +59,21 @@ export const TechnicalPane = ({
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
+          fontSize: '16px',
         }}
       >
         <header
           style={{
-            marginBottom: '30px',
+            marginBottom: '20px',
             borderBottom: `2px solid ${themeColor}`,
-            paddingBottom: '15px',
+            paddingBottom: '12px',
             flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              fontSize: '0.8rem',
-              color: themeColor,
-              opacity: 0.6,
-              letterSpacing: '2px',
-            }}
-          >
+          <div style={Ty.label(themeColor)}>
             CLASSIFICATION: {classification}
           </div>
-          <h1
-            style={{
-              color: themeColor,
-              fontSize: '1.5rem',
-              margin: '5px 0 0 0',
-              fontWeight: '900',
-              textTransform: 'uppercase',
-            }}
-          >
+          <h1 style={Ty.title(themeColor)}>
             {paneTitle}
           </h1>
         </header>
@@ -97,9 +84,9 @@ export const TechnicalPane = ({
           <footer
             style={{
               marginTop: '40px',
-              textAlign: 'center',
-              opacity: 0.3,
-              fontSize: '0.8rem',
+              textAlign: Ty.footer.textAlign,
+              opacity: Ty.footer.opacity,
+              fontSize: Ty.footer.fontSize,
               borderTop: '1px solid #1c2128',
               paddingTop: '20px',
               flexShrink: 0,

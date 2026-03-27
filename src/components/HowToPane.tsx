@@ -1,5 +1,6 @@
 import { TechnicalPane } from './TechnicalPane';
 import { HelpIcon } from './Icons';
+import { TechnicalTypography as Ty } from '../styles/Typography';
 
 interface HowToPaneProps {
   zIndex: number;
@@ -14,174 +15,103 @@ export const HowToPane = ({
   isActive,
   onClose,
 }: HowToPaneProps) => {
+  const green = 'var(--terminal-green)';
+  const red = 'var(--terminal-red)';
+  const amber = 'var(--terminal-amber)';
+
   return (
     <TechnicalPane
-      title="SOP_OPERATOR_MANUAL_v4.5"
-      paneTitle="PROTOCOL: HELP"
-      classification="TOP_SECRET"
+      title="SOP_OPERATOR_MANUAL_v5.0"
+      paneTitle="PROTOCOL: MISSION_OPERATIONS"
+      classification="TOP_SECRET // EYES_ONLY"
       icon={<HelpIcon />}
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
       onClose={onClose}
-      initialPos={{ x: 200, y: 100 }}
-      initialSize={{ width: 550, height: 600 }}
+      initialPos={{ x: 150, y: 50 }}
+      initialSize={{ width: 650, height: 750 }}
       footerText={
         <>
-          PROPERTY OF SRE DIVISION
+          SRE_DIVISION_TACTICAL_THEATRE_UNIT
           <br />
-          REPRODUCTION IS A TERMINABLE OFFENCE
+          UNAUTHORIZED REPRODUCTION IS A TERMINABLE OFFENCE
         </>
       }
     >
-      <section style={{ marginBottom: '25px' }}>
-        <p
-          style={{
-            fontSize: '1.1rem',
-            color: 'var(--terminal-green)',
-            opacity: 0.9,
-            fontStyle: 'italic',
-          }}
-        >
-          Welcome, Operator. Use this terminal to provide tactical cover for
-          emergency meeting extractions.
+      <section style={Ty.section}>
+        <p style={Ty.intro(green)}>
+          Welcome to SMOKESCREEN. This platform provides high-fidelity "Performance Cover" for engineers. Use it to generate a convincing digital alibi when you need to exit a low-value meeting or focus on deep-work without interruption.
         </p>
       </section>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.2rem',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>01.</span>{' '}
-            CONFIGURATION
-          </h3>
-          <p style={{ margin: 0, fontSize: '1rem' }}>
-            Select your <b style={{ color: 'var(--terminal-green)' }}>Cloud Stack</b>{' '}
-            and <b style={{ color: 'var(--terminal-green)' }}>Threat Level</b>.{' '}
-            Higher levels (P1/P0) generate exponentially more catastrophic
-            technical evidence.
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>01.</span> THE CORE CONCEPT
+          </h2>
+          <p style={Ty.p}>
+            A "Declared Incident" is more than just a status code; it's a social performance. SMOKESCREEN simulates the chaotic environment of a P0 infrastructure failure. To be successful, you must convince observers that your workstation is the epicenter of a critical recovery effort.
           </p>
         </section>
 
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.2rem',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>02.</span>{' '}
-            VISUAL_DATA_FLOOD
-          </h3>
-          <p style={{ margin: 0, fontSize: '1rem' }}>
-            Activate multiple <b style={{ color: 'var(--terminal-green)' }}>Action Panes</b>.{' '}
-            Resize and position windows to overlap your workstation. Active logs
-            and failing deployments provide the necessary psychological
-            pressure.
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>02.</span> THE VISUAL DATA FLOOD (CRITICAL)
+          </h2>
+          <p style={Ty.p}>
+            <b style={Ty.bold(red)}>IMPORTANT:</b> Simply pressing "Declare Incident" is not enough to fool a technical audience. Immersion requires <b style={Ty.bold(green)}>Visual Density</b>. You must open and arrange multiple <b>Action Panes</b> to create a "Data Flood" effect:
+          </p>
+          <ul style={{ ...Ty.p, marginTop: '10px', paddingLeft: '20px' }}>
+            <li><b style={Ty.bold(amber)}>System Logs:</b> Provides the "Matrix" effect. Essential for proof of activity.</li>
+            <li><b style={Ty.bold(amber)}>Deployment Status:</b> Shows failing Kubernetes pods. Proves "The fix is failing."</li>
+            <li><b style={Ty.bold(amber)}>Outage Map:</b> Visual proof of global impact. Great for non-technical managers.</li>
+            <li><b style={Ty.bold(amber)}>War Room:</b> Simulated chat traffic proves you are "Coordinating with the team."</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>03.</span> ESCALATION PROTOCOLS
+          </h2>
+          <p style={Ty.p}>
+            Use the <b style={Ty.bold(green)}>SLOW BURN</b> feature for a scripted departure. Once enabled, the system will automatically ramp from Nominal to Catastrophic over 30 seconds. This allows you to say, "Everything looks fine..." then pause, look at the screen as sirens trigger, and announce, "Actually, I have to drop. Now."
           </p>
         </section>
 
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.2rem',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>03.</span>{' '}
-            MOBILE_UPLINK
-          </h3>
-          <p style={{ margin: 0, fontSize: '1rem' }}>
-            Initialize <b style={{ color: 'var(--terminal-green)' }}>PagerSync</b>.{' '}
-            Scan the secure QR code with your mobile device. This provides a
-            live companion view to prove incident severity to physical
-            bystanders.
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>04.</span> MOBILE SYNCHRONIZATION (PAGER)
+          </h2>
+          <p style={Ty.p}>
+            The <b style={Ty.bold(green)}>PagerSync</b> system provides a secondary "evidence screen" on your mobile device. To configure:
+          </p>
+          <ol style={{ ...Ty.p, marginTop: '10px', paddingLeft: '20px' }}>
+            <li>Open the <b style={Ty.bold(amber)}>PagerSync</b> pane (type <b style={Ty.bold(green)}>'uplink'</b> or <b style={Ty.bold(green)}>'pager'</b> in the command console).</li>
+            <li>Scan the <b style={Ty.bold(amber)}>QR Code</b> with your mobile device to auto-initialize the secure tunnel.</li>
+            <li>Alternatively, navigate to the terminal URL on your phone and manually enter the 8-character <b style={Ty.bold(amber)}>UPLINK_ID</b> (e.g., SRE-XXXX) in the 'UPLINK' settings tab.</li>
+            <li>Once the status displays <b style={Ty.bold(green)}>● UPLINK_ACTIVE</b>, your phone will receive real-time incident alerts, war room chat, and kernel logs.</li>
+          </ol>
+          <p style={{ ...Ty.p, marginTop: '10px' }}>
+            Hold your phone up during a video call to show the flashing "Critical Alert" badge—it is the ultimate physical proof of a P0 infrastructure failure.
           </p>
         </section>
 
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.2rem',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>04.</span>{' '}
-            EXTRACTION
-          </h3>
-          <p style={{ margin: 0, fontSize: '1rem' }}>
-            Trigger <b style={{ color: 'var(--terminal-green)' }}>INITIATE_EMERGENCY_EXTRACTION</b>{' '}
-            to generate your technical alibi. Copy the jargon-heavy log for
-            communications and present the 403-Restricted ticket page as final
-            evidence.
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>05.</span> BOSS MODE (EMERGENCY ABORT)
+          </h2>
+          <p style={Ty.p}>
+            If an actual executive or manager approaches your desk and the simulation is too "intense," hit <b style={Ty.bold(green)}>[CMD+B]</b> immediately. The system will instantly switch to a high-fidelity macOS Update screen, making it look like you are simply waiting for a system patch.
           </p>
         </section>
 
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: 'var(--text-l3)',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>05.</span>{' '}
-            SLOW_BURN_PROTOCOL
-          </h3>
-          <p style={{ margin: 0, fontSize: 'var(--text-l4)' }}>
-            Enable <b style={{ color: 'var(--terminal-green)' }}>SLOW BURN</b>{' '}
-            for a scripted 30-second escalation. The system will transition
-            from <b style={{ color: 'var(--terminal-green)' }}>P3</b> to{' '}
-            <b style={{ color: 'var(--terminal-red)' }}>P0</b> automatically,
-            triggering audio alerts and visual data floods to create a
-            convincing, gradual departure scenario.
-          </p>
-        </section>
-
-        <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: 'var(--text-l3)',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>06.</span>{' '}
-            GEMINI_AI_ENHANCEMENT
-          </h3>
-          <p style={{ margin: 0, fontSize: 'var(--text-l4)' }}>
-            Access <b style={{ color: 'var(--terminal-green)' }}>SETTINGS</b> to
-            supply your own{' '}
-            <b style={{ color: 'var(--terminal-green)' }}>Google AI Studio API Key</b>. 
-            This enables <b style={{ color: 'var(--terminal-green)' }}>AI_ENHANCED</b> excuse 
-            generation via Gemini 1.5. If no key is provided, the system 
-            seamlessly falls back to local <b style={{ color: 'var(--terminal-green)' }}>SYSTEM-JARGON-ENGINE-v4.5</b>.
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>06.</span> AI ENHANCEMENT
+          </h2>
+          <p style={Ty.p}>
+            For hyper-realistic technical jargon, supply a <b style={Ty.bold(green)}>Gemini API Key</b> in Settings. This enables the AI to generate context-aware incident reports specific to your chosen Cloud Stack (AWS, GCP, etc.).
           </p>
         </section>
       </div>
@@ -195,27 +125,20 @@ export const HowToPane = ({
           background: 'rgba(255, 176, 0, 0.05)',
         }}
       >
-        <h3
-          style={{
-            color: 'var(--terminal-amber)',
-            fontSize: '1.1rem',
-            margin: '0 0 15px 0',
-            letterSpacing: '1px',
-          }}
-        >
-          QUICK_REF_SHORTCUTS
+        <h3 style={Ty.h3(amber)}>
+          TACTICAL_KEYBOARD_SHORTCUTS
         </h3>
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '10px',
-            fontSize: '1rem',
+            fontSize: '0.9rem',
           }}
         >
           <div>
             <b style={{ color: '#fff' }}>[ESC]</b>{' '}
-            <span style={{ opacity: 0.6 }}>Close / Reset</span>
+            <span style={{ opacity: 0.6 }}>Reset Console</span>
           </div>
           <div>
             <b style={{ color: '#fff' }}>[CMD+B]</b>{' '}
@@ -223,11 +146,11 @@ export const HowToPane = ({
           </div>
           <div>
             <b style={{ color: '#fff' }}>[2x ESC]</b>{' '}
-            <span style={{ opacity: 0.6 }}>Quick Abort</span>
+            <span style={{ opacity: 0.6 }}>Emergency Extraction</span>
           </div>
           <div>
             <b style={{ color: '#fff' }}>[?]</b>{' '}
-            <span style={{ opacity: 0.6 }}>Commands</span>
+            <span style={{ opacity: 0.6 }}>View All Commands</span>
           </div>
         </div>
       </div>

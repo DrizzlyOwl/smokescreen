@@ -1,174 +1,137 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Severity, Stack } from '../data/excuses';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSync } from '../contexts/SyncContext';
+import type { Severity, Stack } from '../data/excuses';
 
 const STACK_MESSAGES: Record<Stack, Record<Severity, string[]>> = {
     AWS: {
         NOMINAL: [
-            'Anyone want coffee?',
-            'Did you see the new release notes for the CLI?',
-            'The cluster is looking very quiet today',
-            'Thinking about refactoring the terraform modules',
-            'Is it just me or is the console getting slower?',
-            'Lunch today at the usual spot?',
-            'Happy Friday everyone!'
+            'Monitoring looks good',
+            'Deployment pipeline is green',
+            'CloudWatch alarms are silent',
+            'Latency within acceptable bounds'
         ],
         P3: [
-            'Routine maintenance check on the cluster',
-            'Anyone else seeing slight latency in US-WEST-2?',
-            'Did the CronJob run successfully last night?',
-            'Reviewing the latest PR for the ingress controller',
-            'CloudWatch alarm triggered for disk usage on dev-01',
-            'Updating the IAM policies for the new sprint',
-            'Memory usage is looking stable'
+            'Seeing some minor throttling on S3',
+            'Elasticache CPU is drifting up',
+            'IAM permissions error on the logging role',
+            'CloudFront distribution is propagating slowly'
         ],
         P1: [
-            'I see a spike in 503s on the ALBs',
-            'IAM propagation lag is starting to cause issues',
-            'RDS metrics? It is starting to flatline',
-            'Traffic is blackholing on some subnets, investigating',
-            'S3 throttled on the media bucket',
-            'KMS decryption failures in US-EAST-1',
-            'Vault seal status is showing as LOCKED'
+            'RDS MULTI-AZ FAILOVER IN PROGRESS',
+            'EKS control plane is unresponsive',
+            'DirectConnect latency spiking to 500ms',
+            'ALB returning 502 Bad Gateway across all nodes',
+            'Auto-scaling group failing to launch instances',
+            'Route53 DNS resolution is failing intermittently'
         ],
         P0: [
-            'WHO IS DRAINING PROD NODES??',
-            'INCIDENT DECLARED: P0 - ALL HANDS ON DECK',
-            'BGP session dropped on DX - TOTAL BLACKOUT',
-            'DATABASE IS IN READ-ONLY MODE - RDS OVERLOAD',
-            'I need an SRE in the war room IMMEDIATELY',
-            'ROUTE53 IS DOWN - INTERNAL DNS FAILURE',
-            'K8S CONTROL PLANE IS DOWN - NO API ACCESS'
+            'US-EAST-1 REGION IS DOWN',
+            'S3 DATA CONSISTENCY FAILURE - TOTAL LOSS',
+            'AWS CONSOLE IS UNRESPONSIVE GLOBALLY',
+            'ELASTICACHE CLUSTER IS GONE',
+            'ALL PROD INSTANCES TERMINATED BY UNKNOWN SCRIPT',
+            'DATABASE CORRUPTION DETECTED IN RDS PRIMARY'
         ]
     },
     GCP: {
         NOMINAL: [
-            'GSP is looking good today',
-            'Anyone tried the new Cloud Run features?',
-            'Lunch today at the usual spot?',
-            'Just finishing up some documentation',
-            'BigQuery query finished, saved us some credits',
-            'Thinking about refactoring the terraform modules',
-            'Did you see the new release notes for the CLI?'
+            'BigQuery jobs running smooth',
+            'GKE nodes are healthy',
+            'Cloud Logging is stable',
+            'Pub/Sub latency < 10ms'
         ],
         P3: [
-            'Quota warning on Compute Engine',
-            'GKE node rotation starting',
-            'Reviewing the latest PR for the Cloud SQL proxy',
-            'Firebase auth latency check',
-            'Updating the Stackdriver dashboards',
-            'Check the PubSub backlog for the billing service',
-            'Memory usage is looking stable'
+            'Cloud SQL instance is slightly sluggish',
+            'Quota limit reached on Compute Engine',
+            'Firestore cold starts are noticeable',
+            'Artifact Registry is slow to pull images'
         ],
         P1: [
-            'GCLB is returning 502s globally',
-            'IAM permissions error across the entire org',
-            'BigQuery job queue is backed up',
-            'Spanner latency is spiking in us-central1',
-            'Cloud Storage returning intermittent 404s',
-            'Artifact Registry is slow, CI failing',
-            'Vault seal status is showing as LOCKED'
+            'GKE NODE POOL PREEMPTED DURING PEAK',
+            'BigQuery returning internal 500 errors',
+            'Cloud Storage buckets are 403 Forbidden',
+            'VPC Peering connection dropped',
+            'Cloud Spanner CPU utilization at 98%',
+            'Anthos service mesh has lost sync'
         ],
         P0: [
-            'PROJECT DELETED BY AUTOMATION??',
-            'GCP CONSOLE IS 500ING - TOTAL PANIC',
-            'REGIONAL OUTAGE - ASIA-EAST1 IS GONE',
-            'KUBERNETES CONTROL PLANE IS UNREACHABLE - GKE DOWN',
-            'ALL IAM SERVICE ACCOUNTS REVOKED??',
-            'I need an SRE in the war room IMMEDIATELY',
-            'WHO IS DRAINING PROD NODES??'
+            'GOOGLE CLOUD NETWORKING IS DOWN',
+            'GLOBAL LOAD BALANCER RETURNING 503',
+            'IAM SERVICE ACCOUNT KEY COMPROMISED',
+            'PROJECT DELETED BY AUTOMATION ERROR',
+            'FIREBASE AUTHENTICATION TOTAL OUTAGE',
+            'COMPUTE ENGINE API UNRESPONSIVE'
         ]
     },
     AZURE: {
         NOMINAL: [
-            'Azure DevOps is actually stable today',
-            'Did you see the new Bicep release?',
-            'Happy Friday everyone!',
-            'Nominating someone for the "Helper of the Week"',
-            'CosmosDB RU usage is low',
-            'Lunch today at the usual spot?',
-            'Thinking about refactoring the terraform modules'
+            'Azure Monitor is clean',
+            'AKS clusters reporting green',
+            'Service Bus queues are empty',
+            'Storage Account latency is low'
         ],
         P3: [
-            'Resource Graph query taking forever',
-            'AKS cluster upgrade in progress',
-            'Reviewing the NSG rules for the subnet',
-            'Check the App Service Plan memory',
-            'Updating the Key Vault secrets',
-            'Azure Monitor alert: logic app failed',
-            'Memory usage is looking stable'
+            'CosmosDB RU/s usage is peaking',
+            'App Service plan is scaling up',
+            'Function App is warming up',
+            'DevOps pipeline is slightly delayed'
         ],
         P1: [
-            'Traffic Manager is routing to unhealthy nodes',
-            'Active Directory sync is lagging',
-            'SQL Azure DTU limit reached',
-            'VM Scale Set won\'t scale out',
-            'Blob storage latency in UK-SOUTH',
-            'ExpressRoute packet loss detected',
-            'Vault seal status is showing as LOCKED'
+            'AZURE ACTIVE DIRECTORY SYNC FAILURE',
+            'AKS API SERVER IS TIMING OUT',
+            'Blob Storage data is unreachable',
+            'Virtual Machine scale set is stuck in updating',
+            'ExpressRoute circuit is down',
+            'Front Door is dropping 30% of traffic'
         ],
         P0: [
-            'TENANT-WIDE IDENTITY OUTAGE - NO ONE CAN LOG IN',
-            'AZURE PORTAL IS DOWN - GLOBAL RED ALERT',
-            'SUBSCRIPTION SPEND EXCEEDED - RESOURCES STOPPING',
-            'AKS MASTER DOWN - ALL CLUSTERS FAILING',
-            'COSMOSDB DATA LOSS REPORTED - EMERGENCY',
-            'I need an SRE in the war room IMMEDIATELY',
-            'WHO IS DRAINING PROD NODES??'
+            'AZURE REGION WEST-EUROPE IS OFFLINE',
+            'ROOT SUBSCRIPTION ACCESS DENIED',
+            'REDIS CACHE CLUSTER HAS EVAPORATED',
+            'SQL AZURE POOL CORRUPTION - NO BACKUP',
+            'KEY VAULT DELETED - SECRETS LOST',
+            'TRAFFIC MANAGER ROUTING TO VOID'
         ]
     },
     'ON-PREM': {
         NOMINAL: [
-            'Air conditioning in the server room is fixed',
-            'Did anyone label the new patch cables?',
-            'Thinking about ordering more RAM',
-            'The tape drive finished the backup',
-            'Who left their laptop in the server room?',
-            'Happy Friday everyone!',
-            'Lunch today at the usual spot?'
+            'Hardware temps are stable',
+            'UPS battery test passed',
+            'SAN storage has 40% free space',
+            'Core switch uptime: 420 days'
         ],
         P3: [
-            'Disk pressure on the SAN',
-            'Reviewing the latest VLAN changes',
-            'Switching to the backup generator for testing',
-            'UPS health check in progress',
-            'Updating the BIOS on the R740s',
-            'NTP drift detected on the domain controller',
-            'Memory usage is looking stable'
+            'Fans spinning at 100% in rack 4',
+            'NTP drift detected on node 2',
+            'Backup tape is nearly full',
+            'VLAN 10 is showing some noise'
         ],
         P1: [
-            'CORE SWITCH OVERHEATING',
-            'RAID rebuild failing on node-04',
-            'Vmotion is stuck for 50% of VMs',
-            'Firewall rules preventing internal gRPC',
-            'Packet loss on the 10G uplink',
-            'LDAP server is unresponsive',
-            'Vault seal status is showing as LOCKED'
+            'RACK 7 PDU HAS TRIPPED',
+            'SAN CONTROLLER B IS FAILING',
+            'Core firewall is dropping packets',
+            'VMWare vCenter is unresponsive',
+            'Offsite link latency spiking to 200ms',
+            'HVAC failure in the main DC'
         ],
         P0: [
-            'WATER LEAK IN THE DATA CENTER!!',
-            'CORE ROUTER IS LITERALLY ON FIRE',
-            'TOTAL POWER LOSS - UPS FAILED',
-            'SAN CONTROLLER FAILURE - ALL DATA OFFLINE',
-            'THE SERVER ROOM DOOR IS STUCK CLOSED',
-            'I need an SRE in the war room IMMEDIATELY',
-            'WHO IS DRAINING PROD NODES??'
+            'TOTAL POWER LOSS IN DATA CENTER',
+            'FIRE SUPPRESSION SYSTEM TRIGGERED',
+            'FIBER CUT DETECTED - TOTAL ISOLATION',
+            'CORE SWITCH STACK COLLAPSED',
+            'RAID 6 DOUBLE DRIVE FAILURE',
+            'WATER LEAK DETECTED IN RACK 12'
         ]
     },
     SERVERLESS: {
         NOMINAL: [
-            'Lambda cold starts are better today',
-            'Anyone tried the new Step Functions?',
-            'Just finishing up some documentation',
-            'Vercel deployment finished',
-            'Netlify build successful',
-            'Thinking about refactoring the terraform modules',
-            'Happy Friday everyone!'
+            'Lambdas are warm',
+            'API Gateway is fast',
+            'Step Functions are flowing',
+            'DynamoDB is chill'
         ],
         P3: [
-            'Warm-up script failing for Lambda',
-            'Reviewing the latest PR for the SST stack',
-            'Updating the DynamoDB TTLs',
+            'Cold start spikes on the Auth lambda',
             'Check the API Gateway timeout settings',
             'SQS DLQ has a few items in it',
             'EventBridge rule latency check',
@@ -214,12 +177,39 @@ export const useIncidentChat = (
 ) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const lastSeverity = useRef<Severity>(severity);
-    const { send } = useSync();
+    const { send, subscribe } = useSync();
+
+    useEffect(() => {
+        const unsubscribe = subscribe((data) => {
+            if (data.type === 'CHAT_MESSAGE') {
+                setMessages(prev => [...prev, data.message].slice(-100));
+                
+                const isTag = data.message.text.includes('@');
+                if (isTag) {
+                    playTagPing?.();
+                } else {
+                    playPing?.();
+                }
+                onNewMessage(isTag);
+            }
+        });
+        return unsubscribe;
+    }, [subscribe, onNewMessage, playPing, playTagPing]);
+
+    const sendMessage = useCallback((text: string, user: string) => {
+        const newMessage: ChatMessage = {
+            user,
+            text,
+            time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+            isBot: false
+        };
+        send({ type: 'CHAT_MESSAGE', message: newMessage });
+    }, [send]);
 
     useEffect(() => {
         if (lastSeverity.current !== severity) {
             const systemMsg = {
-                user: 'incident_io',
+                user: 'Smokescreen_OS_Bot',
                 text: `--- ALERT LEVEL UPDATED TO ${severity} [${stack}] ---`,
                 time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
                 isBot: true
@@ -236,7 +226,6 @@ export const useIncidentChat = (
         let time = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
         try {
-            // Dynamic import to split Faker and Gemini out of the main bundle
             const { generateDynamicMessage } = await import('../utils/chatGenerator');
             const msg = await generateDynamicMessage(currentSeverity, stack, operatorName);
             
@@ -251,15 +240,21 @@ export const useIncidentChat = (
             console.error('Failed to load dynamic chat generator:', e);
         }
 
-        // Fallback
         const pool = STACK_MESSAGES[stack][currentSeverity];
         let text = pool[Math.floor(Math.random() * pool.length)];
-        if (Math.random() > 0.7) {
+        
+        // Scale tagging probability based on severity
+        // P0: 60% chance, P1: 40% chance, P3: 20% chance, NOMINAL: 5% chance
+        const tagProbability = currentSeverity === 'P0' ? 0.4 : 
+                               currentSeverity === 'P1' ? 0.6 : 
+                               currentSeverity === 'P3' ? 0.8 : 0.95;
+
+        if (Math.random() > tagProbability) {
             const tag = operatorName.split(' ')[0].toLowerCase() || 'operator';
             text = `@${tag} ${text}`;
         }
         return { user, text, time, isBot: false };
-    }, [severity, stack, operatorName]);
+    }, [stack, operatorName]);
 
     useEffect(() => {
         if (!isActive) return;
@@ -269,17 +264,6 @@ export const useIncidentChat = (
         const interval = setInterval(async () => {
             const newMessage = await getDynamicMessage(severity);
             send({ type: 'CHAT_MESSAGE', message: newMessage });
-            
-            const isTag = newMessage.text.includes('@');
-            if (isTag) {
-                playTagPing?.();
-            } else {
-                playPing?.();
-            }
-            
-            onNewMessage(isTag);
-            
-            setMessages(prev => [...prev, newMessage].slice(-100));
         }, delay);
 
         return () => {
@@ -287,5 +271,5 @@ export const useIncidentChat = (
         };
     }, [severity, uplinkId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send]);
 
-    return { messages };
+    return { messages, sendMessage };
 };

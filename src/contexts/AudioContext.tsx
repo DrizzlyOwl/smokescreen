@@ -6,11 +6,13 @@ interface ExtendedWindow extends Window {
     webkitAudioContext?: typeof AudioContext;
 }
 
-export function AudioProvider({ children, isLoggedIn }: { children: React.ReactNode, isLoggedIn: boolean }) {
+export function AudioProvider({ children, isLoggedIn, severity }: { children: React.ReactNode, isLoggedIn: boolean, severity: Severity }) {
   const [isAudioOn, setIsAudioOn] = useState(false);
   const audioCtx = useRef<AudioContext | null>(null);
   const ambientNode = useRef<GainNode | null>(null);
   const ambientOsc = useRef<OscillatorNode | null>(null);
+  const noiseNode = useRef<AudioBufferSourceNode | null>(null);
+  const noiseGainNode = useRef<GainNode | null>(null);
   const masterGain = useRef<GainNode | null>(null);
 
   const initAudio = useCallback(() => {
@@ -39,229 +41,201 @@ export function AudioProvider({ children, isLoggedIn }: { children: React.ReactN
         } catch { /* already stopped */ }
         ambientOsc.current = null;
     }
+    if (noiseNode.current) {
+        try {
+            noiseNode.current.stop();
+            noiseNode.current.disconnect();
+        } catch { /* already stopped */ }
+        noiseNode.current = null;
+    }
   }, []);
+
+  const playTone = useCallback((freq: number, type: OscillatorType, volume: number, duration: number, startTime: number = 0) => {
+    const ctx = initAudio();
+    if (!ctx || !masterGain.current) return;
+
+    const now = ctx.currentTime;
+    const start = now + startTime;
+    
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(volume, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    
+    osc.connect(gain).connect(masterGain.current);
+    osc.start(start);
+    osc.stop(start + duration);
+    
+    setTimeout(() => {
+        osc.disconnect();
+        gain.disconnect();
+    }, (startTime + duration + 0.1) * 1000);
+  }, [initAudio]);
 
   const playSlackPing = useCallback(() => {
     if (!isAudioOn) return;
-    const ctx = initAudio();
-    if (!ctx || !masterGain.current) return;
-    const now = ctx.currentTime;
-    const playPulse = (time: number, freq: number) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, time);
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.1, time + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
-      osc.connect(gain).connect(masterGain.current!);
-      osc.start(time);
-      osc.stop(time + 0.1);
-    };
-    playPulse(now, 800);
-    playPulse(now + 0.05, 600);
-  }, [initAudio, isAudioOn]);
+    playTone(800, 'sine', 0.1, 0.1, 0);
+    playTone(600, 'sine', 0.1, 0.1, 0.05);
+  }, [isAudioOn, playTone]);
 
   const playTeamsPing = useCallback(() => {
     if (!isAudioOn) return;
-    const ctx = initAudio();
-    if (!ctx || !masterGain.current) return;
-    const now = ctx.currentTime;
     const notes = [659.25, 783.99, 880.0, 1046.5];
     notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.08);
-      gain.gain.setValueAtTime(0, now + i * 0.08);
-      gain.gain.linearRampToValueAtTime(0.05, now + i * 0.08 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.15);
-      osc.connect(gain).connect(masterGain.current!);
-      osc.start(now + i * 0.08);
-      osc.stop(now + i * 0.08 + 0.15);
+      playTone(freq, 'sine', 0.05, 0.15, i * 0.08);
     });
-  }, [initAudio, isAudioOn]);
+  }, [isAudioOn, playTone]);
 
   const playTagPing = useCallback(() => {
     if (!isAudioOn) return;
-    const ctx = initAudio();
-    if (!ctx || !masterGain.current) return;
-    const now = ctx.currentTime;
-    const playPulse = (time: number, freq: number) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, time);
-      gain.gain.setValueAtTime(0, time);
-      gain.gain.linearRampToValueAtTime(0.15, time + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
-      osc.connect(gain).connect(masterGain.current!);
-      osc.start(time);
-      osc.stop(time + 0.1);
-    };
-    playPulse(now, 1200);
-    playPulse(now + 0.08, 1200);
-  }, [initAudio, isAudioOn]);
+    playTone(1200, 'sine', 0.15, 0.1, 0);
+    playTone(1200, 'sine', 0.15, 0.1, 0.08);
+  }, [isAudioOn, playTone]);
 
   const playAlert = useCallback((type: Severity) => {
     if (type === 'NOMINAL' || !isAudioOn) return;
     const ctx = initAudio();
     if (!ctx || !masterGain.current) return;
+    
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    
     if (type === 'P0') {
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(440, now);
       osc.frequency.exponentialRampToValueAtTime(880, now + 0.5);
       gain.gain.setValueAtTime(0.05, now);
       gain.gain.linearRampToValueAtTime(0, now + 1);
+      osc.start(now);
+      osc.stop(now + 1);
     } else if (type === 'P1') {
       osc.type = 'square';
       osc.frequency.setValueAtTime(880, now);
       gain.gain.setValueAtTime(0.03, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
     } else {
       osc.type = 'square';
       osc.frequency.setValueAtTime(1200, now);
       gain.gain.setValueAtTime(0.02, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.1);
     }
-    osc.connect(gain).connect(masterGain.current!);
-    osc.start();
-    osc.stop(now + (type === 'P0' ? 1 : 0.2));
+    
+    osc.connect(gain).connect(masterGain.current);
+    setTimeout(() => {
+        osc.disconnect();
+        gain.disconnect();
+    }, 1100);
   }, [initAudio, isAudioOn]);
 
   const playLoginChime = useCallback(() => {
     if (!isAudioOn) return;
-    const ctx = initAudio();
-    if (!ctx || !masterGain.current) return;
-    const now = ctx.currentTime;
     const notes = [523.25, 659.25, 783.99, 1046.50]; 
     notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.1);
-      gain.gain.setValueAtTime(0, now + i * 0.1);
-      gain.gain.linearRampToValueAtTime(0.05, now + i * 0.1 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
-      osc.connect(gain).connect(masterGain.current!);
-      osc.start(now + i * 0.1);
-      osc.stop(now + i * 0.1 + 0.3);
+      playTone(freq, 'sine', 0.05, 0.3, i * 0.1);
     });
-  }, [initAudio, isAudioOn]);
+  }, [isAudioOn, playTone]);
 
   const playLogoutChime = useCallback(() => {
     if (!isAudioOn) return;
-    const ctx = initAudio();
-    if (!ctx || !masterGain.current) return;
-    const now = ctx.currentTime;
     const notes = [783.99, 659.25, 523.25]; 
     notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.15);
-      if (i === notes.length - 1) {
-        osc.frequency.exponentialRampToValueAtTime(100, now + i * 0.15 + 0.5);
-      }
-      gain.gain.setValueAtTime(0, now + i * 0.15);
-      gain.gain.linearRampToValueAtTime(0.05, now + i * 0.15 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.6);
-      osc.connect(gain).connect(masterGain.current!);
-      osc.start(now + i * 0.15);
-      osc.stop(now + i * 0.15 + 0.6);
+      playTone(freq, 'sine', 0.05, 0.6, i * 0.15);
     });
-  }, [initAudio, isAudioOn]);
+  }, [isAudioOn, playTone]);
 
   const playPostBeep = useCallback(() => {
     if (!isAudioOn) return;
-    const ctx = initAudio();
-    if (!ctx || !masterGain.current) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(800, now);
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.05, now + 0.01);
-    gain.gain.linearRampToValueAtTime(0.05, now + 0.14);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    osc.connect(gain).connect(masterGain.current!);
-    osc.start(now);
-    osc.stop(now + 0.15);
-  }, [initAudio, isAudioOn]);
+    playTone(800, 'square', 0.05, 0.15, 0);
+  }, [isAudioOn, playTone]);
 
-  // Ambient Hum logic
+  // Ambient Hum & Fan Logic
   useEffect(() => {
     if (!isAudioOn || !isLoggedIn) {
-      if (ambientNode.current) {
-        ambientNode.current.gain.setTargetAtTime(0, audioCtx.current?.currentTime || 0, 0.1);
-      }
-      if (ambientOsc.current) {
-          const oscToStop = ambientOsc.current;
-          setTimeout(() => {
-              if (oscToStop && (!isAudioOn || !isLoggedIn)) {
-                  try {
-                    oscToStop.stop();
-                    oscToStop.disconnect();
-                  } catch { /* already stopped */ }
-                  if (ambientOsc.current === oscToStop) ambientOsc.current = null;
-              }
-          }, 200);
-      }
-      return;
+      if (ambientNode.current) ambientNode.current.gain.setTargetAtTime(0, audioCtx.current?.currentTime || 0, 0.1);
+      if (noiseGainNode.current) noiseGainNode.current.gain.setTargetAtTime(0, audioCtx.current?.currentTime || 0, 0.1);
+      
+      const timer = setTimeout(() => {
+          if (!isAudioOn || !isLoggedIn) {
+            stopAllSounds();
+          }
+      }, 500);
+      return () => clearTimeout(timer);
     }
 
     const ctx = initAudio();
     if (!ctx || !masterGain.current) return;
 
-    const osc = ctx.createOscillator();
-    const filter = ctx.createBiquadFilter();
-    const gain = ctx.createGain();
+    // Initialize Hum
+    if (!ambientOsc.current) {
+        const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(50, ctx.currentTime); 
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(50, ctx.currentTime); 
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(100, ctx.currentTime);
+        filter.Q.setValueAtTime(10, ctx.currentTime);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 2); 
 
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(100, ctx.currentTime);
-    filter.Q.setValueAtTime(10, ctx.currentTime);
+        osc.connect(filter).connect(gain).connect(masterGain.current);
+        osc.start();
+        ambientOsc.current = osc;
+        ambientNode.current = gain;
+    }
 
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 2); 
+    // Initialize Fan (White Noise)
+    if (!noiseNode.current) {
+        const bufferSize = ctx.sampleRate * 2;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+        
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(500, ctx.currentTime);
+        
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0, ctx.currentTime);
+        
+        noise.connect(noiseFilter).connect(noiseGain).connect(masterGain.current);
+        noise.start();
+        
+        noiseNode.current = noise;
+        noiseGainNode.current = noiseGain;
+    }
 
-    osc.connect(filter).connect(gain).connect(masterGain.current);
-    osc.start();
+    // Dynamic fan volume based on severity
+    // NOMINAL: 0.005, P3: 0.01, P1: 0.02, P0: 0.05
+    const targetVolume = severity === 'P0' ? 0.05 : 
+                         severity === 'P1' ? 0.02 : 
+                         severity === 'P3' ? 0.01 : 0.005;
 
-    ambientNode.current = gain;
-    ambientOsc.current = osc;
-
-    const clickInterval = setInterval(() => {
-      if (!isAudioOn || !isLoggedIn) return;
-      if (Math.random() > 0.7) {
-        const clickOsc = ctx.createOscillator();
-        const clickGain = ctx.createGain();
-        clickOsc.type = 'sine';
-        clickOsc.frequency.setValueAtTime(Math.random() * 1000 + 2000, ctx.currentTime);
-        clickGain.gain.setValueAtTime(0.005, ctx.currentTime);
-        clickGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
-        clickOsc.connect(clickGain).connect(masterGain.current!);
-        clickOsc.start();
-        clickOsc.stop(ctx.currentTime + 0.05);
-      }
-    }, 500);
+    if (noiseGainNode.current) {
+        noiseGainNode.current.gain.setTargetAtTime(targetVolume, ctx.currentTime, 1.5);
+    }
 
     return () => {
-      clearInterval(clickInterval);
-      if (osc) {
-          try {
-            osc.stop();
-            osc.disconnect();
-          } catch { /* already stopped */ }
-      }
+        // Only stop if explicitly told or logged out via useEffect trigger
     };
-  }, [isAudioOn, isLoggedIn, initAudio]);
+  }, [isAudioOn, isLoggedIn, severity, initAudio, stopAllSounds]);
 
   return (
     <AudioContextInstance.Provider value={{

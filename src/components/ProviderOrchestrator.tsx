@@ -1,4 +1,5 @@
 import React, { useContext, useCallback, useEffect } from 'react';
+import type { DataConnection } from 'peerjs';
 import { IncidentProvider } from '../contexts/IncidentContext';
 import { useTerminal } from '../hooks/useTerminal';
 import { AudioProvider } from '../contexts/AudioContext';
@@ -17,7 +18,7 @@ const SyncBroadcaster: React.FC = () => {
         stack: incident.stack
       });
     }
-  }, [incident?.severity, incident?.stack, send]);
+  }, [incident, send]);
 
   return null;
 };
@@ -25,7 +26,7 @@ const SyncBroadcaster: React.FC = () => {
 const SyncOrchestrator: React.FC<{ children: React.ReactNode, isHost: boolean, appState: string }> = ({ children, isHost, appState }) => {
   const incident = useContext(IncidentContext);
 
-  const handlePeerConnected = useCallback((conn: any) => {
+  const handlePeerConnected = useCallback((conn: DataConnection) => {
     if (incident) {
         conn.send({
             type: 'STATE_UPDATE',
@@ -33,12 +34,12 @@ const SyncOrchestrator: React.FC<{ children: React.ReactNode, isHost: boolean, a
             stack: incident.stack
         });
     }
-  }, [incident?.severity, incident?.stack]);
+  }, [incident]);
 
   return (
     <SyncProvider isHost={isHost} onPeerConnected={handlePeerConnected}>
       <SyncBroadcaster />
-      <AudioProvider isLoggedIn={appState === 'READY'}>
+      <AudioProvider isLoggedIn={appState === 'READY'} severity={incident?.severity || 'NOMINAL'}>
         {children}
       </AudioProvider>
     </SyncProvider>

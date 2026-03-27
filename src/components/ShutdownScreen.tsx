@@ -46,7 +46,6 @@ export const ShutdownScreen = ({ onComplete }: { onComplete: () => void }) => {
       justifyContent: 'flex-start',
       overflow: 'hidden',
       color: 'var(--terminal-green)',
-      fontFamily: 'monospace',
       fontSize: 'var(--text-l3)',
     }}>
       <div style={{ textShadow: '0 0 10px var(--terminal-green)' }}>

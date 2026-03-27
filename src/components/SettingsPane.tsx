@@ -3,6 +3,7 @@ import { TechnicalPane } from './TechnicalPane';
 import { Button } from './Button';
 import { SettingsIcon } from './Icons';
 import { useTerminal } from '../hooks/useTerminal';
+import { TechnicalTypography as Ty } from '../styles/Typography';
 
 interface SettingsPaneProps {
   zIndex: number;
@@ -21,7 +22,7 @@ export const SettingsPane = ({
   currentTheme,
   setTheme,
 }: SettingsPaneProps) => {
-  const { isDebugMode, setIsDebugMode } = useTerminal();
+  const { isDebugMode, setIsDebugMode, isEcoMode, setIsEcoMode } = useTerminal();
   const [apiKey, setApiKey] = useState(
     () => localStorage.getItem('gemini_api_key') || ''
   );
@@ -31,6 +32,8 @@ export const SettingsPane = ({
   );
   const [status, setStatus] = useState<'IDLE' | 'VALIDATING' | 'SAVED' | 'ERROR'>('IDLE');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const green = 'var(--terminal-green)';
 
   const handleSave = async () => {
     if (!apiKey.trim()) {
@@ -48,14 +51,12 @@ export const SettingsPane = ({
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        // Attempt a minimal generation to verify the key
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
             generationConfig: { maxOutputTokens: 1 }
         });
         await result.response;
         
-        // Success
         localStorage.setItem('gemini_api_key', apiKey);
         localStorage.setItem('feature_future_enabled', String(futureEnabled));
         setStatus('SAVED');
@@ -90,21 +91,11 @@ export const SettingsPane = ({
         </>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.1rem',
-              margin: '0 0 12px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>01.</span>{' '}
-            GEMINI_UPLINK_KEY
-          </h3>
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>01.</span> GEMINI_UPLINK_KEY
+          </h2>
           <div
             style={{
               position: 'relative',
@@ -122,10 +113,10 @@ export const SettingsPane = ({
                 background: 'rgba(0, 0, 0, 0.4)',
                 border: status === 'ERROR' ? '1px solid var(--terminal-red)' : '1px solid #35373b',
                 color: status === 'ERROR' ? 'var(--terminal-red)' : 'var(--terminal-green)',
-                padding: '12px 60px 12px 12px',
+                padding: '10px 60px 10px 10px',
                 width: '100%',
                 fontFamily: 'monospace',
-                fontSize: '0.9rem',
+                fontSize: '0.8rem',
                 outline: 'none',
                 borderRadius: '4px',
                 opacity: status === 'VALIDATING' ? 0.5 : 1
@@ -133,7 +124,7 @@ export const SettingsPane = ({
             />
             <Button
               onClick={() => setShowKey(!showKey)}
-              size="small inline"
+              size="x-small"
               style={{
                 position: 'absolute',
                 right: '8px',
@@ -145,49 +136,33 @@ export const SettingsPane = ({
             </Button>
           </div>
           {status === 'ERROR' && (
-            <p style={{ color: 'var(--terminal-red)', fontSize: '0.8rem', marginTop: '8px', fontWeight: 'bold' }}>
+            <p style={{ color: 'var(--terminal-red)', fontSize: '0.75rem', marginTop: '8px', fontWeight: 'bold' }}>
                 {'>'} ERROR: {errorMessage}
             </p>
           )}
-          <p
-            style={{
-              fontSize: '0.8rem',
-              opacity: 0.5,
-              marginTop: '8px',
-            }}
-          >
+          <p style={{ ...Ty.p, fontSize: '0.75rem', opacity: 0.5, marginTop: '8px' }}>
             Keys are cached in{' '}
-            <b style={{ color: 'var(--terminal-green)' }}>LOCAL_STORAGE</b>. No
+            <b style={Ty.bold(green)}>LOCAL_STORAGE</b>. No
             data is transmitted to central system servers.
           </p>
         </section>
 
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.1rem',
-              margin: '0 0 12px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>02.</span>{' '}
-            VISUAL_THEMES
-          </h3>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>02.</span> VISUAL_THEMES
+          </h2>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <Button 
                 onClick={() => setTheme('classic')} 
                 active={currentTheme === 'classic'}
-                size="small"
+                size="x-small"
             >
                 CLASSIC
             </Button>
             <Button 
                 onClick={() => setTheme('amber')} 
                 active={currentTheme === 'amber'}
-                size="small"
+                size="x-small"
                 style={{ color: 'var(--terminal-amber)', borderColor: 'var(--terminal-amber)' }}
             >
                 AMBER
@@ -195,7 +170,7 @@ export const SettingsPane = ({
             <Button 
                 onClick={() => setTheme('cobalt')} 
                 active={currentTheme === 'cobalt'}
-                size="small"
+                size="x-small"
                 style={{ color: 'var(--terminal-cobalt)', borderColor: 'var(--terminal-cobalt)' }}
             >
                 COBALT
@@ -204,27 +179,17 @@ export const SettingsPane = ({
         </section>
 
         <section>
-          <h3
-            style={{
-              color: '#fff',
-              fontSize: '1.1rem',
-              margin: '0 0 12px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <span style={{ color: 'var(--terminal-green)' }}>03.</span>{' '}
-            EXPERIMENTAL_MODULES
-          </h3>
+          <h2 style={Ty.h2}>
+            <span style={Ty.number(green)}>03.</span> EXPERIMENTAL_MODULES
+          </h2>
           <label
             style={{
               display: 'flex',
               alignItems: 'center',
               cursor: 'pointer',
-              gap: '12px',
+              gap: '10px',
               background: 'rgba(255, 255, 255, 0.03)',
-              padding: '10px',
+              padding: '8px',
               borderRadius: '4px',
               border: '1px solid #1c2128',
             }}
@@ -234,32 +199,59 @@ export const SettingsPane = ({
               checked={futureEnabled}
               onChange={(e) => setFutureEnabled(e.target.checked)}
               style={{
-                width: '18px',
-                height: '18px',
+                width: '16px',
+                height: '16px',
                 accentColor: 'var(--terminal-green)',
               }}
             />
             <span
-              style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#fff' }}
+              style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#fff' }}
             >
               ENABLE_BETA_THEATER
             </span>
           </label>
-          <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '8px' }}>
-            Toggle bleeding-edge extraction protocols and visual artifacts.
-          </p>
 
           <label
             style={{
               display: 'flex',
               alignItems: 'center',
               cursor: 'pointer',
-              gap: '12px',
+              gap: '10px',
               background: 'rgba(255, 255, 255, 0.03)',
-              padding: '10px',
+              padding: '8px',
               borderRadius: '4px',
               border: '1px solid #1c2128',
-              marginTop: '15px'
+              marginTop: '10px'
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={isEcoMode}
+              onChange={(e) => setIsEcoMode(e.target.checked)}
+              style={{
+                width: '16px',
+                height: '16px',
+                accentColor: 'var(--terminal-green)',
+              }}
+            />
+            <span
+              style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#fff' }}
+            >
+              ENABLE_ECO_MODE (LOW_POWER)
+            </span>
+          </label>
+
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              gap: '10px',
+              background: 'rgba(255, 255, 255, 0.03)',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #1c2128',
+              marginTop: '10px'
             }}
           >
             <input
@@ -267,26 +259,23 @@ export const SettingsPane = ({
               checked={isDebugMode}
               onChange={(e) => setIsDebugMode(e.target.checked)}
               style={{
-                width: '18px',
-                height: '18px',
+                width: '16px',
+                height: '16px',
                 accentColor: 'var(--terminal-green)',
               }}
             />
             <span
-              style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#fff' }}
+              style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#fff' }}
             >
               ENABLE_SYSTEM_DEBUG_HOOKS
             </span>
           </label>
-          <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '8px' }}>
-            Expose internal state transitions and telemetry via a dedicated console.
-          </p>
         </section>
       </div>
 
       <div
         style={{
-          marginTop: '30px',
+          marginTop: '25px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -295,16 +284,16 @@ export const SettingsPane = ({
         <Button 
             onClick={handleSave} 
             variant="primary" 
-            size="small" 
+            size="x-small" 
             disabled={status === 'VALIDATING'}
         >
-          {status === 'VALIDATING' ? 'VERIFYING_HANDSHAKE...' : 
-           status === 'SAVED' ? 'CONFIGURATION_SYNCED' : 'COMMIT_CHANGES'}
+          {status === 'VALIDATING' ? 'VERIFYING...' : 
+           status === 'SAVED' ? 'SYNCED' : 'COMMIT_CHANGES'}
         </Button>
         {status === 'SAVED' && (
           <span
             style={{
-              fontSize: '0.8rem',
+              fontSize: '0.75rem',
               color: 'var(--terminal-amber)',
               animation: 'flicker 0.5s infinite',
               fontWeight: 'bold',
@@ -316,7 +305,7 @@ export const SettingsPane = ({
         {status === 'ERROR' && (
           <span
             style={{
-              fontSize: '0.8rem',
+              fontSize: '0.75rem',
               color: 'var(--terminal-red)',
               fontWeight: 'bold',
             }}

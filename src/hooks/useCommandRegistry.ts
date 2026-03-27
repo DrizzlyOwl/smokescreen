@@ -23,6 +23,7 @@ export interface CommandActions {
   setBossMode: (on: boolean) => void;
   setTheme: (theme: 'classic' | 'amber' | 'cobalt') => void;
   handleEject: () => void;
+  handleCease: () => void;
   copyExcuse: () => void;
   setView: (v: 'HOME' | 'TICKET') => void;
   handleLogout: () => void;
@@ -245,9 +246,9 @@ export const useCommandRegistry = (actions: CommandActions) => {
     },
     {
       id: 'cease',
-      patterns: ['cease', 'abort', 'stop'],
-      action: () => actions.handleLogout(), // In context of simulation, could be ceaseTheatre but logout works as hard abort
-      description: 'Cease theatrics and reset',
+      patterns: ['cease', 'resolve', 'restore', 'abort'],
+      action: () => actions.handleCease(),
+      description: 'Resolve incident and restore nominal operations',
       category: 'ACTION',
     },
     {

@@ -14,6 +14,8 @@ export interface TerminalContextType {
   setUplinkId: (id: string) => void;
   isDebugMode: boolean;
   setIsDebugMode: (enabled: boolean) => void;
+  isEcoMode: boolean;
+  setIsEcoMode: (enabled: boolean) => void;
 }
 
 export interface IncidentContextType {

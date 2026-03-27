@@ -69,10 +69,10 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
                 fontFamily: 'monospace'
             }}>
                 {/* Total Loss Display */}
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ fontSize: 'var(--text-l4)', color: '#768390', letterSpacing: '2px', fontWeight: 'bold' }}>ESTIMATED_INCIDENT_LOSS</div>
+                <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#768390', letterSpacing: '2px', fontWeight: 'bold' }}>ESTIMATED_INCIDENT_LOSS</div>
                     <div style={{ 
-                        fontSize: 'var(--text-l2)', 
+                        fontSize: '1.75rem', 
                         color: burnColor, 
                         fontWeight: 'bold',
                         textShadow: `0 0 10px ${burnColor}44`
@@ -88,7 +88,7 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
                     alignItems: 'flex-end', 
                     gap: '2px', 
                     borderBottom: '1px solid #1c2128',
-                    marginBottom: '15px',
+                    marginBottom: '10px',
                     padding: '0 5px'
                 }}>
                     {history.map((val, i) => {
@@ -108,14 +108,14 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
                 {/* Ticker */}
                 <div style={{ 
                     background: '#000', 
-                    padding: '8px', 
+                    padding: '6px', 
                     border: '1px solid #1c2128',
                     borderRadius: '4px',
                     overflow: 'hidden',
                     position: 'relative'
                 }}>
                     <div style={{
-                        fontSize: 'var(--text-l4)',
+                        fontSize: '0.75rem',
                         color: burnColor,
                         whiteSpace: 'nowrap',
                         animation: 'ticker 10s linear infinite',
@@ -126,8 +126,8 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
                 </div>
 
                 <div style={{ 
-                    marginTop: '10px', 
-                    fontSize: 'var(--text-l4)', 
+                    marginTop: '8px', 
+                    fontSize: '0.75rem', 
                     color: '#768390',
                     display: 'flex',
                     justifyContent: 'space-between',
