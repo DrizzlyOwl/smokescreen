@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { DeployIcon } from './Icons';
 import type { Severity } from '../data/excuses';
 import { Pane } from './Pane';
 
@@ -97,14 +98,14 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
   return (
     <Pane
       title="KUBERNETES_WORKLOAD_STATUS"
-      icon="●"
-      iconColor={severity === 'P0' ? '#f47067' : '#adbac7'}
+      icon={<DeployIcon />}
+      iconColor={severity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
       initialPos={{ x: 500, y: 100 }}
       initialSize={{ width: 550, height: 400 }}
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
-      severityColor={severity === 'P0' ? '#f47067' : undefined}
+      severityColor={severity === 'P0' ? 'var(--terminal-red)' : undefined}
       onClose={onClose}
     >
       <div style={{ flex: 1, overflow: 'auto', fontFamily: 'monospace', padding: '12px', boxSizing: 'border-box' }}>

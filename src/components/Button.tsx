@@ -3,7 +3,7 @@ import React from 'react';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'terminal' | 'primary' | 'danger' | 'mobile' | 'mobile-outline';
   active?: boolean;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'small inline' | 'medium inline' | 'small' | 'large';
   fullWidth?: boolean;
 }
 
@@ -11,101 +11,33 @@ export const Button = ({
   children, 
   variant = 'terminal', 
   active = false, 
-  size = 'md',
+  size = 'small',
   fullWidth = false,
   className = '',
   style = {},
   ...props 
 }: ButtonProps) => {
-  const getBaseStyles = (): React.CSSProperties => {
-    const base: React.CSSProperties = {
-      fontFamily: 'inherit',
-      cursor: props.disabled ? 'not-allowed' : 'pointer',
-      transition: 'all 0.2s ease',
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '8px',
-      outline: 'none',
-      boxSizing: 'border-box',
-      width: fullWidth ? '100%' : 'auto',
-      opacity: props.disabled ? 0.5 : 1,
-    };
-
-    if (variant === 'terminal') {
-      return {
-        ...base,
-        background: active ? 'var(--terminal-green)' : 'transparent',
-        border: '2px solid var(--terminal-green)',
-        color: active ? 'var(--terminal-bg)' : 'var(--terminal-green)',
-        padding: size === 'sm' ? '5px 10px' : size === 'lg' ? '15px 30px' : '10px 20px',
-        fontSize: size === 'sm' ? 'var(--text-l4)' : size === 'lg' ? 'var(--text-l3)' : 'var(--text-l4)',
-        fontWeight: 'bold',
-        textShadow: active ? 'none' : '0 0 5px var(--terminal-green)',
-        textTransform: 'uppercase',
-      };
+  const getPaddingAndFontSize = () => {
+    switch (size) {
+        case 'small inline': return { padding: '6px 12px', fontSize: 'var(--text-l4)' };
+        case 'medium inline': return { padding: '10px 18px', fontSize: 'var(--text-l3)' };
+        case 'small': return { padding: '14px 28px', fontSize: 'var(--text-l3)' };
+        case 'large': return { padding: '20px 45px', fontSize: 'var(--text-l2)' };
+        default: return { padding: '14px 28px', fontSize: 'var(--text-l3)' };
     }
+  };
 
-    if (variant === 'primary') {
-      return {
-        ...base,
-        background: 'rgba(13, 17, 13, 0.9)',
-        border: '4px solid var(--terminal-green)',
-        color: 'var(--terminal-green)',
-        padding: '20px 50px',
-        fontSize: 'var(--text-l2)',
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-        boxShadow: '0 0 15px var(--terminal-green)',
-      };
-    }
+  const dims = getPaddingAndFontSize();
 
-    if (variant === 'danger') {
-        return {
-          ...base,
-          background: active ? 'var(--terminal-red)' : 'transparent',
-          border: '2px solid var(--terminal-red)',
-          color: active ? 'white' : 'var(--terminal-red)',
-          padding: '10px 20px',
-          fontSize: 'var(--text-l4)',
-          fontWeight: 'bold',
-          textShadow: active ? 'none' : '0 0 5px var(--terminal-red)',
-          textTransform: 'uppercase',
-        };
-      }
-
-    if (variant === 'mobile') {
-      return {
-        ...base,
-        background: 'var(--terminal-green)',
-        border: 'none',
-        color: '#000',
-        padding: '15px',
-        borderRadius: '8px',
-        fontWeight: 'bold',
-        fontSize: 'var(--text-l4)',
-      };
-    }
-
-    if (variant === 'mobile-outline') {
-        return {
-          ...base,
-          background: 'transparent',
-          border: '1px solid #35373b',
-          color: '#fff',
-          padding: '15px',
-          borderRadius: '8px',
-          fontSize: 'var(--text-l4)',
-          fontWeight: 'bold',
-        };
-      }
-
-    return base;
+  const combinedStyle: React.CSSProperties = {
+    ...dims,
+    width: fullWidth ? '100%' : 'auto',
+    ...style
   };
 
   return (
     <button 
-      style={{ ...getBaseStyles(), ...style }}
+      style={combinedStyle}
       className={`${variant}-button ${active ? 'active' : ''} ${className}`}
       {...props}
     >

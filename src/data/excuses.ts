@@ -1,4 +1,7 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
 export type Severity = 'NOMINAL' | 'P3' | 'P1' | 'P0';
+// ... (rest of types and data)
 export type Stack = 'AWS' | 'GCP' | 'AZURE' | 'ON-PREM' | 'SERVERLESS';
 
 interface Jargon {
@@ -169,4 +172,30 @@ export const generateExcuse = (severity: Severity, stack: Stack): { text: string
   }
 
   return { text: excuse, ticketId, timeSaved };
+};
+
+export const generateAIExcuse = async (severity: Severity, stack: Stack, apiKey: string): Promise<{ text: string; ticketId: string; timeSaved: number }> => {
+  if (severity === 'NOMINAL') return { text: '', ticketId: '', timeSaved: 0 };
+  
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    systemInstruction: "You are a senior DevOps / SRE engineer. You are currently in a very boring meeting and need a hyper-technical, slightly chaotic, but plausible excuse to leave immediately. Use heavy DevOps jargon (Kubernetes, BGP, MTU, shards, race conditions, memory leaks). Keep it under 200 characters if possible. Mention a ticket ID like INC-XXXX. Be direct and sound stressed."
+  });
+
+  const prompt = `Generate a P0/P1 incident excuse for a ${severity} level failure on a ${stack} stack. The excuse should explain why I need to drop off this call immediately to fix a cascading failure.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    const ticketId = generateTicketId(); // Still use our internal generator for consistency
+    const timeSaved = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
+    
+    return { text: text.trim(), ticketId, timeSaved };
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    // Fallback to local generator if AI fails
+    return generateExcuse(severity, stack);
+  }
 };

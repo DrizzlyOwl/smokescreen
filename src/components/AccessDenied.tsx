@@ -1,3 +1,5 @@
+import { Button } from './Button';
+
 export const AccessDenied = ({ ticketId, onBack }: { ticketId: string, onBack: () => void }) => {
   return (
     <div style={{
@@ -27,7 +29,7 @@ export const AccessDenied = ({ ticketId, onBack }: { ticketId: string, onBack: (
           LOCAL NODE IP 10.42.1.255 IS NOT IN THE PERMITTED SUBNET FOR SRE-INCIDENT-TRACKING.
         </div>
         <div>
-          <button onClick={onBack} className="severity-btn active">[ RE-AUTHENTICATE ]</button>
+          <Button onClick={onBack} variant="danger" size="large">RE-AUTHENTICATE</Button>
         </div>
       </div>
     </div>

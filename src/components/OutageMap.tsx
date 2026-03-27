@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { MapIcon } from './Icons';
 import type { Severity } from '../data/excuses';
 import { Pane } from './Pane';
 
@@ -68,9 +69,9 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
     return (
         <Pane
           title="GLOBAL_INCIDENT_MONITOR"
-          icon="⌖"
+          icon={<MapIcon />}
           iconColor={severity === 'NOMINAL' ? 'var(--terminal-green)' : isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)'}
-          initialPos={{ x: 600, y: 300 }}
+          initialPos={{ x: window.innerWidth - 650, y: 40 }}
           initialSize={{ width: 600, height: 400 }}
           zIndex={zIndex}
           onFocus={onFocus}

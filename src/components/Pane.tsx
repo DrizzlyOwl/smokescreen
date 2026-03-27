@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import { Button } from './Button';
 import { useDraggable } from '../hooks/useDraggable';
 import { useResizable } from '../hooks/useResizable';
-import { PANE_STYLES } from '../styles/panes';
 
 interface PaneProps {
   title: string;
-  icon?: string;
+  icon?: React.ReactNode;
   iconColor?: string;
   initialPos?: { x: number, y: number };
   initialSize?: { width: number, height: number };
@@ -22,7 +22,7 @@ interface PaneProps {
 
 export const Pane = ({
   title,
-  icon = '#',
+  icon,
   iconColor,
   initialPos = { x: 100, y: 100 },
   initialSize = { width: 450, height: 350 },
@@ -54,48 +54,65 @@ export const Pane = ({
   return (
     <div 
       onMouseDown={onFocus}
+      className={`pane ${isActive ? 'active' : ''} ${isMinimized ? 'minimized' : ''}`}
       style={{
-        ...PANE_STYLES.container(isMinimized, `${size.width}px`, zIndex, isActive),
         left: position.x,
         top: position.y,
-        border: severityColor ? `1px solid ${severityColor}` : (isActive ? '1px solid var(--terminal-green)' : '1px solid #35373b'),
-        boxShadow: isDragging || isResizing ? '0 8px 32px rgba(0, 0, 0, 0.8)' : (isActive ? '0 0 20px rgba(24, 255, 98, 0.2)' : '0 4px 12px rgba(0, 0, 0, 0.4)'),
-        opacity: isDragging ? 0.8 : 1,
-        transition: isResizing ? 'none' : 'width 0.3s ease, opacity 0.2s ease, border-color 0.2s ease'
+        width: size.width,
+        zIndex,
+        borderColor: severityColor || undefined,
+        transition: isResizing ? 'none' : undefined
       }}
     >
       {/* Header / Drag Handle */}
       <div 
         onMouseDown={onDragMouseDown}
-        className="drag-handle" 
-        style={PANE_STYLES.header(isDragging, isActive)}
+        className={`drag-handle pane__header ${isDragging ? 'dragging' : ''}`}
       >
-        <div className="drag-handle" style={PANE_STYLES.headerTitle}>
-          <span className="drag-handle" style={{ color: iconColor || 'var(--terminal-green)' }}>{icon}</span>
+        <div className="drag-handle pane__title">
+          {icon && (
+            <div className="drag-handle" style={{ 
+                color: iconColor || 'var(--terminal-green)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '20px',
+                height: '20px',
+                flexShrink: 0,
+                marginRight: '8px'
+            }}>
+                {icon}
+            </div>
+          )}
           {isMinimized ? title.split('_').pop() : title}
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button 
+          <Button 
             onClick={toggleMinimize}
-            style={PANE_STYLES.minimizeBtn}>
-            {isMinimized ? '[+]' : '[−]'}
-          </button>
+            size="small inline"
+            style={{ width: '40px' }}
+          >
+            {isMinimized ? '+' : '−'}
+          </Button>
           {onClose && (
-            <button 
+            <Button 
                 onClick={(e) => { e.stopPropagation(); onClose(); }}
-                style={{ ...PANE_STYLES.minimizeBtn, color: 'var(--terminal-red)' }}>
-                [X]
-            </button>
+                variant="danger"
+                size="small inline"
+                style={{ width: '40px' }}
+            >
+                X
+            </Button>
           )}
         </div>
       </div>
 
       {/* Content */}
       {!isMinimized && (
-        <div style={{
-          ...PANE_STYLES.content(`${size.height}px`),
-          position: 'relative'
-        }}>
+        <div 
+          className="pane__content"
+          style={{ height: size.height }}
+        >
           {children}
           
           {/* Resize Handle */}

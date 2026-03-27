@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Severity, Stack } from '../data/excuses';
 import { Button } from './Button';
+import { useSync } from '../contexts/SyncContext';
+import { useTerminal } from '../hooks/useTerminal';
 
 interface ChatMessage {
     user: string;
@@ -23,35 +25,34 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [kernelLogs, setKernelLogs] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<'ALERTS' | 'CHAT' | 'LOGS' | 'SETTINGS'>('ALERTS');
-    const [uplinkId, setUplinkId] = useState(initialUplinkId);
+    const { setUplinkId, uplinkId } = useTerminal();
     const [tempUplinkId, setTempUplinkId] = useState(initialUplinkId);
     
     const chatEndRef = useRef<HTMLDivElement>(null);
     const logsEndRef = useRef<HTMLDivElement>(null);
-    const channelRef = useRef<BroadcastChannel | null>(null);
-
-    const initChannel = (id: string) => {
-        if (channelRef.current) channelRef.current.close();
-        
-        const channel = new BroadcastChannel(`smokescreen_room_${id}`);
-        channel.onmessage = (event) => {
-            if (event.data.type === 'STATE_UPDATE') {
-                setLiveSeverity(event.data.severity);
-                setLiveStack(event.data.stack);
-                setIsAcknowledged(false);
-            }
-            if (event.data.type === 'CHAT_MESSAGE') {
-                setMessages(prev => [...prev, event.data.message].slice(-50));
-            }
-            if (event.data.type === 'LOG_MESSAGE') {
-                setKernelLogs(prev => [...prev, event.data.log].slice(-100));
-            }
-        };
-        channelRef.current = channel;
-    };
+    const { subscribe, isConnected: isPeerConnected } = useSync();
 
     useEffect(() => {
-        const timer = setTimeout(() => setStatus('CONNECTED'), 1500);
+        const unsubscribe = subscribe((data) => {
+            if (data.type === 'STATE_UPDATE') {
+                setLiveSeverity(data.severity);
+                setLiveStack(data.stack);
+                setIsAcknowledged(false);
+            }
+            if (data.type === 'CHAT_MESSAGE') {
+                setMessages(prev => [...prev, data.message].slice(-50));
+            }
+            if (data.type === 'LOG_MESSAGE') {
+                setKernelLogs(prev => [...prev, data.log].slice(-100));
+            }
+        });
+        return unsubscribe;
+    }, [subscribe]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isPeerConnected) setStatus('CONNECTED');
+        }, 1500);
         const clock = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
         
         // Fetch real battery status
@@ -64,14 +65,11 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
             });
         }
 
-        initChannel(uplinkId);
-
         return () => { 
             clearTimeout(timer); 
             clearInterval(clock); 
-            if (channelRef.current) channelRef.current.close();
         };
-    }, [uplinkId]);
+    }, [isPeerConnected]);
 
     useEffect(() => {
         if (activeTab === 'CHAT' && chatEndRef.current) {
@@ -88,7 +86,6 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
             setUplinkId(tempUplinkId.toUpperCase());
             setActiveTab('ALERTS');
             setStatus('CONNECTING');
-            setTimeout(() => setStatus('CONNECTED'), 1000);
         }
     };
 
@@ -126,7 +123,7 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
 
             {/* Header */}
             <header style={{ padding: '20px', borderBottom: '1px solid #1c2128', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '40px', height: '40px', background: '#18ff62', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#000', fontSize: 'var(--text-l4)' }}>DXW</div>
+                <div style={{ width: '40px', height: '40px', background: '#18ff62', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#000', fontSize: 'var(--text-l4)' }}>SRE</div>
                 <div>
                     <div style={{ fontWeight: 'bold', fontSize: 'var(--text-l3)' }}>SMOKESCREEN Mobile</div>
                     <div style={{ fontSize: 'var(--text-l4)', color: '#18ff62', letterSpacing: '1px', fontWeight: 'bold' }}>● UPLINK_ACTIVE</div>
@@ -159,11 +156,10 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
                                         onClick={() => setIsAcknowledged(true)}
                                         variant="mobile"
                                         fullWidth
+                                        size="small"
                                         style={{ 
                                             marginTop: '20px',
                                             background: incidentColor,
-                                            fontSize: 'var(--text-l4)',
-                                            fontWeight: 'bold'
                                         }}
                                     >
                                         ACKNOWLEDGE INCIDENT
@@ -252,7 +248,7 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
                                     type="submit"
                                     variant="mobile"
                                     fullWidth
-                                    style={{ fontSize: 'var(--text-l3)', fontWeight: 'bold' }}
+                                    size="small"
                                 >
                                     RE-INITIALIZE UPLINK
                                 </Button>
@@ -261,7 +257,7 @@ export const MobilePager = ({ initialSeverity, initialStack, uplinkId: initialUp
 
                         <div style={{ marginTop: 'auto', textAlign: 'center', opacity: 0.4, fontSize: 'var(--text-l4)' }}>
                             DEVICE_MODEL: GENERIC_MOBILE_BROWSER<br/>
-                            OS_VERSION: DXW_COMPANION_v4.5
+                            OS_VERSION: SRE_COMPANION_v4.5
                         </div>
                     </div>
                 )}

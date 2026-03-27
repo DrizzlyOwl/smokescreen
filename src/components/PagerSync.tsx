@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { PagerIcon } from './Icons';
 import type { Severity, Stack } from '../data/excuses';
+import { Button } from './Button';
 import { Pane } from './Pane';
 import { QRCodeSVG } from 'qrcode.react';
+import { useSync } from '../contexts/SyncContext';
 
 export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId, onClose }: { 
     severity: Severity, 
@@ -12,15 +15,17 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
     uplinkId: string,
     onClose: () => void
 }) => {
+    const { isConnected, connectionCount } = useSync();
     const [isSyncing, setIsSyncing] = useState(false);
-    const [isLinked, setIsLinked] = useState(false);
+
+    useEffect(() => {
+        if (isConnected) {
+            setIsSyncing(false);
+        }
+    }, [isConnected]);
 
     const handleSync = () => {
         setIsSyncing(true);
-        setTimeout(() => {
-            setIsSyncing(false);
-            setIsLinked(true);
-        }, 2000);
     };
 
     const isHighSeverity = severity === 'P0' || severity === 'P1';
@@ -28,9 +33,9 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
 
     return (
         <Pane
-          title="DXW_PAGERSYNC_UPLINK"
-          icon="📟"
-          iconColor={isLinked ? 'var(--terminal-green)' : 'var(--terminal-amber)'}
+          title="SYSTEM_PAGERSYNC_UPLINK"
+          icon={<PagerIcon />}
+          iconColor={isConnected ? 'var(--terminal-green)' : isSyncing ? 'var(--terminal-amber)' : 'rgba(255, 255, 255, 0.2)'}
           initialPos={{ x: 800, y: 50 }}
           initialSize={{ width: 320, height: 450 }}
           zIndex={zIndex}
@@ -73,15 +78,16 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
                     SCAN TO SYNCHRONIZE MOBILE PAGER WITH SMOKESCREEN CLOUD
                 </p>
 
-                {!isLinked ? (
-                    <button 
+                {!isConnected ? (
+                    <Button 
                         onClick={handleSync}
                         disabled={isSyncing}
-                        className="severity-btn active"
-                        style={{ width: '100%', padding: '10px' }}
+                        variant="primary"
+                        size="small"
+                        fullWidth
                     >
-                        {isSyncing ? 'ESTABLISHING_HANDSHAKE...' : '[ INITIATE_SYNC ]'}
-                    </button>
+                        {isSyncing ? 'AWAITING_PEER_HANDSHAKE...' : 'INITIATE_SYNC_LISTEN'}
+                    </Button>
                 ) : (
                     <div style={{ width: '100%' }}>
                         <div style={{ 
@@ -92,7 +98,7 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
                             padding: '10px',
                             marginBottom: '10px'
                         }}>
-                            UPLINK: ACTIVE
+                            UPLINK: ACTIVE ({connectionCount})
                         </div>
                         {isHighSeverity && (
                             <div style={{ 

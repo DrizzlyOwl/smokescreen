@@ -1,10 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './index.scss'
 import App from './App.tsx'
+import { TerminalProvider } from './contexts/TerminalContext'
+import { ProviderOrchestrator } from './components/ProviderOrchestrator'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <TerminalProvider>
+      <ProviderOrchestrator>
+        <App />
+      </ProviderOrchestrator>
+    </TerminalProvider>
   </StrictMode>,
 )

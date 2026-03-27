@@ -10,7 +10,15 @@ export const CommandInput = ({ onCommand }: CommandInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleGlobalClick = () => inputRef.current?.focus();
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      const isButton = target.tagName === 'BUTTON' || target.closest('button');
+      
+      if (!isInput && !isButton) {
+        inputRef.current?.focus();
+      }
+    };
     window.addEventListener('click', handleGlobalClick);
     inputRef.current?.focus();
     return () => window.removeEventListener('click', handleGlobalClick);
@@ -51,7 +59,7 @@ export const CommandInput = ({ onCommand }: CommandInputProps) => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isError ? "INVALID_COMMAND_" : "ENTER_COMMAND_"}
+          placeholder={isError ? "INVALID_COMMAND_" : "AWAITING_OPERATOR_INPUT..."}
           style={{
             width: '100%',
             background: 'transparent',

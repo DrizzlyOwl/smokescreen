@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
+import { LogsIcon } from './Icons';
 import type { Severity } from '../data/excuses';
 import { Pane } from './Pane';
+import { useSync } from '../contexts/SyncContext';
 
 const KERNEL_LOGS: Record<Severity, string[]> = {
     NOMINAL: [
@@ -48,6 +50,7 @@ const KERNEL_LOGS: Record<Severity, string[]> = {
 export const SystemLog = ({ severity, zIndex, onFocus, isActive, uplinkId, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, uplinkId: string, onClose: () => void }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { send } = useSync();
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -56,7 +59,6 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive, uplinkId, onClo
     }, [logs]);
 
     useEffect(() => {
-        const channel = new BroadcastChannel(`smokescreen_room_${uplinkId}`);
         const delay = severity === 'P0' ? 100 : severity === 'P1' ? 400 : severity === 'P3' ? 1200 : 2500;
         
         const interval = setInterval(() => {
@@ -64,25 +66,25 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive, uplinkId, onClo
             const newLog = pool[Math.floor(Math.random() * pool.length)];
             
             // Broadcast to mobile
-            channel.postMessage({ type: 'LOG_MESSAGE', log: newLog });
+            send({ type: 'LOG_MESSAGE', log: newLog });
             
             setLogs(prev => [...prev, newLog].slice(-200));
         }, delay);
 
         return () => {
             clearInterval(interval);
-            channel.close();
         };
-    }, [severity, uplinkId]);
+    }, [severity, uplinkId, send]);
 
     const isP0 = severity === 'P0';
 
     return (
         <Pane
           title="TAILING: /VAR/LOG/KERN.LOG"
-          icon="#"
+          icon={<LogsIcon />}
           iconColor={isP0 ? 'var(--terminal-red)' : 'var(--terminal-green)'}
           initialPos={{ x: 300, y: 150 }}
+
           initialSize={{ width: 500, height: 400 }}
           zIndex={zIndex}
           onFocus={onFocus}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BurnIcon } from './Icons';
 import type { Severity } from '../data/excuses';
 import { Pane } from './Pane';
 
@@ -45,10 +46,12 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
 
     return (
         <Pane
-          title="DXW_FINANCIAL_BURN_MONITOR"
-          icon="£"
+          title="SYSTEM_FINANCIAL_BURN_MONITOR"
+          icon={<BurnIcon />}
+
           iconColor={burnColor}
           initialPos={{ x: 100, y: 400 }}
+
           initialSize={{ width: 400, height: 250 }}
           zIndex={zIndex}
           onFocus={onFocus}

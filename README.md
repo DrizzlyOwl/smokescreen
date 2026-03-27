@@ -14,11 +14,11 @@ SMOKESCREEN is a tactical cover generator designed to help engineers exit unnece
 SMOKESCREEN turns that sentence into a full-scale digital production. It simulates a high-stakes SRE incident on your second monitor, complete with flickering CRT filters, scrolling kernel logs, and panicking Slack messages, giving you the perfect "eject" button for any meeting.
 
 ## 🚀 Core Features (v4.5)
-- **📟 DXW Secure Gateway:** A branded, immersive boot sequence and operator identification system.
-- **🖥️ CRT Terminal Aesthetic:** Authentic Fallout-style terminal interface with Gaussian flicker, scanlines, and radial glow.
+- **📟 Secure Gateway:** A branded, immersive boot sequence and operator identification system.
+- **🖥️ CRT Terminal Aesthetic:** Authentic vintage terminal interface with Gaussian flicker, scanlines, and radial glow.
 - **🎛️ Command-Line Interface:** Keyboard-navigable prompt to control the entire simulation.
 - **📊 Dynamic Evidence Panes:**
-    - **Incident Chat:** Simulated Slack/incident.io conversation with DXW technical staff.
+    - **Incident Chat:** Simulated Slack/incident.io conversation with technical staff.
     - **System Log:** Real-time tailing of a simulated `/VAR/LOG/KERN.LOG` with syntax highlighting.
     - **Outage Map:** A global region map with active incident indicators.
     - **Deployment Status:** Live visualization of a failing Kubernetes/Terraform rollout.
@@ -69,4 +69,4 @@ npm run dev
 This project is for **educational and entertainment purposes only**. Use SMOKESCREEN responsibly. We are not liable for any sprint goals missed while you were "re-indexing the DynamoDB shards."
 
 ---
-**Copyright © 2026 DrizzlyOwl | DXW AI Hackathon**
+**Copyright © 2026 DrizzlyOwl | SRE AI Hackathon**
