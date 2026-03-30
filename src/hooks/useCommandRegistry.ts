@@ -1,5 +1,6 @@
 import type { PaneId } from './useWindowManager';
-import type { Severity, Stack } from '../data/excuses';
+import type { Severity, Stack } from '../data/incidents';
+import type { Theme } from '../contexts/types';
 
 export interface Command {
   id: string;
@@ -7,7 +8,13 @@ export interface Command {
   action: (context: Record<string, unknown>) => void;
   description: string;
   category: 'PANES' | 'THREAT' | 'STACK' | 'SYSTEM' | 'ACTION';
-  usage?: string;
+  usage: string;
+  confirmation?: string;
+}
+
+export interface CommandResult {
+  isValid: boolean;
+  message?: string;
 }
 
 export interface CommandActions {
@@ -20,14 +27,15 @@ export interface CommandActions {
   setStack: (s: Stack) => void;
   setAudio: (on: boolean) => void;
   setSlowBurn: (on: boolean) => void;
-  setBossMode: (on: boolean) => void;
-  setTheme: (theme: 'classic' | 'amber' | 'cobalt') => void;
+  setTheme: (theme: Theme) => void;
   handleEject: () => void;
   handleCease: () => void;
-  copyExcuse: () => void;
+  copyPlaybook: () => void;
   setView: (v: 'HOME' | 'TICKET') => void;
   handleLogout: () => void;
   help: (commands: Command[]) => void;
+  startPlaybook: (id: string) => void;
+  setEcoMode: (on: boolean) => void;
 }
 
 export const useCommandRegistry = (actions: CommandActions) => {
@@ -37,78 +45,109 @@ export const useCommandRegistry = (actions: CommandActions) => {
       id: 'chat',
       patterns: ['show chat', 'chat', 'warroom'],
       action: () => actions.openPane('chat'),
-      description: 'Display incident war room',
+      description: 'Display incident war room uplink',
       category: 'PANES',
+      usage: 'chat',
+      confirmation: 'OPENING_WAR_ROOM_UPLINK... [OK]',
+    },
+    {
+      id: 'terminal',
+      patterns: ['show terminal', 'terminal', 'console', 'shell'],
+      action: () => actions.openPane('terminal'),
+      description: 'Display secondary system terminal',
+      category: 'PANES',
+      usage: 'terminal',
+      confirmation: 'INITIALIZING_SECONDARY_SHELL... [OK]',
     },
     {
       id: 'logs',
       patterns: ['show logs', 'logs', 'kernel'],
       action: () => actions.openPane('logs'),
-      description: 'Display kernel logs',
+      description: 'Display kernel log stream',
       category: 'PANES',
+      usage: 'logs',
+      confirmation: 'STREAMING_KERNEL_BUFFER... [OK]',
     },
     {
       id: 'map',
       patterns: ['show map', 'map', 'outage'],
       action: () => actions.openPane('map'),
-      description: 'Display outage map',
+      description: 'Display global outage map',
       category: 'PANES',
+      usage: 'map',
+      confirmation: 'MAPPING_GLOBAL_OUTAGE_DATA... [OK]',
     },
     {
       id: 'deploy',
       patterns: ['show deploy', 'show k8s', 'deploy', 'k8s'],
       action: () => actions.openPane('deploy'),
-      description: 'Display deployment status',
+      description: 'Display K8s deployment status',
       category: 'PANES',
+      usage: 'deploy',
+      confirmation: 'POLLING_K8S_DEPLOYMENT_STATUS... [OK]',
     },
     {
       id: 'burn',
       patterns: ['show burn', 'show cost', 'burn', 'cost'],
       action: () => actions.openPane('burn'),
-      description: 'Display financial burn rate',
+      description: 'Display financial burn monitor',
       category: 'PANES',
+      usage: 'burn',
+      confirmation: 'CALCULATING_INFRASTRUCTURE_BURN_RATE... [OK]',
     },
     {
       id: 'pager',
       patterns: ['show pager', 'sync pager', 'pager', 'uplink'],
       action: () => actions.openPane('pager'),
-      description: 'Display mobile uplink QR',
+      description: 'Display mobile pager sync QR',
       category: 'PANES',
+      usage: 'pager',
+      confirmation: 'INITIALIZING_MOBILE_PAGER_SYNC... [OK]',
     },
     {
       id: 'howto',
       patterns: ['show howto', 'how to', 'howto', 'manual'],
       action: () => actions.openPane('howTo'),
-      description: 'Display operator manual',
+      description: 'Display operator SOP manual',
       category: 'PANES',
+      usage: 'howto',
+      confirmation: 'OPENING_SOP_OPERATOR_MANUAL... [OK]',
     },
     {
       id: 'settings',
       patterns: ['show settings', 'settings', 'config'],
       action: () => actions.openPane('settings'),
-      description: 'Display system settings',
+      description: 'Display system configuration',
       category: 'PANES',
+      usage: 'settings',
+      confirmation: 'ACCESSING_SYSTEM_CONFIGURATION... [OK]',
     },
     {
       id: 'metrics',
       patterns: ['show metrics', 'metrics', 'charts', 'latency'],
       action: () => actions.openPane('metrics'),
-      description: 'Display latency metrics',
+      description: 'Display latency telemetry metrics',
       category: 'PANES',
+      usage: 'metrics',
+      confirmation: 'FETCHING_REALTIME_LATENCY_METRICS... [OK]',
     },
     {
       id: 'show_all',
       patterns: ['show all'],
       action: () => actions.openAll(),
-      description: 'Show all active panes',
+      description: 'Restore all observability panes',
       category: 'PANES',
+      usage: 'show all',
+      confirmation: 'RESTORING_ALL_OBSERVABILITY_PANES... [OK]',
     },
     {
       id: 'hide_all',
       patterns: ['hide all', 'clear'],
       action: () => actions.closeAll(),
-      description: 'Hide all active panes',
+      description: 'Clear workspace viewport',
       category: 'PANES',
+      usage: 'clear',
+      confirmation: 'CLEARING_WORKSPACE_VIEWPORT... [OK]',
     },
 
     // Threat
@@ -116,29 +155,37 @@ export const useCommandRegistry = (actions: CommandActions) => {
       id: 'nominal',
       patterns: ['nominal', 'reset'],
       action: () => actions.setSeverity('NOMINAL'),
-      description: 'Reset systems to nominal',
+      description: 'Reset systems to nominal state',
       category: 'THREAT',
+      usage: 'nominal',
+      confirmation: 'ALL_SYSTEMS_NOMINAL... [OK]',
     },
     {
       id: 'p3',
       patterns: ['p3'],
       action: () => actions.setSeverity('P3'),
-      description: 'Trigger P3 degradation',
+      description: 'Escalate to P3 (Degraded)',
       category: 'THREAT',
+      usage: 'p3',
+      confirmation: 'INCIDENT_ESCALATED: P3 [DEGRADED_STATE]',
     },
     {
       id: 'p1',
       patterns: ['p1'],
       action: () => actions.setSeverity('P1'),
-      description: 'Trigger P1 critical alert',
+      description: 'Escalate to P1 (Critical)',
       category: 'THREAT',
+      usage: 'p1',
+      confirmation: 'INCIDENT_ESCALATED: P1 [CRITICAL_ALERT]',
     },
     {
       id: 'p0',
       patterns: ['p0'],
       action: () => actions.setSeverity('P0'),
-      description: 'Trigger P0 catastrophic failure',
+      description: 'Escalate to P0 (Catastrophic)',
       category: 'THREAT',
+      usage: 'p0',
+      confirmation: 'INCIDENT_ESCALATED: P0 [TOTAL_SYSTEM_OUTAGE]',
     },
 
     // Stack
@@ -146,36 +193,82 @@ export const useCommandRegistry = (actions: CommandActions) => {
       id: 'aws',
       patterns: ['aws'],
       action: () => actions.setStack('AWS'),
-      description: 'Set stack to AWS',
+      description: 'Set stack to Amazon Web Services',
       category: 'STACK',
+      usage: 'aws',
+      confirmation: 'PRIMARY_STACK_SET: AWS [SUCCESS]',
     },
     {
       id: 'gcp',
       patterns: ['gcp'],
       action: () => actions.setStack('GCP'),
-      description: 'Set stack to GCP',
+      description: 'Set stack to Google Cloud Platform',
       category: 'STACK',
+      usage: 'gcp',
+      confirmation: 'PRIMARY_STACK_SET: GCP [SUCCESS]',
     },
     {
       id: 'azure',
       patterns: ['azure'],
       action: () => actions.setStack('AZURE'),
-      description: 'Set stack to AZURE',
+      description: 'Set stack to Microsoft Azure',
       category: 'STACK',
+      usage: 'azure',
+      confirmation: 'PRIMARY_STACK_SET: AZURE [SUCCESS]',
     },
     {
       id: 'onprem',
       patterns: ['onprem'],
       action: () => actions.setStack('ON-PREM'),
-      description: 'Set stack to ON-PREM',
+      description: 'Set stack to On-Premise Hardware',
       category: 'STACK',
+      usage: 'onprem',
+      confirmation: 'PRIMARY_STACK_SET: ON-PREM [SUCCESS]',
     },
     {
       id: 'serverless',
       patterns: ['serverless'],
       action: () => actions.setStack('SERVERLESS'),
-      description: 'Set stack to SERVERLESS',
+      description: 'Set stack to Serverless Runtime',
       category: 'STACK',
+      usage: 'serverless',
+      confirmation: 'PRIMARY_STACK_SET: SERVERLESS [SUCCESS]',
+    },
+    {
+      id: 'cloudflare',
+      patterns: ['cloudflare', 'cf'],
+      action: () => actions.setStack('CLOUDFLARE'),
+      description: 'Set stack to Cloudflare Edge',
+      category: 'STACK',
+      usage: 'cloudflare',
+      confirmation: 'PRIMARY_STACK_SET: CLOUDFLARE [SUCCESS]',
+    },
+    {
+      id: 'heroku',
+      patterns: ['heroku'],
+      action: () => actions.setStack('HEROKU'),
+      description: 'Set stack to Heroku PaaS',
+      category: 'STACK',
+      usage: 'heroku',
+      confirmation: 'PRIMARY_STACK_SET: HEROKU [SUCCESS]',
+    },
+    {
+      id: 'hyperv',
+      patterns: ['hyperv', 'hyper-v'],
+      action: () => actions.setStack('HYPER-V'),
+      description: 'Set stack to Microsoft Hyper-V',
+      category: 'STACK',
+      usage: 'hyperv',
+      confirmation: 'PRIMARY_STACK_SET: HYPER-V [SUCCESS]',
+    },
+    {
+      id: 'vmware',
+      patterns: ['vmware', 'vsphere'],
+      action: () => actions.setStack('VMWARE'),
+      description: 'Set stack to VMWare vSphere',
+      category: 'STACK',
+      usage: 'vmware',
+      confirmation: 'PRIMARY_STACK_SET: VMWARE [SUCCESS]',
     },
 
     // System
@@ -183,15 +276,19 @@ export const useCommandRegistry = (actions: CommandActions) => {
       id: 'audio_on',
       patterns: ['audio on'],
       action: () => actions.setAudio(true),
-      description: 'Enable system audio',
+      description: 'Enable system audio engine',
       category: 'SYSTEM',
+      usage: 'audio on',
+      confirmation: 'SYSTEM_AUDIO_RE-ENABLED... [OK]',
     },
     {
       id: 'audio_off',
       patterns: ['audio off'],
       action: () => actions.setAudio(false),
-      description: 'Disable system audio',
+      description: 'Disable system audio engine',
       category: 'SYSTEM',
+      usage: 'audio off',
+      confirmation: 'SYSTEM_AUDIO_SILENCED... [OK]',
     },
     {
       id: 'slowburn_on',
@@ -199,6 +296,8 @@ export const useCommandRegistry = (actions: CommandActions) => {
       action: () => actions.setSlowBurn(true),
       description: 'Engage slow burn protocol',
       category: 'SYSTEM',
+      usage: 'slowburn on',
+      confirmation: 'SLOW_BURN_PROTOCOL_ENGAGED... [ARMED]',
     },
     {
       id: 'slowburn_off',
@@ -206,35 +305,100 @@ export const useCommandRegistry = (actions: CommandActions) => {
       action: () => actions.setSlowBurn(false),
       description: 'Disengage slow burn protocol',
       category: 'SYSTEM',
-    },
-    {
-      id: 'boss',
-      patterns: ['boss', 'cover'],
-      action: () => actions.setBossMode(true),
-      description: 'Activate Boss Mode cover',
-      category: 'SYSTEM',
+      usage: 'slowburn off',
+      confirmation: 'SLOW_BURN_PROTOCOL_DISENGAGED... [DISARMED]',
     },
     {
       id: 'theme_classic',
       patterns: ['theme classic', 'theme green', 'classic'],
       action: () => actions.setTheme('classic'),
-      description: 'Set visual theme to Classic Green',
+      description: 'Set theme to Classic Green',
       category: 'SYSTEM',
+      usage: 'theme classic',
+      confirmation: 'VISUAL_THEME_SET: CLASSIC_GREEN [OK]',
     },
     {
       id: 'theme_amber',
       patterns: ['theme amber', 'amber'],
       action: () => actions.setTheme('amber'),
-      description: 'Set visual theme to Amber',
+      description: 'Set theme to CRT Amber',
       category: 'SYSTEM',
+      usage: 'theme amber',
+      confirmation: 'VISUAL_THEME_SET: CRT_AMBER [OK]',
     },
     {
       id: 'theme_cobalt',
-      patterns: ['theme cobalt', 'cobalt', 'blue'],
+      patterns: ['theme cobalt', 'theme blue', 'cobalt', 'blue'],
       action: () => actions.setTheme('cobalt'),
-      description: 'Set visual theme to Cobalt',
+      description: 'Set theme to Deep Cobalt',
       category: 'SYSTEM',
+      usage: 'theme cobalt',
+      confirmation: 'VISUAL_THEME_SET: DEEP_COBALT [OK]',
     },
+    {
+      id: 'theme_dracula',
+      patterns: ['theme dracula', 'theme purple', 'theme neovim', 'dracula', 'purple'],
+      action: () => actions.setTheme('dracula'),
+      description: 'Set theme to Dracula Neovim',
+      category: 'SYSTEM',
+      usage: 'theme dracula',
+      confirmation: 'VISUAL_THEME_SET: DRACULA_NEOVIM [OK]',
+    },
+    {
+      id: 'theme_monokai',
+      patterns: ['theme monokai', 'theme vsc', 'monokai', 'vsc'],
+      action: () => actions.setTheme('monokai'),
+      description: 'Set theme to Monokai VSC',
+      category: 'SYSTEM',
+      usage: 'theme monokai',
+      confirmation: 'VISUAL_THEME_SET: MONOKAI_VSC [OK]',
+    },
+    {
+      id: 'theme_cyberpunk',
+      patterns: ['theme cyberpunk', 'cyberpunk', 'neon'],
+      action: () => actions.setTheme('cyberpunk'),
+      description: 'Set theme to Cyberpunk Neon',
+      category: 'SYSTEM',
+      usage: 'theme cyberpunk',
+      confirmation: 'VISUAL_THEME_SET: CYBERPUNK_NEON [OK]',
+    },
+    {
+      id: 'theme_highcontrast',
+      patterns: ['theme high-contrast', 'high-contrast'],
+      action: () => actions.setTheme('high-contrast'),
+      description: 'Set theme to High Contrast',
+      category: 'SYSTEM',
+      usage: 'theme high-contrast',
+      confirmation: 'VISUAL_THEME_SET: HIGH_CONTRAST [OK]',
+    },
+    {
+      id: 'theme_accessibility',
+      patterns: ['theme accessibility', 'a11y'],
+      action: () => actions.setTheme('accessibility'),
+      description: 'Set theme to Accessibility (Standard Fonts)',
+      category: 'SYSTEM',
+      usage: 'theme accessibility',
+      confirmation: 'VISUAL_THEME_SET: ACCESSIBILITY_MODE [OK]',
+    },
+    {
+      id: 'eco_on',
+      patterns: ['eco on', 'eco engage'],
+      action: () => actions.setEcoMode(true),
+      description: 'Enable system eco mode',
+      category: 'SYSTEM',
+      usage: 'eco on',
+      confirmation: 'ECO_MODE_ENGAGED... [OK]',
+    },
+    {
+      id: 'eco_off',
+      patterns: ['eco off', 'eco disengage'],
+      action: () => actions.setEcoMode(false),
+      description: 'Disable system eco mode',
+      category: 'SYSTEM',
+      usage: 'eco off',
+      confirmation: 'ECO_MODE_DISENGAGED... [OK]',
+    },
+
 
     // Action
     {
@@ -243,20 +407,26 @@ export const useCommandRegistry = (actions: CommandActions) => {
       action: () => actions.handleEject(),
       description: 'Declare critical incident theatre',
       category: 'ACTION',
+      usage: 'declare',
+      confirmation: 'CRITICAL_INCIDENT_DECLARED... [EMERGENCY_OVERRIDE_ACTIVE]',
     },
     {
       id: 'cease',
       patterns: ['cease', 'resolve', 'restore', 'abort'],
       action: () => actions.handleCease(),
-      description: 'Resolve incident and restore nominal operations',
+      description: 'Resolve incident and restore nominal state',
       category: 'ACTION',
+      usage: 'resolve',
+      confirmation: 'ALL_SYSTEMS_RESTORED... [NOMINAL_STATE]',
     },
     {
       id: 'copy',
       patterns: ['copy', 'clipboard'],
-      action: () => actions.copyExcuse(),
-      description: 'Copy playbook to clipboard',
+      action: () => actions.copyPlaybook(),
+      description: 'Copy active playbook to clipboard',
       category: 'ACTION',
+      usage: 'copy',
+      confirmation: 'COPYING_PLAYBOOK_TO_CLIPBOARD... [OK]',
     },
     {
       id: 'ticket',
@@ -264,13 +434,26 @@ export const useCommandRegistry = (actions: CommandActions) => {
       action: () => actions.setView('TICKET'),
       description: 'View restricted incident ticket',
       category: 'ACTION',
+      usage: 'ticket',
+      confirmation: 'ACCESSING_RESTRICTED_TICKET_VIEW... [OK]',
     },
     {
       id: 'help',
       patterns: ['help', '/?', '?', 'man'],
       action: () => actions.help(commands),
-      description: 'Display command manifest',
+      description: 'Display system command manifest',
       category: 'ACTION',
+      usage: 'help [category]',
+      confirmation: 'LOADING_COMMAND_MANIFEST... [OK]',
+    },
+    {
+      id: 'playbook',
+      patterns: ['playbook'],
+      action: (ctx) => actions.startPlaybook(ctx.arg as string),
+      description: 'Trigger automated scenario playbook',
+      category: 'ACTION',
+      usage: 'playbook <id>',
+      confirmation: 'INITIALIZING_SCENARIO: $arg... [OK]',
     },
     {
       id: 'logout',
@@ -278,23 +461,85 @@ export const useCommandRegistry = (actions: CommandActions) => {
       action: () => actions.handleLogout(),
       description: 'Terminate session and logout',
       category: 'SYSTEM',
+      usage: 'logout',
+      confirmation: 'TERMINATING_SESSION... BYE.',
     },
   ];
 
-  const handleCommand = (input: string): boolean => {
-    const cmd = input.toLowerCase().trim();
-    if (!cmd) return false;
+  const handleCommand = (input: string): CommandResult => {
+    const originalInput = input.trim();
+    let cmd = originalInput.toLowerCase();
+    if (!cmd) return { isValid: false };
 
-    const match = commands.find((c) =>
+    // Check if command starts with a category (e.g. "panes show logs")
+    const categories: Command['category'][] = ['PANES', 'THREAT', 'STACK', 'SYSTEM', 'ACTION'];
+    let categoryLimit: Command['category'] | null = null;
+
+    for (const cat of categories) {
+      if (cmd === cat.toLowerCase() || cmd === cat.toLowerCase() + ' help') {
+        const catCmds = commands.filter(c => c.category === cat);
+        let message = `--- ${cat}_COMMAND_MANIFEST ---\n\n`;
+        catCmds.forEach(c => {
+            message += `  ${c.patterns.join(', ')}\n`;
+            message += `  > ${c.description}\n\n`;
+        });
+        message += `---------------------------`;
+        return { isValid: false, message };
+      }
+
+      if (cmd.startsWith(cat.toLowerCase() + ' ')) {
+        categoryLimit = cat;
+        cmd = cmd.slice(cat.length + 1).trim();
+        break;
+      }
+    }
+
+    const filteredCommands = categoryLimit 
+        ? commands.filter(c => c.category === categoryLimit)
+        : commands;
+
+    let match = filteredCommands.find((c) =>
       c.patterns.some((p) => p.toLowerCase() === cmd)
     );
 
     if (match) {
+      if (match.usage && match.usage.includes('<') && !match.patterns.some(p => p.includes(' '))) {
+         return { isValid: false, message: `USAGE: ${match.usage}` };
+      }
       match.action({});
-      return true;
+      return { 
+        isValid: true, 
+        message: match.confirmation || `EXECUTING: ${match.id.toUpperCase()}... [OK]` 
+      };
     }
 
-    return false;
+    match = filteredCommands.find((c) =>
+      c.patterns.some((p) => cmd.startsWith(p.toLowerCase() + ' '))
+    );
+
+    if (match) {
+      const matchedPattern = match.patterns.find((p) => cmd.startsWith(p.toLowerCase() + ' '));
+      const arg = cmd.slice(matchedPattern!.length).trim();
+      
+      if (!arg && match.usage && match.usage.includes('<')) {
+        return { isValid: false, message: `USAGE: ${match.usage}` };
+      }
+
+      match.action({ arg });
+      return { 
+        isValid: true, 
+        message: match.confirmation 
+            ? match.confirmation.replace('$arg', arg.toUpperCase()) 
+            : `EXECUTING: ${match.id.toUpperCase()} [${arg.toUpperCase()}]... [OK]` 
+      };
+    }
+
+    // If we had a category limit but no match, explicitly fail
+    if (categoryLimit) {
+        return { isValid: false, message: `ERROR: COMMAND NOT FOUND IN CATEGORY [${categoryLimit}]` };
+    }
+
+    return { isValid: false };
   };
 
   return { commands, handleCommand };

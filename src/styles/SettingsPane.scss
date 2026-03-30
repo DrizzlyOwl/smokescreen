@@ -1,0 +1,141 @@
+@use 'utils' as *;
+
+.settings {
+  display: flex; 
+  flex-direction: column; 
+  gap: rem(20);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+
+  &__section {
+    margin-bottom: rem(10);
+  }
+
+  &__header {
+    font-size: 1.2rem;
+    color: var(--status-nominal);
+    margin-bottom: rem(10);
+    letter-spacing: rem(1);
+  }
+
+  &__description {
+    font-size: 0.75rem; 
+    opacity: 0.8; 
+    margin-bottom: rem(10);
+  }
+
+  &__note {
+    font-size: 0.75rem; 
+    opacity: 0.5; 
+    margin-top: rem(8);
+
+    b {
+      color: var(--status-nominal);
+    }
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__input {
+    background: var(--ui-bg-alt);
+    border: rem(1) solid var(--ui-border);
+    color: var(--ui-text);
+    padding: rem(10) rem(60) rem(10) rem(10);
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.8rem;
+    outline: none;
+    border-radius: rem(4);
+    box-sizing: border-box;
+
+    &:disabled {
+      opacity: 0.5;
+    }
+
+    &--error {
+      border-color: var(--status-p0);
+      color: var(--status-p0);
+    }
+  }
+
+  &__input-toggle {
+    position: absolute;
+    right: rem(8);
+    border: none !important;
+    background: transparent !important;
+  }
+
+  &__error-message {
+    color: var(--status-p0);
+    font-size: 0.75rem;
+    margin-top: rem(8);
+    font-weight: bold;
+  }
+
+  &__theme-grid {
+    display: flex;
+    gap: rem(8);
+    flex-wrap: wrap;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: rem(10);
+    background: var(--ui-bg-alt);
+    padding: rem(8);
+    border-radius: rem(4);
+    border: rem(1) solid var(--ui-border);
+    margin-top: rem(10);
+
+    &:first-of-type {
+        margin-top: 0;
+    }
+  }
+
+  &__option-checkbox {
+    width: rem(16);
+    height: rem(16);
+    accent-color: var(--status-nominal);
+    flex-shrink: 0;
+  }
+
+  &__option-label {
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: var(--ui-text);
+    display: block;
+  }
+
+  &__option-desc {
+    font-size: 0.7rem;
+    color: var(--ui-text);
+    opacity: 0.6;
+  }
+
+  &__footer {
+    margin-top: rem(25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__status {
+    font-size: 0.75rem;
+    font-weight: bold;
+
+    &--saved {
+      color: var(--status-p3);
+      animation: flicker 0.5s infinite;
+    }
+
+    &--error {
+      color: var(--status-p0);
+    }
+  }
+}

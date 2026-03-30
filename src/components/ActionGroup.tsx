@@ -5,13 +5,17 @@ interface ActionGroupProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  variant?: 'default' | 'grid';
 }
 
-export const ActionGroup = ({ label, children, className = '', style = {} }: ActionGroupProps) => {
+export const ActionGroup = ({ label, children, className = '', style = {}, variant = 'default' }: ActionGroupProps) => {
+  const baseClass = 'action-group';
+  const variantClass = variant === 'grid' ? `${baseClass}__buttons--grid` : `${baseClass}__buttons`;
+
   return (
-    <div className={`action-group ${className}`} style={style}>
-      <label className="action-label">{label}</label>
-      <div className="action-buttons">
+    <div className={`${baseClass} ${className}`} style={style}>
+      <label className={`${baseClass}__label`}>{label}</label>
+      <div className={variantClass}>
         {children}
       </div>
     </div>

@@ -1,15 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { generateExcuse, generateAIExcuse, type Severity, type Stack } from '../data/excuses';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { generateIncidentReport, generateAIIncidentReport, type Severity, type Stack } from '../data/incidents';
 import { IncidentContext } from './instances';
+import { getBurnRate } from '../utils/telemetry';
+import { getInitialStateFromUrl } from '../hooks/useUrlSync';
 
 export function IncidentProvider({ children }: { children: React.ReactNode }) {
-  const [severity, setInternalSeverity] = useState<Severity>('NOMINAL');
-  const [stack, setStack] = useState<Stack>('AWS');
+  const initialState = useMemo(() => getInitialStateFromUrl(), []);
+
+  const [severity, setInternalSeverity] = useState<Severity>(initialState.severity || 'NOMINAL');
+  const [stack, setStack] = useState<Stack>(initialState.stack || 'AWS');
   const [incidentReport, setInternalIncidentReport] = useState('');
   const [ticketId, setTicketId] = useState('');
   const [status, setStatus] = useState('SYSTEMS NOMINAL');
   const [moneyLost, setMoneyLost] = useState(0);
   const [isSlowBurn, setIsSlowBurn] = useState(false);
+  const [isChaos, setIsChaos] = useState(false);
   const [slowBurnCountdown, setSlowBurnCountdown] = useState(30);
   
   const [totalSaved, setTotalSaved] = useState(() => {
@@ -23,6 +28,7 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
   const setSeverity = useCallback((s: Severity) => {
     setInternalSeverity(s);
     setIsSlowBurn(false);
+    setIsChaos(false);
     setInternalIncidentReport('');
     if (s === 'NOMINAL') {
         setMoneyLost(0);
@@ -40,9 +46,9 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
     const apiKey = localStorage.getItem('gemini_api_key');
     let result;
     if (apiKey) {
-        result = await generateAIExcuse(severity, stack, apiKey);
+        result = await generateAIIncidentReport(severity, stack, apiKey);
     } else {
-        result = generateExcuse(severity, stack);
+        result = generateIncidentReport(severity, stack);
     }
     
     setInternalIncidentReport(result.text);
@@ -57,14 +63,14 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
     setTicketId('');
     setMoneyLost(0);
     setIsSlowBurn(false);
+    setIsChaos(false);
     setStatus('SYSTEMS NOMINAL');
   }, []);
 
   // Burn rate logic
   useEffect(() => {
     if (severity === 'NOMINAL') return;
-    const rates = { NOMINAL: 0, P3: 0.08, P1: 0.83, P0: 8.33 };
-    const rate = rates[severity as keyof typeof rates];
+    const rate = getBurnRate(severity);
     const interval = setInterval(() => {
       setMoneyLost(prev => prev + rate);
     }, 1000);
@@ -115,12 +121,14 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
       status,
       moneyLost,
       isSlowBurn,
+      isChaos,
       slowBurnCountdown,
       totalSaved,
       setSeverity,
       setStack,
       setIncidentReport: setInternalIncidentReport,
       setIsSlowBurn,
+      setIsChaos,
       declareIncident,
       ceaseTheatre
     }}>

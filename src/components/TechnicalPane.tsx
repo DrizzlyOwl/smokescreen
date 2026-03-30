@@ -1,8 +1,10 @@
 import React from 'react';
 import { Pane } from './Pane';
-import { TechnicalTypography as Ty } from '../styles/Typography';
+import type { PaneId } from '../hooks/useWindowManager';
+import '../styles/TechnicalPane.scss';
 
 interface TechnicalPaneProps {
+  id: PaneId;
   title: string;
   paneTitle: string;
   classification?: string;
@@ -14,11 +16,14 @@ interface TechnicalPaneProps {
   onFocus: () => void;
   isActive?: boolean;
   onClose?: () => void;
+  isMinimized: boolean;
+  onMinimizeToggle: () => void;
   footerText?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export const TechnicalPane = ({
+  id,
   title,
   paneTitle,
   classification = 'INTERNAL_ONLY',
@@ -30,6 +35,8 @@ export const TechnicalPane = ({
   onFocus,
   isActive,
   onClose,
+  isMinimized,
+  onMinimizeToggle,
   footerText,
   children,
 }: TechnicalPaneProps) => {
@@ -37,61 +44,36 @@ export const TechnicalPane = ({
 
   return (
     <Pane
+      id={id}
       title={title}
       icon={icon}
       iconColor={themeColor}
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
+      isMinimized={isMinimized}
+      onMinimizeToggle={onMinimizeToggle}
       onClose={onClose}
       initialPos={initialPos}
       initialSize={initialSize}
     >
-      <div
-        style={{
-          height: '100%',
-          background: '#0a0c0f',
-          padding: '20px',
-          boxSizing: 'border-box',
-          fontFamily: 'monospace',
-          color: '#adbac7',
-          lineHeight: '1.5',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          fontSize: '16px',
-        }}
-      >
-        <header
-          style={{
-            marginBottom: '20px',
-            borderBottom: `2px solid ${themeColor}`,
-            paddingBottom: '12px',
-            flexShrink: 0,
-          }}
+      <div className="technical-pane">
+        <header 
+          className="technical-pane__header"
+          style={{ borderBottomColor: themeColor }}
         >
-          <div style={Ty.label(themeColor)}>
+          <div className="technical-pane__label" style={{ color: themeColor }}>
             CLASSIFICATION: {classification}
           </div>
-          <h1 style={Ty.title(themeColor)}>
+          <h1 className="technical-pane__title" style={{ color: themeColor }}>
             {paneTitle}
           </h1>
         </header>
 
-        <div style={{ flex: 1 }}>{children}</div>
+        <div className="technical-pane__content">{children}</div>
 
         {footerText && (
-          <footer
-            style={{
-              marginTop: '40px',
-              textAlign: Ty.footer.textAlign,
-              opacity: Ty.footer.opacity,
-              fontSize: Ty.footer.fontSize,
-              borderTop: '1px solid #1c2128',
-              paddingTop: '20px',
-              flexShrink: 0,
-            }}
-          >
+          <footer className="technical-pane__footer">
             {footerText}
           </footer>
         )}

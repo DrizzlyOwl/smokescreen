@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TerminalContext } from './instances';
 import type { AppState, Theme } from './types';
+import { getInitialStateFromUrl } from '../hooks/useUrlSync';
 
 export function TerminalProvider({ children }: { children: React.ReactNode }) {
+  const urlState = useMemo(() => getInitialStateFromUrl(), []);
+
   const [appState, setAppState] = useState<AppState>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('pager') ? 'MOBILE_PAGER' : 'SPLASH';
   });
   const [operatorName, setInternalOperatorName] = useState(() => localStorage.getItem('operator_name') || '');
   const [theme, setTheme] = useState<Theme>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlTheme = params.get('theme') as Theme;
-    if (urlTheme === 'amber' || urlTheme === 'cobalt' || urlTheme === 'classic') {
-        return urlTheme;
-    }
+    if (urlState.theme) return urlState.theme;
     const saved = localStorage.getItem('terminal_theme');
     return (saved === 'amber' || saved === 'cobalt' || saved === 'classic') ? (saved as Theme) : 'classic';
   });
@@ -26,8 +25,23 @@ export function TerminalProvider({ children }: { children: React.ReactNode }) {
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `SRE-${random}`;
   });
-  const [isDebugMode, setIsDebugMode] = useState(() => localStorage.getItem('debug_mode') === 'true');
-  const [isEcoMode, setIsEcoMode] = useState(() => localStorage.getItem('eco_mode') === 'true');
+  const [isDebugMode, setIsDebugMode] = useState(() => {
+    if (urlState.isDebugMode !== undefined) return urlState.isDebugMode;
+    return localStorage.getItem('debug_mode') === 'true';
+  });
+  const [isEcoMode, setIsEcoMode] = useState(() => {
+    if (urlState.isEcoMode !== undefined) return urlState.isEcoMode;
+    return localStorage.getItem('eco_mode') === 'true';
+  });
+  const [isAudioOn, setIsAudioOn] = useState(() => {
+    if (urlState.isAudioOn !== undefined) return urlState.isAudioOn;
+    return false;
+  });
+
+  const regenerateUplinkId = () => {
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    setUplinkId(`SRE-${random}`);
+  };
 
   useEffect(() => {
     if (operatorName) {
@@ -66,7 +80,10 @@ export function TerminalProvider({ children }: { children: React.ReactNode }) {
       isDebugMode,
       setIsDebugMode,
       isEcoMode,
-      setIsEcoMode
+      setIsEcoMode,
+      isAudioOn,
+      setIsAudioOn,
+      regenerateUplinkId
     }}>
       {children}
     </TerminalContext.Provider>

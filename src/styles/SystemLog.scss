@@ -1,0 +1,37 @@
+@use 'utils' as *;
+
+.system-log {
+  flex: 1;
+  overflow: auto;
+  font-family: inherit;
+  font-size: rem(14);
+  background: var(--ui-bg);
+  padding: rem(8);
+  min-height: 100%;
+  box-sizing: border-box;
+  color: var(--status-nominal);
+
+  &--p0 {
+    color: var(--status-p0);
+  }
+
+  &__entry {
+    white-space: nowrap;
+    margin-bottom: rem(2);
+  }
+
+  &__content {
+    &--critical {
+      color: var(--status-p0);
+    }
+    
+    &--warning {
+      color: var(--status-p3);
+    }
+
+    &--panic {
+      color: var(--status-p0);
+      font-weight: bold;
+    }
+  }
+}

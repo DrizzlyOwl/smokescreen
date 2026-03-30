@@ -3,8 +3,11 @@ import { Button } from './Button';
 import { useDraggable } from '../hooks/useDraggable';
 import { useResizable } from '../hooks/useResizable';
 import { MinimizeIcon, MaximizeIcon, CloseIcon } from './Icons';
+import type { PaneId } from '../hooks/useWindowManager';
+import '../styles/Pane.scss';
 
 interface PaneProps {
+  id: PaneId;
   title: string;
   icon?: React.ReactNode;
   iconColor?: string;
@@ -22,6 +25,7 @@ interface PaneProps {
 }
 
 export const Pane = ({
+  id,
   title,
   icon,
   iconColor,
@@ -40,8 +44,8 @@ export const Pane = ({
   const [internalMinimized, setInternalMinimized] = useState(defaultMinimized);
   const isMinimized = controlledMinimized !== undefined ? controlledMinimized : internalMinimized;
 
-  const { position, onMouseDown: onDragMouseDown, isDragging } = useDraggable(initialPos);
-  const { size, onResizeMouseDown, isResizing } = useResizable(initialSize);
+  const { position, onMouseDown: onDragMouseDown, isDragging } = useDraggable(initialPos, id);
+  const { size, onResizeMouseDown, isResizing } = useResizable(initialSize, id);
 
   const toggleMinimize = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -73,26 +77,17 @@ export const Pane = ({
       >
         <div className="drag-handle pane__title">
           {icon && (
-            <div className="drag-handle" style={{ 
-                color: iconColor || 'var(--terminal-green)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '20px',
-                height: '20px',
-                flexShrink: 0,
-                marginRight: '8px'
-            }}>
+            <div className="drag-handle pane__icon" style={{ color: iconColor || 'var(--terminal-green)' }}>
                 {icon}
             </div>
           )}
           {isMinimized ? title.split('_').pop() : title}
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="pane__actions">
           <Button 
             onClick={toggleMinimize}
             size="x-small"
-            style={{ width: '36px', height: '24px' }}
+            className="pane__action-button"
           >
             {isMinimized ? <MaximizeIcon /> : <MinimizeIcon />}
           </Button>
@@ -101,7 +96,7 @@ export const Pane = ({
                 onClick={(e) => { e.stopPropagation(); onClose(); }}
                 variant="danger"
                 size="x-small"
-                style={{ width: '36px', height: '24px' }}
+                className="pane__action-button"
             >
                 <CloseIcon />
             </Button>
@@ -120,16 +115,7 @@ export const Pane = ({
           {/* Resize Handle */}
           <div 
             onMouseDown={onResizeMouseDown}
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              width: '15px',
-              height: '15px',
-              cursor: 'nwse-resize',
-              background: 'linear-gradient(135deg, transparent 50%, #35373b 50%)',
-              zIndex: 10
-            }}
+            className="pane__resize-handle"
           />
         </div>
       )}

@@ -1,13 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 import { DeployIcon } from './Icons';
-import type { Severity } from '../data/excuses';
+import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
+import '../styles/DeploymentStatus.scss';
 
 interface PodStatus {
   name: string;
   status: 'Running' | 'CrashLoopBackOff' | 'ImagePullBackOff' | 'Terminating' | 'Pending' | 'Error';
   restarts: number;
   age: string;
+  cpu: string;
+  memory: string;
 }
 
 const POD_NAMES = [
@@ -16,12 +19,22 @@ const POD_NAMES = [
   'search-indexer', 'notification-engine', 'billing-sync', 'audit-logger'
 ];
 
-export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, onClose: () => void }) => {
+export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose, isMinimized, onMinimizeToggle }: { 
+    severity: Severity, 
+    zIndex: number, 
+    onFocus: () => void, 
+    isActive: boolean, 
+    onClose: () => void,
+    isMinimized: boolean,
+    onMinimizeToggle: () => void
+}) => {
   const [pods, setPods] = useState<PodStatus[]>(() => POD_NAMES.map(name => ({
     name: `${name}-${Math.random().toString(36).substring(2, 7)}`,
     status: 'Running',
     restarts: 0,
-    age: '12d'
+    age: '12d',
+    cpu: '12m',
+    memory: '128Mi'
   })));
   const [tfLog, setTfLog] = useState<string[]>([]);
   const tfScrollRef = useRef<HTMLDivElement>(null);
@@ -35,9 +48,22 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
   useEffect(() => {
     const updatePods = () => {
       setPods(prev => prev.map(pod => {
-        if (severity === 'NOMINAL') return { ...pod, status: 'Running', restarts: 0 };
+        // Base CPU/Mem simulation
+        let cpuVal, memVal;
+        
+        if (severity === 'NOMINAL') {
+          cpuVal = Math.floor(Math.random() * 50) + 10;
+          memVal = Math.floor(Math.random() * 100) + 128;
+          return { ...pod, status: 'Running', restarts: 0, cpu: `${cpuVal}m`, memory: `${memVal}Mi` };
+        }
         
         const chance = severity === 'P0' ? 0.6 : severity === 'P1' ? 0.2 : 0.05;
+        
+        // Severity-based resource scaling
+        const multiplier = severity === 'P0' ? 15 : severity === 'P1' ? 5 : 2;
+        cpuVal = Math.floor((Math.random() * 100 + 50) * multiplier);
+        memVal = Math.floor((Math.random() * 200 + 200) * (multiplier / 2));
+
         if (Math.random() < chance) {
           const statuses: PodStatus['status'][] = severity === 'P0' 
             ? ['CrashLoopBackOff', 'Error', 'Terminating'] 
@@ -47,10 +73,17 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
             ...pod, 
             status: newStatus, 
             restarts: pod.restarts + (newStatus === 'CrashLoopBackOff' ? 1 : 0),
-            age: severity === 'P0' ? '1s' : '2m'
+            age: severity === 'P0' ? '1s' : '2m',
+            cpu: newStatus === 'Running' ? `${cpuVal}m` : '0m',
+            memory: newStatus === 'Running' ? `${memVal}Mi` : '0Mi'
           };
         }
-        return pod;
+        
+        return {
+          ...pod,
+          cpu: `${cpuVal}m`,
+          memory: `${memVal}Mi`
+        };
       }));
     };
 
@@ -97,6 +130,7 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
 
   return (
     <Pane
+      id="deploy"
       title="KUBERNETES_WORKLOAD_STATUS"
       icon={<DeployIcon />}
       iconColor={severity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
@@ -105,50 +139,61 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose 
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
+      isMinimized={isMinimized}
+      onMinimizeToggle={onMinimizeToggle}
       severityColor={severity === 'P0' ? 'var(--terminal-red)' : undefined}
       onClose={onClose}
     >
-      <div style={{ flex: 1, overflow: 'auto', fontFamily: 'monospace', padding: '12px', boxSizing: 'border-box' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '15px', fontSize: '16px' }}>
+      <div className="deploy-status">
+        <table className="deploy-status__table">
           <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '1px solid #2d333b', color: '#768390', fontWeight: 'bold' }}>
-              <th style={{ padding: '4px' }}>NAME</th>
-              <th style={{ padding: '4px' }}>STATUS</th>
-              <th style={{ padding: '4px' }}>RESTARTS</th>
-              <th style={{ padding: '4px' }}>AGE</th>
+            <tr>
+              <th>NAME</th>
+              <th>STATUS</th>
+              <th>CPU</th>
+              <th>MEMORY</th>
+              <th>RESTARTS</th>
+              <th>AGE</th>
             </tr>
           </thead>
           <tbody>
             {pods.map((pod, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #1c2128' }}>
-                <td style={{ padding: '4px' }}>{pod.name}</td>
-                <td style={{ 
-                  padding: '4px', 
-                  color: pod.status === 'Running' ? '#57ab5a' : pod.status === 'Pending' ? '#c69026' : '#f47067',
-                  fontWeight: pod.status !== 'Running' ? 'bold' : 'normal'
-                }}>
+              <tr key={i}>
+                <td>{pod.name}</td>
+                <td className={`deploy-status__pod-status ${
+                  pod.status === 'Running' ? 'deploy-status__pod-status--running' : 
+                  pod.status === 'Pending' ? 'deploy-status__pod-status--pending' : 
+                  'deploy-status__pod-status--error'
+                }`}>
                   {pod.status}
                 </td>
-                <td style={{ padding: '4px' }}>{pod.restarts}</td>
-                <td style={{ padding: '4px' }}>{pod.age}</td>
+                <td className={parseInt(pod.cpu) > 1000 ? 'deploy-status__metric--critical' : parseInt(pod.cpu) > 400 ? 'deploy-status__metric--warning' : ''}>
+                    {pod.cpu}
+                </td>
+                <td className={parseInt(pod.memory) > 1000 ? 'deploy-status__metric--critical' : parseInt(pod.memory) > 400 ? 'deploy-status__metric--warning' : ''}>
+                    {pod.memory}
+                </td>
+                <td>{pod.restarts}</td>
+                <td>{pod.age}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        <div style={{ background: '#000', padding: '10px', borderRadius: '4px', border: '1px solid #2d333b' }}>
-          <div style={{ color: '#768390', marginBottom: '5px', fontSize: '16px', fontWeight: 'bold' }}>TERRAFORM_APPLY_STDOUT</div>
-          <div ref={tfScrollRef} style={{ height: '80px', overflowY: 'auto', fontSize: '16px' }}>
+        <div className="deploy-status__logs">
+          <div className="deploy-status__logs-title">TERRAFORM_APPLY_STDOUT</div>
+          <div ref={tfScrollRef} className="deploy-status__logs-content">
             {tfLog.map((log, i) => (
-              <div key={i} style={{ 
-                color: log.includes('Error') ? '#f47067' : log.includes('Warning') ? '#c69026' : '#adbac7',
-                whiteSpace: 'nowrap'
-              }}>
+              <div key={i} className={`deploy-status__log-entry ${
+                log.includes('Error') ? 'deploy-status__log-entry--error' : 
+                log.includes('Warning') ? 'deploy-status__log-entry--warning' : ''
+              }`}>
                 {log}
               </div>
             ))}
           </div>
-        </div>      </div>
+        </div>
+      </div>
     </Pane>
   );
 };

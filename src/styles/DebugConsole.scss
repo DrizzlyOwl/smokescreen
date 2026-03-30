@@ -1,0 +1,40 @@
+@use 'utils' as *;
+
+.debug-console {
+  flex: 1; 
+  background: var(--ui-bg-alt); 
+  font-family: inherit; 
+  font-size: 0.85rem;
+  padding: rem(10);
+  overflow-y: auto;
+  min-height: 100%;
+  box-sizing: border-box;
+  color: var(--ui-text);
+
+  &__idle {
+    opacity: 0.3;
+    letter-spacing: rem(1);
+  }
+
+  &__entry {
+    margin-bottom: rem(4); 
+    display: flex; 
+    gap: rem(8);
+  }
+
+  &__timestamp {
+    color: var(--ui-text-dim);
+    flex-shrink: 0;
+  }
+
+  &__action {
+    color: var(--status-p3); 
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  &__data {
+    color: var(--ui-text); 
+    word-break: break-all;
+  }
+}

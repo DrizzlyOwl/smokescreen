@@ -1,19 +1,28 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { AudioContextInstance } from './instances';
-import type { Severity } from '../data/excuses';
+import { useTerminal } from '../hooks/useTerminal';
+import type { Severity } from '../data/incidents';
 
 interface ExtendedWindow extends Window {
     webkitAudioContext?: typeof AudioContext;
 }
 
+interface PoolNode {
+  osc: OscillatorNode;
+  gain: GainNode;
+  inUse: boolean;
+}
+
 export function AudioProvider({ children, isLoggedIn, severity }: { children: React.ReactNode, isLoggedIn: boolean, severity: Severity }) {
-  const [isAudioOn, setIsAudioOn] = useState(false);
+  const { isAudioOn, setIsAudioOn } = useTerminal();
   const audioCtx = useRef<AudioContext | null>(null);
   const ambientNode = useRef<GainNode | null>(null);
   const ambientOsc = useRef<OscillatorNode | null>(null);
   const noiseNode = useRef<AudioBufferSourceNode | null>(null);
   const noiseGainNode = useRef<GainNode | null>(null);
   const masterGain = useRef<GainNode | null>(null);
+  const nodePool = useRef<PoolNode[]>([]);
+  const cachedNoiseBuffer = useRef<AudioBuffer | null>(null);
 
   const initAudio = useCallback(() => {
     if (!audioCtx.current) {
@@ -24,6 +33,16 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
       masterGain.current = audioCtx.current.createGain();
       masterGain.current.gain.setValueAtTime(1, audioCtx.current.currentTime);
       masterGain.current.connect(audioCtx.current.destination);
+
+      // Initialize Pool: 10 recycled nodes
+      for (let i = 0; i < 10; i++) {
+        const osc = audioCtx.current.createOscillator();
+        const gain = audioCtx.current.createGain();
+        gain.gain.setValueAtTime(0, audioCtx.current.currentTime);
+        osc.connect(gain).connect(masterGain.current);
+        osc.start();
+        nodePool.current.push({ osc, gain, inUse: false });
+      }
     } else if (audioCtx.current.state === 'suspended') {
       audioCtx.current.resume();
     }
@@ -33,6 +52,12 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
   const stopAllSounds = useCallback(() => {
     if (audioCtx.current) {
         audioCtx.current.suspend();
+        const now = audioCtx.current.currentTime;
+        nodePool.current.forEach(node => {
+            node.gain.gain.cancelScheduledValues(now);
+            node.gain.gain.setValueAtTime(0, now);
+            node.inUse = false;
+        });
     }
     if (ambientOsc.current) {
         try {
@@ -54,26 +79,26 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
     const ctx = initAudio();
     if (!ctx || !masterGain.current) return;
 
+    // Find free node in pool
+    const node = nodePool.current.find(n => !n.inUse);
+    if (!node) return;
+
+    node.inUse = true;
     const now = ctx.currentTime;
     const start = now + startTime;
     
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    node.osc.type = type;
+    node.osc.frequency.cancelScheduledValues(now);
+    node.osc.frequency.setValueAtTime(freq, start);
     
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, start);
-    
-    gain.gain.setValueAtTime(0, start);
-    gain.gain.linearRampToValueAtTime(volume, start + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
-    
-    osc.connect(gain).connect(masterGain.current);
-    osc.start(start);
-    osc.stop(start + duration);
+    node.gain.gain.cancelScheduledValues(now);
+    node.gain.gain.setValueAtTime(0, start);
+    node.gain.gain.linearRampToValueAtTime(volume, start + 0.01);
+    node.gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    node.gain.gain.setValueAtTime(0, start + duration + 0.01);
     
     setTimeout(() => {
-        osc.disconnect();
-        gain.disconnect();
+        node.inUse = false;
     }, (startTime + duration + 0.1) * 1000);
   }, [initAudio]);
 
@@ -102,9 +127,15 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
     const ctx = initAudio();
     if (!ctx || !masterGain.current) return;
     
+    const node = nodePool.current.find(n => !n.inUse);
+    if (!node) return;
+    
+    node.inUse = true;
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    const { osc, gain } = node;
+    
+    osc.frequency.cancelScheduledValues(now);
+    gain.gain.cancelScheduledValues(now);
     
     if (type === 'P0') {
       osc.type = 'sawtooth';
@@ -112,29 +143,31 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
       osc.frequency.exponentialRampToValueAtTime(880, now + 0.5);
       gain.gain.setValueAtTime(0.05, now);
       gain.gain.linearRampToValueAtTime(0, now + 1);
-      osc.start(now);
-      osc.stop(now + 1);
+      
+      setTimeout(() => {
+        node.inUse = false;
+      }, 1100);
     } else if (type === 'P1') {
       osc.type = 'square';
       osc.frequency.setValueAtTime(880, now);
       gain.gain.setValueAtTime(0.03, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-      osc.start(now);
-      osc.stop(now + 0.2);
+      gain.gain.setValueAtTime(0, now + 0.21);
+      
+      setTimeout(() => {
+        node.inUse = false;
+      }, 300);
     } else {
       osc.type = 'square';
       osc.frequency.setValueAtTime(1200, now);
       gain.gain.setValueAtTime(0.02, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.start(now);
-      osc.stop(now + 0.1);
+      gain.gain.setValueAtTime(0, now + 0.11);
+      
+      setTimeout(() => {
+        node.inUse = false;
+      }, 200);
     }
-    
-    osc.connect(gain).connect(masterGain.current);
-    setTimeout(() => {
-        osc.disconnect();
-        gain.disconnect();
-    }, 1100);
   }, [initAudio, isAudioOn]);
 
   const playLoginChime = useCallback(() => {
@@ -157,6 +190,23 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
     if (!isAudioOn) return;
     playTone(800, 'square', 0.05, 0.15, 0);
   }, [isAudioOn, playTone]);
+
+  useEffect(() => {
+    if (audioCtx.current && masterGain.current) {
+        if (isAudioOn) {
+            audioCtx.current.resume();
+            masterGain.current.gain.setTargetAtTime(1, audioCtx.current.currentTime, 0.1);
+        } else {
+            masterGain.current.gain.setTargetAtTime(0, audioCtx.current.currentTime, 0.1);
+            const timer = setTimeout(() => {
+                if (audioCtx.current?.state === 'running' && !isAudioOn) {
+                    audioCtx.current.suspend();
+                }
+            }, 200);
+            return () => clearTimeout(timer);
+        }
+    }
+  }, [isAudioOn]);
 
   // Ambient Hum & Fan Logic
   useEffect(() => {
@@ -197,15 +247,18 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
 
     // Initialize Fan (White Noise)
     if (!noiseNode.current) {
-        const bufferSize = ctx.sampleRate * 2;
-        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
+        if (!cachedNoiseBuffer.current) {
+            const bufferSize = ctx.sampleRate * 2;
+            const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            cachedNoiseBuffer.current = noiseBuffer;
         }
         
         const noise = ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
+        noise.buffer = cachedNoiseBuffer.current;
         noise.loop = true;
         
         const noiseFilter = ctx.createBiquadFilter();
@@ -222,8 +275,6 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
         noiseGainNode.current = noiseGain;
     }
 
-    // Dynamic fan volume based on severity
-    // NOMINAL: 0.005, P3: 0.01, P1: 0.02, P0: 0.05
     const targetVolume = severity === 'P0' ? 0.05 : 
                          severity === 'P1' ? 0.02 : 
                          severity === 'P3' ? 0.01 : 0.005;
@@ -233,7 +284,6 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
     }
 
     return () => {
-        // Only stop if explicitly told or logged out via useEffect trigger
     };
   }, [isAudioOn, isLoggedIn, severity, initAudio, stopAllSounds]);
 

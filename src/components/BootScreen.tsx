@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { getRandomItem } from '../utils/telemetry';
 
 interface NavigatorUAData {
   getHighEntropyValues: (hints: string[]) => Promise<{
@@ -89,32 +90,54 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
         'INITIALIZING SKOBO-CHIP... [STABLE]',
         'RECALIBRATING PARSECS... [DONE]'
     ];
-    return eggs[Math.floor(Math.random() * eggs.length)];
+    return getRandomItem(eggs);
   });
 
-  const logs = useMemo(() => [
-    'SMOKESCREEN-BIOS v1.0.42 (C) 1984 SRE_CORP',
-    `CPU: ${hardware.platform.toUpperCase()} @ ${hardware.cpuCores} CORES`,
-    'SYSTEM_MEM_CHECK',
-    'SYSTEM_KB_PROBE',
-    'SYSTEM_DISK_PROBE',
-    '',
-    easterEgg,
-    'INITIALIZING SYSTEM DEFAULTS...',
-    'LOADING CLOUD JARGON MODULES... [DONE]',
-    'CONNECTING TO CENTRAL SECURE NODE... [OK]',
-    `SIGNALLING_ROOM_ID: ${uplinkId}... [ACTIVE]`,
-    'MOUNTING /VAR/LOG/KERN.LOG... [OK]',
-    'ESTABLISHING WAR ROOM UPLINK... [CONNECTED]',
-    '',
-    'WELCOME TO SMOKESCREEN OS v5.0',
-    `USER: ${operatorName.toUpperCase()}`,
-    `REGION: ${hardware.timezone.toUpperCase()}`,
-    'STATUS: NOMINAL',
-    '',
-    'SYSTEM READY.',
-    'SYSTEM_POST_BEEP'
-  ], [operatorName, uplinkId, easterEgg, hardware]);
+  const logs = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialLogs = [
+        'SMOKESCREEN-BIOS v1.0.42 (C) 1984 SRE_CORP',
+        `CPU: ${hardware.platform.toUpperCase()} @ ${hardware.cpuCores} CORES`,
+        'SYSTEM_MEM_CHECK',
+        'SYSTEM_KB_PROBE',
+        'SYSTEM_DISK_PROBE',
+        '',
+        easterEgg,
+        'INITIALIZING SYSTEM DEFAULTS...',
+    ];
+
+    if (params.has('sev')) initialLogs.push(`SETTING THREAT LEVEL: ${params.get('sev')?.toUpperCase()}... [DONE]`);
+    if (params.has('stack')) initialLogs.push(`PROVISIONING CLOUD STACK: ${params.get('stack')?.toUpperCase()}... [DONE]`);
+    if (params.has('theme')) initialLogs.push(`APPLYING UI SCHEMATIC: ${params.get('theme')?.toUpperCase()}... [DONE]`);
+    if (params.get('eco') === 'true') initialLogs.push('ECO_MODE: REDUCING POWER DRAW... [OK]');
+    if (params.get('debug') === 'true') initialLogs.push('DEBUG_SUBSYSTEM: ATTACHING HOOKS... [OK]');
+    if (params.get('audio') === 'true') initialLogs.push('AUDIO_ENGINE: UNMUTING CHANNELS... [OK]');
+
+    
+    if (params.has('panes')) {
+        const p = params.get('panes')?.split(',') || [];
+        p.forEach(pane => {
+            if (pane) initialLogs.push(`OPENING PANE: ${pane.toUpperCase()}... [DONE]`);
+        });
+    }
+
+    return [
+        ...initialLogs,
+        'LOADING CLOUD JARGON MODULES... [DONE]',
+        'CONNECTING TO CENTRAL SECURE NODE... [OK]',
+        `SIGNALLING_ROOM_ID: ${uplinkId}... [ACTIVE]`,
+        'MOUNTING /VAR/LOG/KERN.LOG... [OK]',
+        'ESTABLISHING WAR ROOM UPLINK... [CONNECTED]',
+        '',
+        'WELCOME TO SMOKESCREEN OS v5.0',
+        `USER: ${operatorName.toUpperCase()}`,
+        `REGION: ${hardware.timezone.toUpperCase()}`,
+        'STATUS: NOMINAL',
+        '',
+        'SYSTEM READY.',
+        'SYSTEM_POST_BEEP'
+    ];
+  }, [operatorName, uplinkId, easterEgg, hardware]);
 
   useEffect(() => {
     if (index >= logs.length || isMemoryChecking) return;

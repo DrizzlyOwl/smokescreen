@@ -3,7 +3,8 @@ import type { DataConnection } from 'peerjs';
 import { IncidentProvider } from '../contexts/IncidentContext';
 import { useTerminal } from '../hooks/useTerminal';
 import { AudioProvider } from '../contexts/AudioContext';
-import { SyncProvider, useSync } from '../contexts/SyncContext';
+import { SyncProvider } from '../contexts/SyncContext';
+import { useSync } from '../hooks/useSync';
 import { IncidentContext } from '../contexts/instances';
 
 const SyncBroadcaster: React.FC = () => {

@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSync } from '../contexts/SyncContext';
-import type { Severity, Stack } from '../data/excuses';
+import { generateBitmapAvatar } from '../utils/avatarGenerator';
+import { useSync } from './useSync';
+import { type Severity, type Stack } from '../data/incidents';
+
+import { formatTime, getRandomItem } from '../utils/telemetry';
 
 const STACK_MESSAGES: Record<Stack, Record<Severity, string[]>> = {
     AWS: {
@@ -155,14 +158,138 @@ const STACK_MESSAGES: Record<Stack, Record<Severity, string[]>> = {
             'I need an SRE in the war room IMMEDIATELY',
             'WHO IS DRAINING PROD NODES??'
         ]
+    },
+    CLOUDFLARE: {
+        NOMINAL: [
+            'WAF rules are stable',
+            'KV propagation complete',
+            'Edge cache hit rate at 98%',
+            'Workers runtime is healthy'
+        ],
+        P3: [
+            'Seeing KV eventual consistency lag',
+            'Minor WAF false positives in EU-WEST',
+            'Worker cold starts are slightly elevated',
+            'Argo smart routing is recalibrating'
+        ],
+        P1: [
+            '522 CONNECTION TIMED OUT AT THE EDGE',
+            'GLOBAL WAF BYPASS VULNERABILITY DETECTED',
+            'R2 THROUGHPUT IS BEING THROTTLED',
+            'Pages deployment pipeline is stuck',
+            'Cloudflared tunnel sync failure',
+            'SSL handshake errors increasing in APAC'
+        ],
+        P0: [
+            'GLOBAL EDGE NETWORK BLACKOUT',
+            'DURABLE OBJECT STATE CORRUPTION DETECTED',
+            'DNS RESOLUTION FAILURE AT THE EDGE',
+            'ZERO TRUST GATEWAY IS DOWN',
+            'TOTAL API UNAVAILABILITY - CANNOT PURGE CACHE',
+            'WHO IS RESPONSIBLE FOR THE BGP WITHDRAWAL??'
+        ]
+    },
+    HEROKU: {
+        NOMINAL: [
+            'Dyno formation is stable',
+            'Slug compilation finished',
+            'Postgres metrics are green',
+            'Logplex buffer is clear'
+        ],
+        P3: [
+            'H12 Request Timeouts in us-east-1',
+            'R14 Memory Quota Exceeded on web.1',
+            'Slug compilation is unusually slow',
+            'Redis add-on latency is drifting'
+        ],
+        P1: [
+            'H10 APP CRASHED - RESTARTING DYNOS',
+            'POSTGRES CONNECTION LIMIT REACHED',
+            'PRIVATE SPACE GATEWAY UNRESPONSIVE',
+            'Heroku API is returning 503',
+            'Add-on provisioning is failing',
+            'Logplex total buffer overflow'
+        ],
+        P0: [
+            'GLOBAL DYNO RUNTIME OUTAGE',
+            'HEROKU CONNECT DATA SYNC COLLAPSE',
+            'PRODUCTION DATABASE HAS EVAPORATED',
+            'PIPELINE PROMOTION FAILED - STATE INCONSISTENT',
+            'ALL APP CONFIG VARS WIPED',
+            'EMERGENCY: CONTACT SALESFORCE SRE IMMEDIATELY'
+        ]
+    },
+    'HYPER-V': {
+        NOMINAL: [
+            'Cluster quorum is healthy',
+            'Virtual switches are nominal',
+            'VHDX compaction complete',
+            'Live migration engine is idle'
+        ],
+        P3: [
+            'Dynamic memory pressure on Host 4',
+            'Snapshot merge lag detected',
+            'Minor VM heartbeat miss on node-02',
+            'SCVMM console is slightly sluggish'
+        ],
+        P1: [
+            'LIVE MIGRATION FAILURE - VM PAUSED',
+            'CSV VOLUME RE-PARSE POINT ERROR',
+            'VHDX CORRUPTION DETECTED ON SAN',
+            'Virtual Switch Manager is unresponsive',
+            'Host OS is reporting disk pressure',
+            'Failover cluster is losing nodes'
+        ],
+        P0: [
+            'HYPER-V CLUSTER TOTAL QUORUM LOSS',
+            'STORAGE SPACES DIRECT TOTAL FAILURE',
+            'HOST KERNEL PANIC - BSOD DETECTED',
+            'CLUSTER DATABASE CORRUPTION',
+            'TOTAL NETWORK ISOLATION - VLAN STRIPED',
+            'SAN STORAGE UNREACHABLE FROM ALL HOSTS'
+        ]
+    },
+    VMWARE: {
+        NOMINAL: [
+            'vCenter health is green',
+            'vMotion completed successfully',
+            'ESXi hosts are responsive',
+            'vSAN re-sync at 0%'
+        ],
+        P3: [
+            'Balloon driver active on app-servers',
+            'vMotion timeout - retrying',
+            'Minor datastore latency spike',
+            'DRS is re-balancing the cluster'
+        ],
+        P1: [
+            'HOST NOT RESPONDING - vCENTER DISCONNECT',
+            'vSAN COMPONENT DEGRADED - DATA AT RISK',
+            'NSX-T EDGE CONTROLLER FAILURE',
+            'HA Agent failed to restart VMs',
+            'HBA queue depth saturation',
+            'Distributed Switch port group exhausted'
+        ],
+        P0: [
+            'vCENTER TOTAL DATABASE CORRUPTION',
+            'vSAN TOTAL DATA LOSS - CLUSTER OFFLINE',
+            'ALL PATHS DOWN (APD) ON PRIMARY STORAGE',
+            'ESXi HOST KERNEL PANIC - PURPLE SCREEN',
+            'TOTAL MANAGEMENT NETWORK COLLAPSE',
+            'WHO UNPLUGGED THE HEARTBEAT LINK??'
+        ]
     }
 };
 
 export interface ChatMessage {
+    id: string;
     user: string;
     text: string;
     time: string;
     isBot: boolean;
+    read?: boolean;
+    avatarUrl?: string;
+    bio?: string;
 }
 
 export const useIncidentChat = (
@@ -173,16 +300,72 @@ export const useIncidentChat = (
     onNewMessage: (isTag: boolean) => void,
     playPing?: () => void,
     playTagPing?: () => void,
-    isActive: boolean = true
+    isActive: boolean = true,
+    isFocused: boolean = false
 ) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const lastSeverity = useRef<Severity>(severity);
     const { send, subscribe } = useSync();
+    const userAvatars = useRef<Record<string, string>>({});
+
+    const getAvatarForUser = useCallback((user: string) => {
+        if (userAvatars.current[user]) return userAvatars.current[user];
+
+        const avatar = generateBitmapAvatar(user);
+        userAvatars.current[user] = avatar;
+        return avatar;
+    }, []);
+    const processUserAndBio = useCallback((rawName: string) => {
+        // Remove common job titles and return as { name, bio }
+        const titles = [
+            'SRE', 'DBA', 'Lead', 'Architect', 'Director', 'Eng', 'Manager', 
+            'Platform', 'Backend', 'Network', 'SecOps', 'Monitoring', 'OnCall'
+        ];
+        
+        let name = rawName;
+        let bio = '';
+        
+        // Find if name contains any of these
+        const parts = rawName.split('_');
+        const foundTitle = parts.find(p => titles.includes(p));
+        
+        if (foundTitle) {
+            name = parts.filter(p => p !== foundTitle).join(' ');
+            bio = foundTitle.toUpperCase() + ' Specialist';
+        } else {
+            name = parts.join(' ');
+        }
+        
+        return { name, bio };
+    }, []);
+
+    const markAsRead = useCallback((messageId: string) => {
+        setMessages(prev => {
+            const index = prev.findIndex(m => m.id === messageId);
+            if (index !== -1 && !prev[index].read) {
+                const next = [...prev];
+                next[index] = { ...next[index], read: true };
+                return next;
+            }
+            return prev;
+        });
+    }, []);
+
+    const markAllAsRead = useCallback(() => {
+        setMessages(prev => prev.map(m => m.read ? m : { ...m, read: true }));
+    }, []);
 
     useEffect(() => {
         const unsubscribe = subscribe((data) => {
             if (data.type === 'CHAT_MESSAGE') {
-                setMessages(prev => [...prev, data.message].slice(-100));
+                const incomingMsg: ChatMessage = { ...data.message, read: isFocused };
+                
+                if (!incomingMsg.avatarUrl && !incomingMsg.isBot) {
+                    incomingMsg.avatarUrl = getAvatarForUser(incomingMsg.user);
+                }
+
+                setMessages(prev => [...prev, incomingMsg].slice(-100));
                 
                 const isTag = data.message.text.includes('@');
                 if (isTag) {
@@ -191,70 +374,121 @@ export const useIncidentChat = (
                     playPing?.();
                 }
                 onNewMessage(isTag);
+                setTypingUsers(prev => prev.filter(u => u !== data.message.user));
+            } else if (data.type === 'TYPING_INDICATOR') {
+                setTypingUsers(prev => {
+                    if (data.isTyping) {
+                        return prev.includes(data.user) ? prev : [...prev, data.user];
+                    } else {
+                        return prev.filter(u => u !== data.user);
+                    }
+                });
             }
         });
         return unsubscribe;
-    }, [subscribe, onNewMessage, playPing, playTagPing]);
+    }, [subscribe, onNewMessage, playPing, playTagPing, isFocused, getAvatarForUser]);
 
-    const sendMessage = useCallback((text: string, user: string) => {
+    const sendMessage = useCallback((text: string, user: string, id?: string, isBot: boolean = false) => {
+        const { name, bio } = processUserAndBio(user);
         const newMessage: ChatMessage = {
-            user,
+            id: id || `msg-${Math.random().toString(36).substring(2, 11)}`,
+            user: name,
+            bio,
             text,
-            time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-            isBot: false
+            time: formatTime(),
+            isBot,
+            read: true,
+            avatarUrl: isBot ? undefined : getAvatarForUser(user)
         };
         send({ type: 'CHAT_MESSAGE', message: newMessage });
-    }, [send]);
+    }, [send, getAvatarForUser, processUserAndBio]);
 
     useEffect(() => {
         if (lastSeverity.current !== severity) {
             const systemMsg = {
+                id: `sys-${Date.now()}`,
                 user: 'Smokescreen_OS_Bot',
                 text: `--- ALERT LEVEL UPDATED TO ${severity} [${stack}] ---`,
-                time: new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-                isBot: true
+                time: formatTime(),
+                isBot: true,
+                read: isFocused
             };
             setTimeout(() => {
                 setMessages(prev => [...prev, systemMsg].slice(-100));
             }, 0);
             lastSeverity.current = severity;
         }
-    }, [severity, stack]);
+    }, [severity, stack, isFocused]);
 
     const getDynamicMessage = useCallback(async (currentSeverity: Severity): Promise<ChatMessage> => {
-        let user = 'Tech_Staff';
-        let time = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit' });
+        let userRaw = 'Tech_Staff';
+        let time = formatTime();
+        let isBot = false;
+        const id = `msg-${Math.random().toString(36).substring(2, 11)}`;
 
         try {
             const { generateDynamicMessage } = await import('../utils/chatGenerator');
-            const msg = await generateDynamicMessage(currentSeverity, stack, operatorName);
+            const dynamicMsg = await generateDynamicMessage(currentSeverity, stack, operatorName);
             
-            if (msg && 'text' in msg && msg.text && msg.user && msg.time) {
-                return msg as ChatMessage;
-            }
-            if (msg && msg.user && msg.time) {
-                user = msg.user;
-                time = msg.time;
+            if (dynamicMsg) {
+                if (dynamicMsg.user) userRaw = dynamicMsg.user;
+                if (dynamicMsg.time) time = dynamicMsg.time;
+                if (dynamicMsg.isBot !== undefined) isBot = !!dynamicMsg.isBot;
+                
+                if ('text' in dynamicMsg && dynamicMsg.text) {
+                    const { name, bio } = processUserAndBio(userRaw);
+                    return { 
+                        id, 
+                        user: name,
+                        bio,
+                        text: dynamicMsg.text, 
+                        time, 
+                        isBot,
+                        avatarUrl: isBot ? undefined : getAvatarForUser(userRaw)
+                    };
+                }
             }
         } catch (e) {
             console.error('Failed to load dynamic chat generator:', e);
         }
 
         const pool = STACK_MESSAGES[stack][currentSeverity];
-        let text = pool[Math.floor(Math.random() * pool.length)];
+        let text = getRandomItem(pool);
+
+        // Bots should only report infrastructure status, no commentary
+        if (isBot) {
+            const botFriendlyPool = pool.filter(msg => 
+                !msg.includes('?') && 
+                !msg.includes('!!') && 
+                !msg.includes('I ') && 
+                !msg.toLowerCase().includes('who ') &&
+                !msg.toLowerCase().includes('need ')
+            );
+            if (botFriendlyPool.length > 0) {
+                text = getRandomItem(botFriendlyPool);
+            }
+        }
         
-        // Scale tagging probability based on severity
-        // P0: 60% chance, P1: 40% chance, P3: 20% chance, NOMINAL: 5% chance
         const tagProbability = currentSeverity === 'P0' ? 0.4 : 
                                currentSeverity === 'P1' ? 0.6 : 
                                currentSeverity === 'P3' ? 0.8 : 0.95;
 
-        if (Math.random() > tagProbability) {
+        if (!isBot && Math.random() > tagProbability) {
             const tag = operatorName.split(' ')[0].toLowerCase() || 'operator';
             text = `@${tag} ${text}`;
         }
-        return { user, text, time, isBot: false };
-    }, [stack, operatorName]);
+        
+        const { name, bio } = processUserAndBio(userRaw);
+        return { 
+            id, 
+            user: name, 
+            bio, 
+            text, 
+            time, 
+            isBot, 
+            avatarUrl: isBot ? undefined : getAvatarForUser(userRaw) 
+        };
+    }, [stack, operatorName, getAvatarForUser, processUserAndBio]);
 
     useEffect(() => {
         if (!isActive) return;
@@ -263,7 +497,13 @@ export const useIncidentChat = (
 
         const interval = setInterval(async () => {
             const newMessage = await getDynamicMessage(severity);
-            send({ type: 'CHAT_MESSAGE', message: newMessage });
+            send({ type: 'TYPING_INDICATOR', user: newMessage.user, isTyping: true });
+            
+            setTimeout(() => {
+                send({ type: 'CHAT_MESSAGE', message: newMessage });
+                send({ type: 'TYPING_INDICATOR', user: newMessage.user, isTyping: false });
+            }, 1500 + Math.random() * 2000);
+
         }, delay);
 
         return () => {
@@ -271,5 +511,5 @@ export const useIncidentChat = (
         };
     }, [severity, uplinkId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send]);
 
-    return { messages, sendMessage };
+    return { messages, sendMessage, typingUsers, markAsRead, markAllAsRead };
 };

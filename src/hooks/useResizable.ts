@@ -1,7 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
 
-export const useResizable = (initialSize = { width: 400, height: 300 }) => {
-  const [size, setSize] = useState(initialSize);
+export const useResizable = (initialSize = { width: 400, height: 300 }, storageKey?: string) => {
+  const [size, setSize] = useState(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(`smokescreen_size_${storageKey}`);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to load size from storage', e);
+        }
+      }
+    }
+    return initialSize;
+  });
+
   const [isResizing, setIsResizing] = useState(false);
 
   const onResizeMouseDown = useCallback((e: React.MouseEvent) => {
@@ -12,14 +25,16 @@ export const useResizable = (initialSize = { width: 400, height: 300 }) => {
 
   const onMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing) {
-      // Find the parent element to get its position for relative sizing
-      // But for absolute positioned windows, we can just use the movement
-      setSize(prev => ({
-        width: Math.max(200, prev.width + e.movementX),
-        height: Math.max(100, prev.height + e.movementY)
-      }));
+      const newSize = {
+        width: Math.max(200, size.width + e.movementX),
+        height: Math.max(100, size.height + e.movementY)
+      };
+      setSize(newSize);
+      if (storageKey) {
+        localStorage.setItem(`smokescreen_size_${storageKey}`, JSON.stringify(newSize));
+      }
     }
-  }, [isResizing]);
+  }, [isResizing, size.width, size.height, storageKey]);
 
   const onMouseUp = useCallback(() => {
     setIsResizing(false);

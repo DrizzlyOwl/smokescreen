@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { Severity } from '../data/excuses';
+import { useEffect, useState, memo } from 'react';
+import type { Severity } from '../data/incidents';
 
 const LOG_POOLS: Record<Severity, string[]> = {
   NOMINAL: [
@@ -51,7 +51,7 @@ const LOG_POOLS: Record<Severity, string[]> = {
   ]
 };
 
-export const FakeLogs = ({ severity }: { severity: Severity }) => {
+const FakeLogsComponent = ({ severity }: { severity: Severity }) => {
   const [logs, setLogs] = useState<string[]>([]);
 
   useEffect(() => {
@@ -69,27 +69,12 @@ export const FakeLogs = ({ severity }: { severity: Severity }) => {
   }, [severity]);
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      opacity: 0.15,
-      overflow: 'hidden',
-      pointerEvents: 'none',
-      fontSize: '1rem',
-      padding: '20px',
-      paddingBottom: '180px',
-      color: severity === 'P0' ? 'var(--terminal-red)' : severity === 'P1' ? 'var(--terminal-amber)' : 'var(--terminal-green)',
-      zIndex: 0,
-      transition: 'color 0.5s ease',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <div className={`system-logs system-logs--${severity.toLowerCase()}`}>
       {logs.map((log, i) => (
-        <div key={i} style={{ marginBottom: '2px' }}>{log}</div>
+        <div key={i} className="system-logs__entry">{log}</div>
       ))}
     </div>
   );
 };
+
+export const FakeLogs = memo(FakeLogsComponent);

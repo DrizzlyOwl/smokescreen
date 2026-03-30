@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { useCommandRegistry, type CommandActions } from '../hooks/useCommandRegistry';
 import type { PaneId } from './useWindowManager';
-import type { Severity, Stack } from '../data/excuses';
+import type { Severity, Stack } from '../data/incidents';
 
 describe('useCommandRegistry', () => {
   const mockActions = {
@@ -14,14 +14,17 @@ describe('useCommandRegistry', () => {
     setStack: vi.fn<(s: Stack) => void>(),
     setAudio: vi.fn<(on: boolean) => void>(),
     setSlowBurn: vi.fn<(on: boolean) => void>(),
-    setBossMode: vi.fn<(on: boolean) => void>(),
-    setTheme: vi.fn<(t: 'classic' | 'amber' | 'cobalt') => void>(),
+    setTheme: vi.fn<(theme: 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai') => void>(),
+
+
     handleEject: vi.fn<() => void>(),
-    copyExcuse: vi.fn<() => void>(),
+    handleCease: vi.fn<() => void>(),
+    copyPlaybook: vi.fn<() => void>(),
     setView: vi.fn<(v: 'HOME' | 'TICKET') => void>(),
     playPing: vi.fn<(type: 'slack' | 'teams') => void>(),
     handleLogout: vi.fn<() => void>(),
     help: vi.fn<() => void>(),
+    startPlaybook: vi.fn<(id: string) => void>(),
   };
 
   it('correctly identifies and executes a threat level command', () => {
@@ -29,7 +32,7 @@ describe('useCommandRegistry', () => {
     
     const result = handleCommand('p0');
     
-    expect(result).toBe(true);
+    expect(result.isValid).toBe(true);
     expect(mockActions.setSeverity).toHaveBeenCalledWith('P0');
   });
 
@@ -38,7 +41,7 @@ describe('useCommandRegistry', () => {
     
     const result = handleCommand('aws');
     
-    expect(result).toBe(true);
+    expect(result.isValid).toBe(true);
     expect(mockActions.setStack).toHaveBeenCalledWith('AWS');
   });
 
@@ -47,15 +50,62 @@ describe('useCommandRegistry', () => {
     
     const result = handleCommand('show chat');
     
-    expect(result).toBe(true);
+    expect(result.isValid).toBe(true);
     expect(mockActions.openPane).toHaveBeenCalledWith('chat');
   });
 
-  it('returns false for unknown commands', () => {
+  it('returns isValid: false for unknown commands', () => {
     const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
     
     const result = handleCommand('invalid_command_xyz');
     
-    expect(result).toBe(false);
+    expect(result.isValid).toBe(false);
+  });
+
+  it('returns usage message for commands missing arguments', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    const result = handleCommand('playbook');
+    
+    expect(result.isValid).toBe(false);
+    expect(result.message).toContain('USAGE:');
+  });
+
+  it('correctly executes a category-prefixed command', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    const result = handleCommand('panes show logs');
+    
+    expect(result.isValid).toBe(true);
+    expect(mockActions.openPane).toHaveBeenCalledWith('logs');
+  });
+
+  it('returns a manifest when only a category is entered', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    const result = handleCommand('threat');
+    
+    expect(result.isValid).toBe(false);
+    expect(result.message).toContain('--- THREAT_COMMAND_MANIFEST ---');
+    expect(result.message).toContain('p0');
+  });
+
+  it('returns a manifest when category help is entered', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    const result = handleCommand('stack help');
+    
+    expect(result.isValid).toBe(false);
+    expect(result.message).toContain('--- STACK_COMMAND_MANIFEST ---');
+    expect(result.message).toContain('aws');
+  });
+
+  it('returns an error when a command is not found in a specific category', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    const result = handleCommand('panes p0');
+    
+    expect(result.isValid).toBe(false);
+    expect(result.message).toContain('ERROR: COMMAND NOT FOUND IN CATEGORY [PANES]');
   });
 });

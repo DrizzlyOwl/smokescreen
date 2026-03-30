@@ -1,0 +1,76 @@
+@use 'utils' as *;
+
+.burn-dashboard {
+  height: 100%;
+  background: var(--ui-bg);
+  display: flex;
+  flex-direction: column;
+  padding: rem(15);
+  box-sizing: border-box;
+  font-family: inherit;
+
+  &__display {
+    text-align: center; 
+    margin-bottom: rem(15);
+  }
+
+  &__label {
+    font-size: 0.75rem; 
+    color: var(--ui-text-dim); 
+    letter-spacing: rem(2); 
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  &__value {
+    font-size: 1.75rem; 
+    font-weight: bold;
+    color: var(--ui-text);
+  }
+
+  &__graph {
+    flex: 1; 
+    display: flex; 
+    align-items: flex-end; 
+    gap: rem(2); 
+    border-bottom: rem(1) solid var(--ui-border);
+    margin-bottom: rem(10);
+    padding: 0 rem(5);
+  }
+
+  &__graph-bar {
+    flex: 1;
+  }
+
+  &__ticker {
+    background: var(--ui-bg-alt); 
+    padding: rem(6); 
+    border: rem(1) solid var(--ui-border);
+    border-radius: rem(4);
+    overflow: hidden;
+    position: relative;
+  }
+
+  &__ticker-content {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    animation: ticker 10s linear infinite;
+    font-weight: bold;
+    color: var(--ui-text);
+  }
+
+  &__footer {
+    margin-top: rem(8); 
+    font-size: 0.75rem; 
+    color: var(--ui-text-dim);
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

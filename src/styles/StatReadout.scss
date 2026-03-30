@@ -1,0 +1,14 @@
+@use 'utils' as *;
+
+.stat-readout {
+  display: inline-block;
+  
+  &__label {
+    opacity: 0.6;
+  }
+
+  &__value {
+    color: var(--terminal-green);
+    font-weight: bold;
+  }
+}

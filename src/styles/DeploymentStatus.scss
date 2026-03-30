@@ -1,0 +1,73 @@
+@use 'utils' as *;
+
+.deploy-status {
+  flex: 1;
+  overflow: auto;
+  font-family: inherit;
+  padding: rem(12);
+  box-sizing: border-box;
+  background: var(--ui-bg);
+  color: var(--ui-text);
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: rem(15);
+    font-size: rem(14);
+
+    thead tr {
+      text-align: left;
+      border-bottom: rem(1) solid var(--ui-border);
+      color: var(--ui-text-dim);
+      font-weight: bold;
+    }
+
+    tbody tr {
+      border-bottom: rem(1) solid var(--ui-border);
+    }
+
+    th, td {
+      padding: rem(4);
+    }
+  }
+
+  &__metric {
+    &--warning { color: var(--status-p3); font-weight: bold; }
+    &--critical { color: var(--status-p0); font-weight: bold; }
+  }
+
+  &__pod-status {
+    &--running { color: var(--status-nominal); }
+    &--pending { color: var(--status-p3); font-weight: bold; }
+    &--error { color: var(--status-p0); font-weight: bold; }
+  }
+
+  &__logs {
+    background: var(--ui-bg-alt);
+    padding: rem(10);
+    border-radius: rem(4);
+    border: rem(1) solid var(--ui-border);
+  }
+
+  &__logs-title {
+    color: var(--ui-text-dim);
+    margin-bottom: rem(5);
+    font-size: rem(14);
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  &__logs-content {
+    height: rem(80);
+    overflow-y: auto;
+    font-size: rem(14);
+  }
+
+  &__log-entry {
+    white-space: nowrap;
+    color: var(--ui-text);
+
+    &--error { color: var(--status-p0); }
+    &--warning { color: var(--status-p3); }
+  }
+}

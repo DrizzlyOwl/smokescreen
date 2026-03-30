@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { type AppState } from '../contexts/types';
+import '../styles/Footer.scss';
 
 interface FooterProps {
   appState: AppState;
@@ -64,32 +65,15 @@ export const Footer = ({ appState, easterEggs }: FooterProps) => {
   if (appState === 'SPLASH' || appState === 'BOOT' || appState === 'SHUTDOWN') return null;
 
   return (
-    <footer style={{ 
-        marginTop: '30px', 
-        borderTop: '2px solid color-mix(in srgb, var(--terminal-green), transparent 80%)', 
-        paddingTop: '15px', 
-        textAlign: 'center' 
-    }}>
-      <div style={{ 
-          fontSize: 'var(--text-l4)', 
-          opacity: 0.4, 
-          letterSpacing: '2px',
-          minHeight: '1.2em',
-          marginBottom: '10px',
-          color: 'var(--terminal-green)'
-      }}>
-          {footerText}<span style={{ borderLeft: '8px solid currentColor', marginLeft: '4px', animation: 'flicker 0.5s infinite' }}></span>
+    <footer className="footer">
+      <div className="footer__easter-eggs">
+          {footerText}<span className="footer__cursor"></span>
       </div>
-      <div style={{ fontSize: 'var(--text-l4)', opacity: 0.4, color: 'var(--terminal-green)' }}>
+      <div className="footer__copyright">
           <a 
             href="https://github.com/DrizzlyOwl/smokescreen" 
             target="_blank" 
             rel="noopener noreferrer" 
-            style={{ 
-                color: 'inherit', 
-                textDecoration: 'none', 
-                borderBottom: '1px solid currentColor' 
-            }}
           >
             COPYRIGHT DRIZZLYOWL
           </a>

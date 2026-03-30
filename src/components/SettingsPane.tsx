@@ -3,15 +3,17 @@ import { TechnicalPane } from './TechnicalPane';
 import { Button } from './Button';
 import { SettingsIcon } from './Icons';
 import { useTerminal } from '../hooks/useTerminal';
-import { TechnicalTypography as Ty } from '../styles/Typography';
+import '../styles/SettingsPane.scss';
 
 interface SettingsPaneProps {
   zIndex: number;
   onFocus: () => void;
   isActive: boolean;
   onClose: () => void;
-  currentTheme: 'classic' | 'amber' | 'cobalt';
-  setTheme: (theme: 'classic' | 'amber' | 'cobalt') => void;
+  isMinimized: boolean;
+  onMinimizeToggle: () => void;
+  currentTheme: 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai';
+  setTheme: (theme: 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai') => void;
 }
 
 export const SettingsPane = ({
@@ -19,6 +21,8 @@ export const SettingsPane = ({
   onFocus,
   isActive,
   onClose,
+  isMinimized,
+  onMinimizeToggle,
   currentTheme,
   setTheme,
 }: SettingsPaneProps) => {
@@ -27,18 +31,12 @@ export const SettingsPane = ({
     () => localStorage.getItem('gemini_api_key') || ''
   );
   const [showKey, setShowKey] = useState(false);
-  const [futureEnabled, setFutureEnabled] = useState(
-    () => localStorage.getItem('feature_future_enabled') === 'true'
-  );
   const [status, setStatus] = useState<'IDLE' | 'VALIDATING' | 'SAVED' | 'ERROR'>('IDLE');
   const [errorMessage, setErrorMessage] = useState('');
-
-  const green = 'var(--terminal-green)';
 
   const handleSave = async () => {
     if (!apiKey.trim()) {
         localStorage.removeItem('gemini_api_key');
-        localStorage.setItem('feature_future_enabled', String(futureEnabled));
         setStatus('SAVED');
         setTimeout(() => setStatus('IDLE'), 2000);
         return;
@@ -58,7 +56,6 @@ export const SettingsPane = ({
         await result.response;
         
         localStorage.setItem('gemini_api_key', apiKey);
-        localStorage.setItem('feature_future_enabled', String(futureEnabled));
         setStatus('SAVED');
         setTimeout(() => setStatus('IDLE'), 2000);
     } catch (error: unknown) {
@@ -74,84 +71,65 @@ export const SettingsPane = ({
 
   return (
     <TechnicalPane
-      title="SYSTEM_SETTINGS_v4.5"
+      id="settings"
+      title="SYSTEM_SETTINGS"
       paneTitle="CONFIG: SYSTEM"
       classification="INTERNAL_ONLY"
       icon={<SettingsIcon />}
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
+      isMinimized={isMinimized}
+      onMinimizeToggle={onMinimizeToggle}
       onClose={onClose}
-      initialSize={{ width: 450, height: 480 }}
+      initialSize={{ width: 450, height: 550 }}
       footerText={
         <>
-          SYSTEM_ID: SMOKESCREEN_v4.5.0_BETA
-          <br />
           KERNEL: REACT_19_PROD
+          <br />
+          BUILD: SMOKESCREEN_v5.0.0
         </>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <section>
-          <h2 style={Ty.h2}>
-            <span style={Ty.number(green)}>01.</span> GEMINI_UPLINK_KEY
-          </h2>
-          <div
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
+      <div className="settings">
+        <section className="settings__section">
+          <h2 className="settings__header">01. GEMINI_UPLINK_KEY</h2>
+          <p className="settings__description">
+            Optional: Provide an AI key to generate hyper-realistic, context-aware technical incident reports tailored to your specific environment.
+          </p>
+          <div className="settings__input-wrapper">
             <input
               type={showKey ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               disabled={status === 'VALIDATING'}
               placeholder="ENTER_SECURE_KEY"
-              style={{
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: status === 'ERROR' ? '1px solid var(--terminal-red)' : '1px solid #35373b',
-                color: status === 'ERROR' ? 'var(--terminal-red)' : 'var(--terminal-green)',
-                padding: '10px 60px 10px 10px',
-                width: '100%',
-                fontFamily: 'monospace',
-                fontSize: '0.8rem',
-                outline: 'none',
-                borderRadius: '4px',
-                opacity: status === 'VALIDATING' ? 0.5 : 1
-              }}
+              className={`settings__input ${status === 'ERROR' ? 'settings__input--error' : ''}`}
             />
             <Button
               onClick={() => setShowKey(!showKey)}
               size="x-small"
-              style={{
-                position: 'absolute',
-                right: '8px',
-                border: 'none',
-                background: 'transparent'
-              }}
+              className="settings__input-toggle"
             >
               {showKey ? 'HIDE' : 'SHOW'}
             </Button>
           </div>
           {status === 'ERROR' && (
-            <p style={{ color: 'var(--terminal-red)', fontSize: '0.75rem', marginTop: '8px', fontWeight: 'bold' }}>
+            <p className="settings__error-message">
                 {'>'} ERROR: {errorMessage}
             </p>
           )}
-          <p style={{ ...Ty.p, fontSize: '0.75rem', opacity: 0.5, marginTop: '8px' }}>
-            Keys are cached in{' '}
-            <b style={Ty.bold(green)}>LOCAL_STORAGE</b>. No
-            data is transmitted to central system servers.
+          <p className="settings__note">
+            Keys are cached in <b>LOCAL_STORAGE</b>. No data is transmitted to central system servers.
           </p>
         </section>
 
-        <section>
-          <h2 style={Ty.h2}>
-            <span style={Ty.number(green)}>02.</span> VISUAL_THEMES
-          </h2>
-          <div style={{ display: 'flex', gap: '8px' }}>
+        <section className="settings__section">
+          <h2 className="settings__header">02. VISUAL_THEMES</h2>
+          <p className="settings__description">
+            Switch between classic hardware aesthetics to match your terminal emulator preference.
+          </p>
+          <div className="settings__theme-grid">
             <Button 
                 onClick={() => setTheme('classic')} 
                 active={currentTheme === 'classic'}
@@ -175,112 +153,89 @@ export const SettingsPane = ({
             >
                 COBALT
             </Button>
+            <Button 
+                onClick={() => setTheme('dracula')} 
+                active={currentTheme === 'dracula'}
+                size="x-small"
+                style={{ color: '#bd93f9', borderColor: '#bd93f9' }}
+            >
+                DRACULA
+            </Button>
+            <Button 
+                onClick={() => setTheme('monokai')} 
+                active={currentTheme === 'monokai'}
+                size="x-small"
+                style={{ color: '#f92672', borderColor: '#f92672' }}
+            >
+                MONOKAI
+            </Button>
+            <Button 
+                onClick={() => setTheme('cyberpunk')} 
+                active={currentTheme === 'cyberpunk'}
+                size="x-small"
+                style={{ color: '#ff00ff', borderColor: '#ff00ff', textShadow: '0 0 5px #ff00ff' }}
+            >
+                CYBERPUNK
+            </Button>
+            <Button 
+                onClick={() => setTheme('high-contrast')} 
+                active={currentTheme === 'high-contrast'}
+                size="x-small"
+                style={{ color: '#ffffff', borderColor: '#ffffff', background: '#000000' }}
+            >
+                CONTRAST
+            </Button>
+            <Button 
+                onClick={() => setTheme('accessibility')} 
+                active={currentTheme === 'accessibility'}
+                size="x-small"
+                style={{ color: '#00ff00', borderColor: '#00ff00', fontFamily: 'sans-serif' }}
+            >
+                A11Y
+            </Button>
           </div>
         </section>
 
-        <section>
-          <h2 style={Ty.h2}>
-            <span style={Ty.number(green)}>03.</span> EXPERIMENTAL_MODULES
-          </h2>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-              gap: '10px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #1c2128',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={futureEnabled}
-              onChange={(e) => setFutureEnabled(e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px',
-                accentColor: 'var(--terminal-green)',
-              }}
-            />
-            <span
-              style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#fff' }}
-            >
-              ENABLE_BETA_THEATER
-            </span>
-          </label>
-
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-              gap: '10px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #1c2128',
-              marginTop: '10px'
-            }}
-          >
+        <section className="settings__section">
+          <h2 className="settings__header">03. SYSTEM_CONFIGURATION</h2>
+          
+          <label className="settings__option">
             <input
               type="checkbox"
               checked={isEcoMode}
               onChange={(e) => setIsEcoMode(e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px',
-                accentColor: 'var(--terminal-green)',
-              }}
+              className="settings__option-checkbox"
             />
-            <span
-              style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#fff' }}
-            >
-              ENABLE_ECO_MODE (LOW_POWER)
-            </span>
+            <div>
+              <span className="settings__option-label">
+                ENABLE ECO MODE (LOW POWER)
+              </span>
+              <span className="settings__option-desc">
+                Disables expensive CSS filters like blurs, glows, and animations for better performance.
+              </span>
+            </div>
           </label>
 
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-              gap: '10px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #1c2128',
-              marginTop: '10px'
-            }}
-          >
+          <label className="settings__option">
             <input
               type="checkbox"
               checked={isDebugMode}
               onChange={(e) => setIsDebugMode(e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px',
-                accentColor: 'var(--terminal-green)',
-              }}
+              className="settings__option-checkbox"
             />
-            <span
-              style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#fff' }}
-            >
-              ENABLE_SYSTEM_DEBUG_HOOKS
-            </span>
+            <div>
+              <span className="settings__option-label">
+                ENABLE SYSTEM DEBUG LOGS
+              </span>
+              <span className="settings__option-desc">
+                Opens a dedicated console to track internal state transitions and telemetry events in real-time.
+              </span>
+            </div>
           </label>
         </section>
       </div>
 
-      <div
-        style={{
-          marginTop: '25px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <div className="settings__footer">
         <Button 
             onClick={handleSave} 
             variant="primary" 
@@ -291,25 +246,12 @@ export const SettingsPane = ({
            status === 'SAVED' ? 'SYNCED' : 'COMMIT_CHANGES'}
         </Button>
         {status === 'SAVED' && (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--terminal-amber)',
-              animation: 'flicker 0.5s infinite',
-              fontWeight: 'bold',
-            }}
-          >
+          <span className="settings__status settings__status--saved">
             SYNC_COMPLETE
           </span>
         )}
         {status === 'ERROR' && (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--terminal-red)',
-              fontWeight: 'bold',
-            }}
-          >
+          <span className="settings__status settings__status--error">
             UPLINK_REJECTED
           </span>
         )}

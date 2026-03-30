@@ -1,0 +1,54 @@
+@use 'utils' as *;
+
+.technical-pane {
+  height: 100%;
+  background: var(--ui-bg);
+  padding: rem(20);
+  box-sizing: border-box;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--ui-text);
+  line-height: 1.5;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  font-size: rem(14);
+
+  &__header {
+    margin-bottom: rem(20);
+    border-bottom: rem(2) solid var(--terminal-green);
+    padding-bottom: rem(12);
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: 0.75rem; 
+    opacity: 0.6; 
+    font-weight: bold; 
+    margin-bottom: rem(5);
+    text-transform: uppercase;
+    letter-spacing: rem(1);
+  }
+
+  &__title {
+    font-size: 1.75rem; 
+    margin: 0; 
+    font-weight: 900; 
+    letter-spacing: rem(2);
+    text-transform: uppercase;
+  }
+
+  &__content {
+    flex: 1;
+  }
+
+  &__footer {
+    margin-top: rem(40);
+    text-align: center;
+    opacity: 0.4;
+    font-size: 0.75rem;
+    border-top: rem(1) solid var(--ui-border);
+    padding-top: rem(20);
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+}

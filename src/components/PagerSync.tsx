@@ -1,24 +1,26 @@
 import { useState } from 'react';
 import { PagerIcon } from './Icons';
-import type { Severity, Stack } from '../data/excuses';
+import type { Severity, Stack } from '../data/incidents';
 import { Button } from './Button';
 import { Pane } from './Pane';
 import { QRCodeSVG } from 'qrcode.react';
-import { useSync } from '../contexts/SyncContext';
-
+import { useSync } from '../hooks/useSync';
 import { useTerminal } from '../hooks/useTerminal';
+import '../styles/PagerSync.scss';
 
-export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId, onClose }: { 
+export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId, onClose, isMinimized, onMinimizeToggle }: { 
     severity: Severity, 
     stack: Stack,
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean,
     uplinkId: string,
-    onClose: () => void
+    onClose: () => void,
+    isMinimized: boolean,
+    onMinimizeToggle: () => void
 }) => {
-    const { isConnected, connectionCount } = useSync();
-    const { theme } = useTerminal();
+    const { isConnected, connectionCount, connectionStatus } = useSync();
+    const { theme, regenerateUplinkId } = useTerminal();
     const [manuallySyncing, setManuallySyncing] = useState(false);
     const isSyncing = manuallySyncing && !isConnected;
 
@@ -32,52 +34,41 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
 
     const isP0 = severity === 'P0';
 
+    const getStatusColor = () => {
+        switch (connectionStatus) {
+            case 'CONNECTED': return 'var(--terminal-green)';
+            case 'CONNECTING': return 'var(--terminal-amber)';
+            case 'ERROR': return 'var(--terminal-red)';
+            case 'DISCONNECTED': return '#768390';
+            default: return '#768390';
+        }
+    };
+
     return (
         <Pane
+          id="pager"
           title="SYSTEM_PAGERSYNC_UPLINK"
           icon={<PagerIcon />}
-          iconColor={isConnected ? 'var(--terminal-green)' : isSyncing ? 'var(--terminal-amber)' : 'color-mix(in srgb, var(--terminal-green), transparent 80%)'}
+          iconColor={getStatusColor()}
           initialPos={{ x: 800, y: 50 }}
-          initialSize={{ width: 280, height: 380 }}
+          initialSize={{ width: 280, height: 440 }}
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
+          isMinimized={isMinimized}
+          onMinimizeToggle={onMinimizeToggle}
           severityColor={severity === 'NOMINAL' ? undefined : (isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)')}
           onClose={onClose}
         >
-            <div style={{
-                height: '100%',
-                background: '#0a0c0f',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '15px',
-                boxSizing: 'border-box',
-                fontFamily: 'monospace',
-                textAlign: 'center'
-            }}>
-                <div style={{ fontSize: '0.75rem', color: '#768390', marginBottom: '8px' }}>
+            <div className="pager-sync">
+                <div className="pager-sync__label">
                     SECURE_UPLINK_ID
                 </div>
-                <div style={{ 
-                    fontSize: '1.5rem', 
-                    color: 'var(--terminal-green)', 
-                    fontWeight: 'bold', 
-                    letterSpacing: '2px',
-                    marginBottom: '15px',
-                    textShadow: '0 0 10px rgba(24, 255, 98, 0.5)'
-                }}>
+                <div className="pager-sync__id">
                     {uplinkId}
                 </div>
 
-                {/* Valid QR Code */}
-                <div style={{ 
-                    background: '#fff', 
-                    padding: '10px',
-                    borderRadius: '4px',
-                    marginBottom: '15px',
-                    display: 'inline-block'
-                }}>
+                <div className="pager-sync__qr-container">
                     <QRCodeSVG 
                         value={pagerUrl} 
                         size={120}
@@ -86,42 +77,45 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
                     />
                 </div>
 
-                {!isConnected ? (
+                <div className="pager-sync__status-group">
+                    <div 
+                        className="pager-sync__status-badge"
+                        style={{ color: getStatusColor() }}
+                    >
+                        STATUS: {connectionStatus} {isConnected ? `(${connectionCount})` : ''}
+                    </div>
+                    {isHighSeverity && isConnected && (
+                        <div className="pager-sync__alert-indicator">
+                            ALERT_TRANSMITTING...
+                        </div>
+                    )}
+                </div>
+
+                <div className="pager-sync__actions">
+                    {!isConnected && (
+                        <Button 
+                            onClick={handleSync}
+                            disabled={isSyncing || connectionStatus === 'CONNECTING'}
+                            variant="primary"
+                            size="x-small"
+                            fullWidth
+                        >
+                            {isSyncing ? 'AWAITING_PEER...' : 'INITIATE_SYNC'}
+                        </Button>
+                    )}
+                    
                     <Button 
-                        onClick={handleSync}
-                        disabled={isSyncing}
-                        variant="primary"
+                        onClick={regenerateUplinkId}
+                        variant="terminal"
                         size="x-small"
                         fullWidth
                     >
-                        {isSyncing ? 'AWAITING_PEER...' : 'INITIATE_SYNC'}
+                        RE-INITIALIZE UPLINK
                     </Button>
-                ) : (
-                    <div style={{ width: '100%' }}>
-                        <div style={{ 
-                            color: 'var(--terminal-green)', 
-                            fontSize: '0.85rem', 
-                            fontWeight: 'bold',
-                            border: '1px solid var(--terminal-green)',
-                            padding: '8px',
-                            marginBottom: '8px'
-                        }}>
-                            UPLINK: ACTIVE ({connectionCount})
-                        </div>
-                        {isHighSeverity && (
-                            <div style={{ 
-                                animation: 'flicker 0.5s infinite', 
-                                color: 'var(--terminal-red)',
-                                fontSize: '0.75rem'
-                            }}>
-                                ALERT_TRANSMITTING...
-                            </div>
-                        )}
-                    </div>
-                )}
+                </div>
 
-                <div style={{ marginTop: 'auto', fontSize: '0.7rem', color: '#768390', opacity: 0.6 }}>
-                    ENC: AES-256 | LAT: 42ms
+                <div className="pager-sync__footer">
+                    STUN: GOOGLE_CLOUD | TRN: P2P_ONLY
                 </div>
             </div>
         </Pane>

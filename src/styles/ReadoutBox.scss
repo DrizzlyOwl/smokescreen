@@ -1,0 +1,78 @@
+@use 'utils' as *;
+
+.readout-box {
+  padding: rem(20);
+  min-height: rem(120);
+  margin-top: rem(10);
+  border: rem(2) solid var(--ui-border);
+  background: var(--ui-bg-alt);
+  line-height: 1.4;
+  position: relative;
+  box-shadow: inset 0 0 rem(20) rgba(0, 0, 0, 0.02);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: rem(12);
+    border-bottom: rem(1) solid var(--ui-border);
+    padding-bottom: rem(8);
+
+    &-actions {
+      display: flex;
+      gap: rem(8);
+      align-items: center;
+
+      .ai-badge {
+        font-size: 0.7rem;
+        background: var(--status-nominal);
+        color: var(--status-text);
+        padding: rem(2) rem(6);
+        border-radius: rem(2);
+        font-weight: bold;
+      }
+    }
+  }
+
+  &__label {
+    color: var(--terminal-amber);
+    font-size: var(--text-l3);
+    font-weight: bold;
+    letter-spacing: rem(1);
+  }
+
+  &__content {
+    line-height: 1.6;
+    font-size: var(--text-l3);
+    white-space: pre-wrap;
+    min-height: rem(200);
+    max-height: rem(300);
+    overflow-y: auto;
+    padding-right: rem(10);
+
+    /* Custom scrollbar for terminal feel */
+    &::-webkit-scrollbar {
+      width: rem(6);
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--ui-bg);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--ui-border);
+      border-radius: rem(3);
+    }
+  }
+
+  &__footer {
+    margin-top: rem(15);
+    padding-top: rem(10);
+    border-top: rem(1) dashed var(--ui-border);
+    display: flex;
+    gap: rem(12);
+
+    &-actions {
+      display: flex;
+      gap: rem(12);
+    }
+  }
+}

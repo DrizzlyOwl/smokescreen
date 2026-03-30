@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { MapIcon } from './Icons';
-import type { Severity } from '../data/excuses';
+import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
 import { useTerminal } from '../hooks/useTerminal';
+import '../styles/OutageMap.scss';
 
 interface IncidentNode {
     id: string;
@@ -23,12 +24,19 @@ const REGIONS = [
     { label: 'AF-SOUTH-1 (Cape Town)', lat: -33.9, lng: 18.4 }
 ];
 
-export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { severity: Severity, zIndex: number, onFocus: () => void, isActive: boolean, onClose: () => void }) => {
+export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose, isMinimized, onMinimizeToggle }: { 
+    severity: Severity, 
+    zIndex: number, 
+    onFocus: () => void, 
+    isActive: boolean, 
+    onClose: () => void,
+    isMinimized: boolean,
+    onMinimizeToggle: () => void
+}) => {
     const [nodes, setNodes] = useState<IncidentNode[]>([]);
     const { isEcoMode } = useTerminal();
 
     useEffect(() => {
-        // Map regions to nodes with status based on severity
         const updateNodes = () => {
             setNodes(REGIONS.map(reg => {
                 let status: IncidentNode['status'] = 'healthy';
@@ -59,7 +67,6 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
         return () => clearInterval(interval);
     }, [severity]);
 
-    // Convert Lat/Lng to X/Y percentages for a simple Mercator-ish projection
     const getPos = (lat: number, lng: number) => {
         const x = ((lng + 180) / 360) * 100;
         const y = ((90 - lat) / 180) * 100;
@@ -70,6 +77,7 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
 
     return (
         <Pane
+          id="map"
           title="GLOBAL_INCIDENT_MONITOR"
           icon={<MapIcon />}
           iconColor={severity === 'NOMINAL' ? 'var(--terminal-green)' : isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)'}
@@ -78,91 +86,77 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose }: { se
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
+          isMinimized={isMinimized}
+          onMinimizeToggle={onMinimizeToggle}
           severityColor={severity === 'NOMINAL' ? undefined : (isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)')}
           onClose={onClose}
         >
-            <div className="h-full bg-[#0a0c0f] relative overflow-hidden p-0 border-box">
-                {/* SVG World Map Outline */}
+            <div className="outage-map">
                 <svg 
                     viewBox="0 0 1000 500" 
                     preserveAspectRatio="xMidYMid slice"
-                    style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        opacity: 0.6,
-                        fill: '#24292e',
-                        stroke: '#444c56',
-                        strokeWidth: 1.5
-                    }}
+                    className="outage-map__svg"
                 >
-                    <path d="M150,120 L180,110 L220,115 L250,140 L240,180 L200,210 L160,200 L140,160 Z" /> {/* N. America simplified */}
-                    <path d="M220,250 L260,240 L290,270 L280,330 L240,360 L210,320 Z" /> {/* S. America simplified */}
-                    <path d="M460,100 L520,80 L580,100 L560,160 L500,180 L460,150 Z" /> {/* Europe/W. Asia simplified */}
-                    <path d="M480,200 L540,190 L580,230 L560,300 L510,320 L470,260 Z" /> {/* Africa simplified */}
-                    <path d="M600,120 L750,110 L850,150 L820,250 L700,280 L620,240 Z" /> {/* Asia simplified */}
-                    <path d="M780,320 L840,310 L870,360 L830,410 L770,390 Z" /> {/* Australia simplified */}
+                    {/* North America */}
+                    <path d="M120,80 L280,80 L320,150 L280,220 L200,240 L120,200 L80,150 Z" />
+                    {/* South America */}
+                    <path d="M250,260 L350,260 L380,350 L320,450 L260,450 L220,350 Z" />
+                    {/* Europe & Africa */}
+                    <path d="M450,80 L580,80 L620,150 L580,220 L550,240 L580,350 L520,450 L450,450 L420,350 L450,240 L420,150 Z" />
+                    {/* Asia */}
+                    <path d="M600,80 L850,80 L920,150 L880,280 L750,320 L620,280 L600,150 Z" />
+                    {/* Australia */}
+                    <path d="M800,350 L900,350 L920,420 L880,450 L820,450 Z" />
                 </svg>
 
-                {/* Nodes */}
                 {nodes.map(node => {
                     const pos = getPos(node.lat, node.lng);
-                    const color = node.status === 'healthy' ? 'var(--terminal-green)' : 
-                                 node.status === 'warning' ? 'var(--terminal-amber)' : 'var(--terminal-red)';
+                    const color = node.status === 'healthy' ? 'var(--status-nominal)' : 
+                                 node.status === 'warning' ? 'var(--status-p3)' : 'var(--status-p0)';
                     
                     return (
-                        <div key={node.id} style={{
-                            position: 'absolute',
+                        <div key={node.id} className="outage-map__node" style={{
                             left: pos.x,
                             top: pos.y,
-                            transform: 'translate(-50%, -50%)',
-                            zIndex: 5
                         }}>
-                            {/* Pulse effect for non-healthy nodes */}
                             {node.status !== 'healthy' && !isEcoMode && (
-                                <div style={{
-                                    position: 'absolute',
-                                    width: '20px',
-                                    height: '20px',
-                                    borderRadius: '50%',
-                                    background: color,
-                                    opacity: 0.4,
-                                    animation: 'pulse 1.5s infinite',
-                                    left: '-5px',
-                                    top: '-5px'
-                                }} />
+                                <div 
+                                    className="outage-map__node-pulse" 
+                                    style={{ background: color }} 
+                                />
                             )}
                             
-                            {/* Actual Dot */}
-                            <div style={{
-                                width: '10px',
-                                height: '10px',
-                                borderRadius: '50%',
-                                background: color,
-                                boxShadow: isEcoMode ? 'none' : `0 0 10px ${color}`,
-                                cursor: 'help'
-                            }} title={node.label} />
+                            <div 
+                                className="outage-map__node-dot"
+                                style={{
+                                    background: color,
+                                    boxShadow: isEcoMode ? 'none' : `0 0 10px ${color}`,
+                                }} 
+                                title={node.label} 
+                            />
                             
-                            {/* Label */}
-                            <div className="absolute top-[12px] left-1/2 translate-x-[-50%] text-[0.8rem] whitespace-nowrap text-shadow-[0_0_4px_#000] pointer-events-none" style={{
-                                color: node.status === 'healthy' ? '#768390' : color,
-                                fontWeight: node.status === 'healthy' ? 'normal' : 'bold',
-                            }}>
+                            <div 
+                                className="outage-map__node-label" 
+                                style={{
+                                    color: node.status === 'healthy' ? 'var(--ui-text-dim)' : color,
+                                    fontWeight: node.status === 'healthy' ? 'normal' : 'bold',
+                                }}
+                            >
                                 {node.label}
                             </div>
                         </div>
                     );
                 })}
 
-                {/* Map Legend */}
-                <div className="absolute bottom-[10px] left-[10px] text-[0.8rem] text-[#768390] flex gap-[15px] bg-[rgba(10,12,15,0.8)] p-[5px] rounded-[4px] border border-solid border-[#1c2128]">
-                    <div className="flex items-center gap-1">
-                        <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'var(--terminal-green)' }} /> NOMINAL
+                <div className="outage-map__legend">
+                    <div className="outage-map__legend-item">
+                        <div className="outage-map__legend-dot" style={{ background: 'var(--status-nominal)' }} /> NOMINAL
                     </div>
-                    <div className="flex items-center gap-1">
-                        <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'var(--terminal-amber)' }} /> WARNING
+                    <div className="outage-map__legend-item">
+                        <div className="outage-map__legend-dot" style={{ background: 'var(--status-p3)' }} /> WARNING
                     </div>
-                    <div className="flex items-center gap-1">
-                        <div className="w-[6px] h-[6px] rounded-full" style={{ background: 'var(--terminal-red)' }} /> CRITICAL
+                    <div className="outage-map__legend-item">
+                        <div className="outage-map__legend-dot" style={{ background: 'var(--status-p0)' }} /> CRITICAL
                     </div>
                 </div>
             </div>

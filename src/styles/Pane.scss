@@ -1,0 +1,91 @@
+@use 'utils' as *;
+
+.pane {
+  position: fixed;
+  background: var(--ui-bg);
+  border: rem(2) solid var(--ui-border);
+  box-shadow: 0 rem(10) rem(30) rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: all;
+
+  &.active {
+    border-color: var(--terminal-green);
+    box-shadow: 0 rem(10) rem(40) rgba(var(--terminal-green-rgb), 0.2);
+    z-index: 1000 !important;
+  }
+
+  &.minimized {
+    height: auto !important;
+    width: auto !important;
+    min-width: rem(150);
+  }
+
+  &.dragging {
+    cursor: grabbing;
+  }
+
+  &__header {
+    background: var(--ui-bg-alt);
+    padding: rem(8) rem(12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: rem(1) solid var(--ui-border);
+    cursor: grab;
+    user-select: none;
+
+    &.dragging {
+      cursor: grabbing;
+    }
+  }
+
+  &__title {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--ui-text);
+    display: flex;
+    align-items: center;
+    letter-spacing: rem(1);
+    pointer-events: none;
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: rem(20);
+    height: rem(20);
+    flex-shrink: 0;
+    margin-right: rem(8);
+  }
+
+  &__actions {
+    display: flex;
+    gap: rem(8);
+    align-items: center;
+  }
+
+  &__action-button {
+    width: rem(36);
+    height: rem(24);
+  }
+
+  &__content {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-color, #000);
+  }
+
+  &__resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: rem(15);
+    height: rem(15);
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, var(--ui-border) 50%);
+    z-index: 10;
+  }
+}

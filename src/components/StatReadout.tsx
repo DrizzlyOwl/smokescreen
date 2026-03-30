@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/StatReadout.scss';
 
 interface StatReadoutProps {
   label: string;
@@ -16,9 +17,12 @@ export const StatReadout = ({
   style = {} 
 }: StatReadoutProps) => {
   return (
-    <div className={className} style={{ ...style, display: 'inline-block' }}>
-      <span className="stat-label">{label}:</span>{' '}
-      <span className="stat-value" style={{ color: color || 'var(--terminal-green)', fontWeight: 'bold' }}>
+    <div className={`stat-readout ${className}`} style={style}>
+      <span className="stat-readout__label">{label}:</span>{' '}
+      <span 
+        className="stat-readout__value" 
+        style={color ? { color } : {}}
+      >
         {value}
       </span>
     </div>

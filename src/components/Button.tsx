@@ -1,9 +1,9 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'terminal' | 'primary' | 'danger' | 'mobile' | 'mobile-outline';
+  variant?: 'terminal' | 'primary' | 'danger' | 'ghost' | 'mobile' | 'mobile-outline';
   active?: boolean;
-  size?: 'x-small' | 'small inline' | 'medium inline' | 'small' | 'large';
+  size?: 'x-small' | 'small-inline' | 'medium-inline' | 'small' | 'large';
   fullWidth?: boolean;
 }
 
@@ -17,29 +17,16 @@ export const Button = ({
   style = {},
   ...props 
 }: ButtonProps) => {
-  const getPaddingAndFontSize = () => {
-    switch (size) {
-        case 'x-small': return { padding: '4px 8px', fontSize: '0.75rem' };
-        case 'small inline': return { padding: '6px 12px', fontSize: 'var(--text-l4)' };
-        case 'medium inline': return { padding: '10px 18px', fontSize: 'var(--text-l3)' };
-        case 'small': return { padding: '14px 28px', fontSize: 'var(--text-l3)' };
-        case 'large': return { padding: '20px 45px', fontSize: 'var(--text-l2)' };
-        default: return { padding: '14px 28px', fontSize: 'var(--text-l3)' };
-    }
-  };
-
-  const dims = getPaddingAndFontSize();
-
-  const combinedStyle: React.CSSProperties = {
-    ...dims,
-    width: fullWidth ? '100%' : 'auto',
-    ...style
-  };
+  const baseClass = 'button';
+  const variantClass = `${baseClass}--${variant}`;
+  const sizeClass = `${baseClass}--${size.replace(' ', '-')}`;
+  const activeClass = active ? `${baseClass}--active` : '';
+  const fullWidthClass = fullWidth ? `${baseClass}--full-width` : '';
 
   return (
     <button 
-      style={combinedStyle}
-      className={`${variant}-button ${active ? 'active' : ''} ${className}`}
+      style={style}
+      className={`${baseClass} ${variantClass} ${sizeClass} ${activeClass} ${fullWidthClass} ${className}`}
       {...props}
     >
       {children}
