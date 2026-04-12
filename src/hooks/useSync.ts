@@ -1,10 +1,12 @@
-import { useContext } from 'react';
-import { SyncContextInstance } from '../contexts/instances';
+import type { SyncContextType, SyncPayload } from '../contexts/types';
 
-export const useSync = () => {
-  const context = useContext(SyncContextInstance);
-  if (context === undefined) {
-    throw new Error('useSync must be used within a SyncProvider');
-  }
-  return context;
+export const useSync = (): SyncContextType => {
+  return {
+    send: (_data: SyncPayload) => {},
+    subscribe: (_handler: (data: SyncPayload) => void) => () => {},
+    isConnected: false,
+    connectionStatus: 'DISCONNECTED',
+    peerId: null,
+    connectionCount: 0
+  };
 };

@@ -9,6 +9,12 @@ interface HowToPaneProps {
   onClose: () => void;
   isMinimized: boolean;
   onMinimizeToggle: () => void;
+  isPoppedOut?: boolean;
+  onPopOutToggle?: () => void;
+  isSnappedMain?: boolean;
+  onSnapMainToggle?: () => void;
+  initialPos?: { x: number, y: number };
+  initialSize?: { width: number, height: number };
 }
 
 export const HowToPane = ({
@@ -17,7 +23,13 @@ export const HowToPane = ({
   isActive,
   onClose,
   isMinimized,
-  onMinimizeToggle
+  onMinimizeToggle,
+  isPoppedOut,
+  onPopOutToggle,
+  isSnappedMain,
+  onSnapMainToggle,
+  initialPos,
+  initialSize
 }: HowToPaneProps) => {
   return (
     <TechnicalPane
@@ -31,9 +43,13 @@ export const HowToPane = ({
       isActive={isActive}
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
       onClose={onClose}
-      initialPos={{ x: 150, y: 50 }}
-      initialSize={{ width: 650, height: 750 }}
+      initialPos={initialPos || { x: 150, y: 50 }}
+      initialSize={initialSize || { width: 650, height: 750 }}
       footerText={
         <>
           SRE_DIVISION_TACTICAL_THEATRE_UNIT
@@ -52,19 +68,26 @@ export const HowToPane = ({
         <section className="how-to__section">
           <h2 className="how-to__header">01. INITIALIZATION</h2>
           <p className="how-to__text">
-            Before starting the simulation, set your context. Select a <b>Cloud Stack</b> (AWS, GCP, etc.) and a <b className="how-to__highlight-amber">Threat Level</b> (P3 to P0). This ensures all generated logs, chats, and system metrics match your actual engineering environment.
+            Before starting the simulation, set your context via the <b>SYSTEM_TERMINAL_CORE</b> (`[F1]`). Type <b className="how-to__highlight-amber">aws</b>, <b className="how-to__highlight-amber">gcp</b>, or <b className="how-to__highlight-amber">azure</b> to set your cloud stack, and <b className="how-to__highlight-amber">p3</b>, <b className="how-to__highlight-amber">p1</b>, or <b className="how-to__highlight-amber">p0</b> to set the threat level.
           </p>
         </section>
 
         <section className="how-to__section">
           <h2 className="how-to__header">02. DECLARING THE INCIDENT</h2>
           <p className="how-to__text">
-            Click <b className="how-to__highlight-red">DECLARE_INCIDENT</b> to trigger the main event. The status bar will shift color, alerts will trigger, and an official <b>Technical Playbook</b> will be drafted. To get hyper-realistic reports, add a <b className="how-to__highlight-amber">Gemini API Key</b> in Settings.
+            Type <b className="how-to__highlight-red">declare</b> in the terminal to trigger the main event. The status bar will shift color, alerts will trigger, and an official <b>Technical Playbook</b> will be drafted. Type <b className="how-to__highlight-green">resolve</b> to clear the incident. For hyper-realistic reports, add a <b>Gemini API Key</b> in Settings.
           </p>
         </section>
 
         <section className="how-to__section">
-          <h2 className="how-to__header">03. VISUAL DENSITY (THE THEATRE)</h2>
+          <h2 className="how-to__header">03. COMMAND INTERFACE</h2>
+          <p className="how-to__text">
+            Type <b className="how-to__highlight-amber">help</b> at any time to see a full list of available terminal commands, including pane management, theme switching, and theatre automation.
+          </p>
+        </section>
+
+        <section className="how-to__section">
+          <h2 className="how-to__header">04. VISUAL DENSITY (THE THEATRE)</h2>
           <p className="how-to__text">
             To be convincing, you must create a "Data Flood." Open and arrange multiple <b>Observability Panes</b> from the top toolbar:
           </p>

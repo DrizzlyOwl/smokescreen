@@ -1,0 +1,190 @@
+@use 'utils' as *;
+
+/* Smokescreen Gateway (Splash) */
+.gateway {
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start; 
+  justify-content: flex-start; 
+  background-color: #000;
+  padding: rem(40);
+  overflow-y: auto;
+
+  &__console {
+    z-index: 1;
+    text-align: left; 
+    padding: 0;
+    max-width: rem(800);
+    width: 100%;
+    animation: warm-up 0.5s ease-out;
+
+    @media (max-width: 768px) {
+      width: 100%;
+    }
+
+    .eco-mode & {
+        animation: none !important;
+    }
+
+    &::after {
+        content: "PROPERTY OF SRE DIVISION | SERIAL: SS-OS-5.0-BETA";
+        position: relative;
+        display: block;
+        margin-top: rem(40);
+        bottom: 0;
+        left: 0;
+        transform: none;
+        font-size: 0.8rem;
+        opacity: 0.3;
+        letter-spacing: rem(1);
+        white-space: nowrap;
+    }
+  }
+
+  &__technical-readout {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: rem(20);
+    padding: rem(8);
+    border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 80%);
+    font-size: 0.75rem;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.3);
+
+    &-right {
+      text-align: right;
+    }
+  }
+
+  &__label {
+    font-size: var(--text-l4); 
+    opacity: 0.6; 
+    margin-bottom: rem(5); 
+    font-weight: bold;
+  }
+
+  &__title {
+    font-size: 3.5rem; 
+    margin: 0 0 rem(5) 0; 
+    letter-spacing: rem(4);
+
+    @media (max-width: 768px) {
+      font-size: 2.2rem;
+      letter-spacing: rem(2);
+    }
+  }
+
+  &__subtitle {
+    font-size: 1rem; 
+    opacity: 0.5; 
+    letter-spacing: rem(2); 
+    margin-bottom: rem(25);
+  }
+
+  &__input-group {
+    margin-bottom: rem(25);
+    text-align: left;
+  }
+
+  &__input-label {
+    display: block;
+    margin-bottom: rem(10);
+    font-size: var(--text-l4);
+    color: var(--terminal-green);
+    font-weight: bold;
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__cursor {
+    position: absolute;
+    left: rem(15);
+    color: var(--terminal-green);
+    font-size: var(--text-l4);
+  }
+
+  &__input {
+    background: rgba(0, 0, 0, 0.3);
+    border: rem(1) solid var(--terminal-green);
+    color: var(--terminal-green);
+    font-size: var(--text-l4);
+    padding: rem(12) rem(12) rem(12) rem(35);
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    text-transform: uppercase;
+    box-sizing: border-box;
+
+    &--small {
+      padding: rem(10);
+    }
+  }
+
+  &__controls {
+    display: flex;
+    flex-direction: column;
+    gap: rem(12);
+    margin-top: rem(20);
+  }
+
+  &__eco-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: rem(10);
+    background: rgba(255, 255, 255, 0.03);
+    padding: rem(8) rem(12);
+    border-radius: rem(4);
+    border: rem(1) solid var(--terminal-green); 
+    justify-content: center;
+  }
+
+  &__eco-checkbox {
+    width: rem(16);
+    height: rem(16);
+    accent-color: var(--terminal-green);
+  }
+
+  &__eco-label {
+    font-weight: bold; 
+    font-size: 0.8rem; 
+    color: var(--terminal-green); 
+    display: flex; 
+    align-items: center; 
+    gap: rem(5);
+  }
+
+  &__footer-note {
+    margin-top: rem(30);
+    opacity: 0.3;
+    text-align: center;
+    font-size: var(--text-l4);
+  }
+
+  &__pager-link {
+    margin-top: rem(25);
+    border-top: rem(1) dashed color-mix(in srgb, var(--terminal-green), transparent 80%);
+    padding-top: rem(20);
+    text-align: left;
+
+    &-label {
+      font-size: 0.9rem;
+      color: color-mix(in srgb, var(--terminal-green), transparent 50%);
+      margin-bottom: rem(8);
+      font-weight: bold;
+    }
+
+    &-input-group {
+      display: flex;
+      gap: rem(8);
+    }
+
+    &-button {
+      min-width: rem(100);
+    }
+  }
+}

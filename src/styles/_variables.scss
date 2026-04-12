@@ -1,0 +1,186 @@
+// Variables & Themes
+:root {
+  --terminal-green: #18ff62;
+  --terminal-amber: #ffb000;
+  --terminal-cobalt: #00d8ff;
+  --terminal-red: #ff3b3b;
+  --terminal-bg: #0d110d;
+  
+  // Theme-aware UI variables
+  --ui-bg: #1a1d21;
+  --ui-bg-rgb: 26, 29, 33;
+  --ui-bg-alt: #121519;
+  --ui-border: #35373b;
+  --ui-text: #adbac7;
+  --ui-text-dim: rgba(173, 186, 199, 0.5);
+  
+  // Theme Overrides (Default Green)
+  --glow-color: var(--terminal-green);
+  --glow-opacity: 0.15;
+  --glow-spread: 0.9375rem; // rem(15)
+  --scanline-opacity: 0.1;
+  --bg-color: #000;
+  
+  --text-l1: 2.5rem;
+  --text-l2: 1.8rem;
+  --text-l3: 1.1rem;
+  --text-l4: 0.9rem;
+
+  // Status colors (Default Green)
+  --status-text: #000;
+  --status-nominal: var(--terminal-green);
+  --status-p3: var(--terminal-amber);
+  --status-p1: var(--terminal-amber);
+  --status-p0: var(--terminal-red);
+}
+
+[data-theme='amber'] {
+  --glow-color: var(--terminal-amber);
+  --terminal-green: var(--terminal-amber);
+  --ui-bg: #1a1810;
+  --ui-bg-alt: #12110a;
+  --ui-border: #4d3d00;
+  --ui-text: var(--terminal-amber);
+  --ui-text-dim: rgba(255, 176, 0, 0.5);
+  
+  --status-text: #000;
+  --status-nominal: var(--terminal-amber);
+}
+
+[data-theme='cobalt'] {
+  --glow-color: var(--terminal-cobalt);
+  --terminal-green: var(--terminal-cobalt);
+  --ui-bg: #0a191d;
+  --ui-bg-alt: #051012;
+  --ui-border: #004d5a;
+  --ui-text: var(--terminal-cobalt);
+  --ui-text-dim: rgba(0, 216, 255, 0.5);
+  
+  --status-text: #000;
+  --status-nominal: var(--terminal-cobalt);
+}
+
+[data-theme='dracula'] {
+  --glow-color: #bd93f9;
+  --terminal-green: #bd93f9; // Purple as primary
+  --terminal-amber: #ffb86c;
+  --terminal-red: #ff5555;
+  --terminal-cobalt: #8be9fd;
+  --terminal-bg: #282a36;
+  --bg-color: #282a36;
+  --glow-opacity: 0.15;
+  --scanline-opacity: 0.05;
+
+  // Dracula-specific UI overrides
+  --ui-bg: #282a36;
+  --ui-bg-alt: #191a21;
+  --ui-border: #44475a;
+  --ui-text: #f8f8f2;
+  --ui-text-dim: #6272a4;
+  
+  --status-text: #282a36;
+  --status-nominal: var(--terminal-green);
+  --status-p3: #f1fa8c;
+  --status-p1: #ffb86c;
+  --status-p0: #ff5555;
+}
+
+[data-theme='monokai'] {
+  --glow-color: #f92672;
+  --terminal-green: #a6e22e;
+  --terminal-amber: #e6db74;
+  --terminal-red: #f92672;
+  --terminal-cobalt: #66d9ef;
+  --terminal-bg: #272822;
+  --bg-color: #272822;
+  --glow-opacity: 0.1;
+  --scanline-opacity: 0.05;
+
+  // Monokai-specific UI overrides
+  --ui-bg: #272822;
+  --ui-bg-alt: #1e1f1c;
+  --ui-border: #49483e;
+  --ui-text: #f8f8f2;
+  --ui-text-dim: #75715e;
+  
+  --status-text: #272822;
+  --status-nominal: var(--terminal-green);
+  --status-p3: #e6db74;
+  --status-p1: #fd971f;
+  --status-p0: #f92672;
+}
+
+[data-theme='cyberpunk'] {
+  --glow-color: #ff00ff;
+  --terminal-green: #00ffff;
+  --terminal-amber: #ffff00;
+  --terminal-red: #ff0055;
+  --terminal-cobalt: #0000ff;
+  --terminal-bg: #050505;
+  --bg-color: #050505;
+  --glow-opacity: 0.3;
+  --scanline-opacity: 0.15;
+
+  // Cyberpunk-specific UI overrides
+  --ui-bg: #0a0a0a;
+  --ui-bg-alt: #000;
+  --ui-border: #ff00ff;
+  --ui-text: #00ffff;
+  --ui-text-dim: rgba(0, 255, 255, 0.5);
+  
+  --status-text: #000;
+  --status-nominal: #00ffff;
+  --status-p3: #ffff00;
+  --status-p1: #ff00ff;
+  --status-p0: #ff0055;
+}
+
+[data-theme='high-contrast'] {
+  --glow-color: transparent;
+  --terminal-green: #fff;
+  --terminal-amber: #ffff00;
+  --terminal-red: #ff0000;
+  --terminal-cobalt: #00ffff;
+  --terminal-bg: #000;
+  --bg-color: #000;
+  --glow-opacity: 0;
+  --scanline-opacity: 0;
+
+  // High Contrast UI overrides
+  --ui-bg: #000;
+  --ui-bg-alt: #000;
+  --ui-border: #fff;
+  --ui-text: #fff;
+  --ui-text-dim: #fff;
+  
+  --status-text: #000;
+  --status-nominal: #fff;
+  --status-p3: #ffff00;
+  --status-p1: #ffff00;
+  --status-p0: #ff0000;
+}
+
+[data-theme='accessibility'] {
+  --glow-color: transparent;
+  --terminal-green: #000000;
+  --terminal-amber: #856404;
+  --terminal-red: #b30000;
+  --terminal-cobalt: #0056b3;
+  --terminal-bg: #ffffff;
+  --bg-color: #ffffff;
+  --glow-opacity: 0;
+  --scanline-opacity: 0;
+
+  // Accessibility UI overrides (WCAG 2.0 AA/AAA compliant)
+  --ui-bg: #ffffff;
+  --ui-bg-alt: #f1f3f5;
+  --ui-border: #000000;
+  --ui-text: #000000;
+  --ui-text-dim: #495057; // Contrast ratio 7.5:1 with white
+  
+  --status-text: #ffffff;
+  --status-nominal: #1e7e34; // Darker green for contrast
+  --status-p3: #856404;    // Darker amber
+  --status-p1: #d39e00;    // Darker orange
+  --status-p0: #b30000;    // Darker red
+}

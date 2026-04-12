@@ -301,11 +301,14 @@ export const useIncidentChat = (
     playPing?: () => void,
     playTagPing?: () => void,
     isActive: boolean = true,
-    isFocused: boolean = false
+    isFocused: boolean = false,
+    chatMultiplier: number = 1,
+    log?: (action: string, data?: unknown) => void
 ) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const lastSeverity = useRef<Severity>(severity);
+    const lastMessageText = useRef<string>('');
     const { send, subscribe } = useSync();
     const userAvatars = useRef<Record<string, string>>({});
 
@@ -437,6 +440,7 @@ export const useIncidentChat = (
                 
                 if ('text' in dynamicMsg && dynamicMsg.text) {
                     const { name, bio } = processUserAndBio(userRaw);
+                    lastMessageText.current = dynamicMsg.text;
                     return { 
                         id, 
                         user: name,
@@ -454,6 +458,12 @@ export const useIncidentChat = (
 
         const pool = STACK_MESSAGES[stack][currentSeverity];
         let text = getRandomItem(pool);
+
+        // Prevent identical consecutive content
+        if (text === lastMessageText.current && pool.length > 1) {
+            const filteredPool = pool.filter(t => t !== lastMessageText.current);
+            text = getRandomItem(filteredPool);
+        }
 
         // Bots should only report infrastructure status, no commentary
         if (isBot) {
@@ -478,6 +488,7 @@ export const useIncidentChat = (
             text = `@${tag} ${text}`;
         }
         
+        lastMessageText.current = text;
         const { name, bio } = processUserAndBio(userRaw);
         return { 
             id, 
@@ -493,10 +504,12 @@ export const useIncidentChat = (
     useEffect(() => {
         if (!isActive) return;
 
-        const delay = severity === 'P0' ? 3000 : severity === 'P1' ? 6000 : severity === 'P3' ? 12000 : 20000;
+        const baseDelay = severity === 'P0' ? 3000 : severity === 'P1' ? 6000 : severity === 'P3' ? 12000 : 20000;
+        const delay = baseDelay * chatMultiplier;
 
         const interval = setInterval(async () => {
             const newMessage = await getDynamicMessage(severity);
+            if (log) log('CHAT_GENERATOR', { user: newMessage.user, isBot: newMessage.isBot });
             send({ type: 'TYPING_INDICATOR', user: newMessage.user, isTyping: true });
             
             setTimeout(() => {
@@ -509,7 +522,7 @@ export const useIncidentChat = (
         return () => {
             clearInterval(interval);
         };
-    }, [severity, uplinkId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send]);
+    }, [severity, uplinkId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send, chatMultiplier, log]);
 
     return { messages, sendMessage, typingUsers, markAsRead, markAllAsRead };
 };

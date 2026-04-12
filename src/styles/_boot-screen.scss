@@ -1,0 +1,42 @@
+@use 'utils' as *;
+
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  background-color: #000;
+  z-index: 10000;
+  padding: rem(40);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
+  color: var(--terminal-green);
+  font-family: var(--font-mono);
+  font-size: rem(14);
+
+  &__content {
+    white-space: pre;
+    line-height: 1.4;
+  }
+
+  &__line {
+    margin-bottom: rem(4);
+    min-height: 1.2em;
+  }
+
+  &__cursor {
+    display: inline-block;
+    width: rem(10);
+    height: 1.2em;
+    background-color: var(--terminal-green);
+    animation: blink-cursor 0.8s step-end infinite;
+    vertical-align: middle;
+  }
+
+  &__footer {
+    margin-top: auto;
+    opacity: 0.5;
+    font-size: rem(12);
+    letter-spacing: rem(1);
+  }
+}

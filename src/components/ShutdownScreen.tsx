@@ -35,44 +35,20 @@ export const ShutdownScreen = ({ onComplete }: { onComplete: () => void }) => {
   }, [index, onComplete, shutdownLogs]);
 
   return (
-    <div className="crt-container" style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: '#0a0a0a',
-      zIndex: 10000,
-      padding: '40px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-start',
-      overflow: 'hidden',
-      color: 'var(--terminal-green)',
-      fontSize: 'var(--text-l3)',
-    }}>
-      <div style={{ textShadow: '0 0 10px var(--terminal-green)' }}>
+    <div className="boot-screen">
+      <div className="boot-screen__content">
         {visibleLines.map((line, i) => (
-          <div key={i} style={{ marginBottom: '5px', minHeight: '1.2em' }}>
+          <div key={i} className="boot-screen__line">
             {line ? `> ${line}` : ''}
           </div>
         ))}
         {index < shutdownLogs.length && (
-          <span style={{ 
-            display: 'inline-block', 
-            width: '10px', 
-            height: '1.2rem', 
-            backgroundColor: 'var(--terminal-green)',
-            animation: 'flicker 0.1s infinite'
-          }} />
+          <span className="boot-screen__cursor" />
         )}
       </div>
       
       {index >= shutdownLogs.length && (
-        <div style={{ 
-          marginTop: 'auto', 
-          textAlign: 'center', 
-          opacity: 0.5, 
-          fontSize: 'var(--text-l4)',
-          animation: 'flicker 0.2s infinite'
-        }}>
+        <div className="boot-screen__footer">
           CONNECTION_LOST
         </div>
       )}

@@ -19,6 +19,12 @@ interface ReadoutBoxProps {
   onClose: () => void;
   isMinimized: boolean;
   onMinimizeToggle: () => void;
+  isPoppedOut?: boolean;
+  onPopOutToggle?: () => void;
+  isSnappedMain?: boolean;
+  onSnapMainToggle?: () => void;
+  initialPos?: { x: number, y: number };
+  initialSize?: { width: number, height: number };
 }
 
 export const ReadoutBox = ({ 
@@ -35,7 +41,13 @@ export const ReadoutBox = ({
   isActive,
   onClose,
   isMinimized,
-  onMinimizeToggle
+  onMinimizeToggle,
+  isPoppedOut,
+  onPopOutToggle,
+  isSnappedMain,
+  onSnapMainToggle,
+  initialPos = { x: 450, y: 100 },
+  initialSize = { width: 500, height: 450 }
 }: ReadoutBoxProps) => {
   return (
     <Pane
@@ -47,9 +59,13 @@ export const ReadoutBox = ({
       isActive={isActive}
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
       onClose={onClose}
-      initialPos={{ x: 450, y: 100 }}
-      initialSize={{ width: 500, height: 450 }}
+      initialPos={initialPos}
+      initialSize={initialSize}
     >
       <div className={`readout-box ${className}`} style={{ ...style, height: '100%', border: 'none', marginTop: 0 }}>
         {(label || headerRight) && (

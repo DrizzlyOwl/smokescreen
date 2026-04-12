@@ -19,14 +19,34 @@ const POD_NAMES = [
   'search-indexer', 'notification-engine', 'billing-sync', 'audit-logger'
 ];
 
-export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose, isMinimized, onMinimizeToggle }: { 
+export const DeploymentStatus = ({ 
+    severity, 
+    zIndex, 
+    onFocus, 
+    isActive, 
+    onClose, 
+    isMinimized, 
+    onMinimizeToggle,
+    initialPos = { x: 500, y: 100 },
+    initialSize = { width: 550, height: 400 },
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle
+}: { 
     severity: Severity, 
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean, 
     onClose: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number },
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void
 }) => {
   const [pods, setPods] = useState<PodStatus[]>(() => POD_NAMES.map(name => ({
     name: `${name}-${Math.random().toString(36).substring(2, 7)}`,
@@ -134,8 +154,8 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose,
       title="KUBERNETES_WORKLOAD_STATUS"
       icon={<DeployIcon />}
       iconColor={severity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
-      initialPos={{ x: 500, y: 100 }}
-      initialSize={{ width: 550, height: 400 }}
+      initialPos={initialPos}
+      initialSize={initialSize}
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
@@ -143,6 +163,10 @@ export const DeploymentStatus = ({ severity, zIndex, onFocus, isActive, onClose,
       onMinimizeToggle={onMinimizeToggle}
       severityColor={severity === 'P0' ? 'var(--terminal-red)' : undefined}
       onClose={onClose}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
     >
       <div className="deploy-status">
         <table className="deploy-status__table">

@@ -1,9 +1,5 @@
-import React, { useState } from 'react';
-import { FakeLogs } from './FakeLogs';
+import React, { useState, useEffect, useRef } from 'react';
 import { StatReadout } from './StatReadout';
-import { Button } from './Button';
-import { AudioToggle } from './AudioToggle';
-import { HelpIcon } from './Icons';
 import type { AppState, Theme } from '../contexts/types';
 
 interface SecureGatewayProps {
@@ -21,23 +17,58 @@ interface SecureGatewayProps {
   };
 }
 
+const ASCII_LOGO = `
+ ██████╗███╗   ███╗ ██████╗ ██╗  ██╗███████╗███████╗ ██████╗██████╗ ███████╗███████╗███╗   ██╗
+██╔════╝████╗ ████║██╔═══██╗██║ ██╔╝██╔════╝██╔════╝██╔════╝██╔══██╗██╔════╝██╔════╝████╗  ██║
+╚█████╗ ██╔████╔██║██║   ██║█████╔╝ █████╗  ███████╗██║     ██████╔╝█████╗  █████╗  ██╔██╗ ██║
+ ╚═══██╗██║╚██╔╝██║██║   ██║██╔═██╗ ██╔══╝  ╚════██║██║     ██╔══██╗██╔══╝  ██╔══╝  ██║╚██╗██║
+██████╔╝██║ ╚═╝ ██║╚██████╔╝██║  ██╗███████╗███████║╚██████╗██║  ██║███████╗███████╗██║ ╚████║
+╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝
+`;
+
+const LEGAL_WARNING = `
+*******************************************************************************
+*                                                                             *
+*  WARNING: THIS IS A RESTRICTED SYSTEM. UNAUTHORIZED ACCESS IS PROHIBITED.   *
+*  ALL ACTIVITIES ARE MONITORED AND LOGGED BY THE SRE DIVISION CORE.          *
+*  FAILURE TO IDENTIFY WILL RESULT IN IMMEDIATE SESSION TERMINATION.          *
+*                                                                             *
+*******************************************************************************
+`;
+
 export const SecureGateway: React.FC<SecureGatewayProps> = ({
   operatorName,
   setOperatorName,
   setAppState,
   theme,
-  isEcoMode,
-  setIsEcoMode,
   clientStats
 }) => {
+  const [step, setStep] = useState<'NAME' | 'PAGER'>('NAME');
   const [tempJoinId, setTempJoinId] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [step]);
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (operatorName.trim()) {
+      setStep('PAGER');
+    }
+  };
+
+  const handlePagerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (tempJoinId.trim()) {
+      window.location.search = `?pager=${tempJoinId.toUpperCase()}&theme=${theme}`;
+    } else {
+      setAppState('BOOT');
+    }
+  };
 
   return (
     <div className="crt-container gateway">
-      <div className="gateway__background">
-        <FakeLogs severity="NOMINAL" />
-      </div>
-      
       <div className="gateway__console">
         <div className="gateway__technical-readout">
           <div>
@@ -52,98 +83,67 @@ export const SecureGateway: React.FC<SecureGatewayProps> = ({
           </div>
         </div>
 
-        <div className="gateway__label">SRE SECURE GATEWAY</div>
-        <h1 className="gateway__title">SMOKESCREEN</h1>
-        <div className="gateway__subtitle">
-          TECHNICAL_INCIDENT_THEATRE
-        </div>
+        <pre style={{ fontSize: '0.6rem', lineHeight: '1.1', color: 'var(--terminal-green)', marginBottom: '20px' }}>
+          {ASCII_LOGO}
+        </pre>
 
-        <div className="gateway__input-group">
-          <label className="gateway__input-label">
-            {'>'} IDENTIFY_OPERATOR:
-          </label>
-          <div className="gateway__input-wrapper">
-              <span className="gateway__cursor">_</span>
-              <input 
-                  autoFocus
-                  type="text" 
-                  value={operatorName}
-                  placeholder="NAME_REQUIRED"
-                  className="gateway__input"
-                  onChange={(e) => setOperatorName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && operatorName.trim() && setAppState('BOOT')}
-              />
-          </div>
-        </div>
+        <pre style={{ fontSize: '0.8rem', color: 'var(--terminal-green)', marginBottom: '30px', opacity: 0.8 }}>
+          {LEGAL_WARNING}
+        </pre>
 
-        <Button 
-          onClick={() => operatorName.trim() && setAppState('BOOT')} 
-          disabled={!operatorName.trim()} 
-          variant="primary"
-          size="large"
-          fullWidth
-        >
-          INITIATE_SYSTEM_BOOT
-        </Button>
+        {step === 'NAME' && (
+          <form onSubmit={handleNameSubmit} className="gateway__input-group">
+            <label className="gateway__input-label">
+              {'>'} IDENTIFY_OPERATOR:
+            </label>
+            <div className="block-input-wrapper">
+                <span className="block-input-wrapper__display">
+                  {operatorName}
+                  <span className="block-input-wrapper__cursor" />
+                </span>
+                <input 
+                    ref={inputRef}
+                    autoFocus
+                    type="text" 
+                    value={operatorName}
+                    className="block-input-wrapper__real-input"
+                    onChange={(e) => setOperatorName(e.target.value)}
+                    spellCheck={false}
+                    autoComplete="off"
+                />
+            </div>
+          </form>
+        )}
 
-        <div className="gateway__controls">
-          <AudioToggle 
-              fullWidth 
-              size="small" 
-              labelPrefix="AUDIO"
-              activeLabel="ON"
-              inactiveLabel="OFF"
-          />
-          
-          <label
-            data-tooltip="Disables expensive visual effects like blurs and glows for better performance."
-            className="gateway__eco-toggle"
-          >
-            <input
-              type="checkbox"
-              checked={isEcoMode}
-              onChange={(e) => setIsEcoMode(e.target.checked)}
-              className="gateway__eco-checkbox"
-            />
-            <span className="gateway__eco-label">
-              ECO_MODE: {isEcoMode ? 'ACTIVE' : 'DISABLED'}
-              <HelpIcon />
-            </span>
-          </label>
-        </div>
-
-        <div className="gateway__footer-note">
-          UNAUTHORIZED ACCESS IS PROHIBITED<br/>
-          (C) 1984 SRE DIVISION
-        </div>
-
-        <div className="gateway__pager-link">
-           <div className="gateway__pager-link-label">
-            {">"} LINK_COMPANION_PAGER:
-          </div>
-          <div className="gateway__pager-link-input-group">
-              <input 
-                  type="text" 
-                  placeholder="SRE-XXXX"
-                  value={tempJoinId}
-                  onChange={(e) => setTempJoinId(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => e.key === 'Enter' && tempJoinId && (window.location.search = `?pager=${tempJoinId}&theme=${theme}`)}
-                  className="gateway__input gateway__input--small"
-              />
-              <Button 
-                  onClick={() => {
-                      if (tempJoinId) {
-                          window.location.search = `?pager=${tempJoinId}&theme=${theme}`;
-                      }
-                  }}
-                  size="small"
-                  disabled={!tempJoinId}
-                  className="gateway__pager-link-button"
-              >
-                  CONNECT
-              </Button>
-          </div>
-        </div>
+        {step === 'PAGER' && (
+          <form onSubmit={handlePagerSubmit} className="gateway__input-group">
+            <div style={{ marginBottom: '10px', opacity: 0.6 }}>
+              {'>'} OPERATOR_ID: {operatorName.toUpperCase()} [AUTHENTICATED]
+            </div>
+            <label className="gateway__input-label">
+              {'>'} [OPTIONAL] LINK_COMPANION_PAGER (SRE-XXXX):
+            </label>
+            <div className="block-input-wrapper">
+                <span className="block-input-wrapper__display">
+                  {tempJoinId}
+                  <span className="block-input-wrapper__cursor" />
+                </span>
+                <input 
+                    ref={inputRef}
+                    autoFocus
+                    type="text" 
+                    value={tempJoinId}
+                    className="block-input-wrapper__real-input"
+                    onChange={(e) => setTempJoinId(e.target.value.toUpperCase())}
+                    spellCheck={false}
+                    autoComplete="off"
+                />
+            </div>
+            <div style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.5 }}>
+              PRESS [ENTER] TO INITIATE_SYSTEM_BOOT
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

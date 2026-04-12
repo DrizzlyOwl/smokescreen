@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { BurnIcon } from './Icons';
 import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
@@ -16,7 +16,22 @@ const TICKER_ITEMS = [
     'COFFEE_CONSUMPTION: 4.2L/hr'
 ];
 
-export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLost, onClose, isMinimized, onMinimizeToggle }: { 
+export const BurnRateDashboard = ({ 
+    severity, 
+    zIndex, 
+    onFocus, 
+    isActive, 
+    moneyLost, 
+    onClose, 
+    isMinimized, 
+    onMinimizeToggle,
+    initialPos = { x: 100, y: 400 },
+    initialSize = { width: 400, height: 250 },
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle
+}: { 
     severity: Severity, 
     zIndex: number, 
     onFocus: () => void, 
@@ -24,12 +39,29 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
     moneyLost: number,
     onClose: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number },
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void
 }) => {
     const [tickerIndex, setTickerIndex] = useState(0);
     const [history, setHistory] = useState<number[]>(Array(30).fill(0));
     const [opCostId] = useState(() => Math.random().toString(36).substring(7).toUpperCase());
-    const lastSeverity = useRef<Severity>(severity);
+    const [prevSeverity, setPrevSeverity] = useState<Severity>(severity);
+
+    // Adjust history when severity changes, during render to avoid cascading effects
+    if (severity !== prevSeverity) {
+        setPrevSeverity(severity);
+        if (severity === 'NOMINAL') {
+            setHistory(Array(30).fill(0));
+        } else if (prevSeverity !== 'NOMINAL') {
+            const ratio = getBurnRate(severity) / (getBurnRate(prevSeverity) || 1);
+            setHistory(prev => prev.map(v => v * ratio));
+        }
+    }
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -39,10 +71,7 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
     }, []);
 
     useEffect(() => {
-        if (severity === 'NOMINAL') {
-            setHistory(Array(30).fill(0));
-            return;
-        }
+        if (severity === 'NOMINAL') return;
 
         const interval = setInterval(() => {
             // Get base burn rate for current severity
@@ -58,14 +87,6 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
         return () => clearInterval(interval);
     }, [severity]);
 
-    // Handle abrupt severity changes (reset history if jumping between non-nominal states)
-    useEffect(() => {
-        if (lastSeverity.current !== severity && severity !== 'NOMINAL') {
-            setHistory(prev => prev.map(v => v * (getBurnRate(severity) / (getBurnRate(lastSeverity.current) || 1))));
-        }
-        lastSeverity.current = severity;
-    }, [severity]);
-
     const isP0 = severity === 'P0';
     const isP1 = severity === 'P1';
     const burnColor = isP0 ? 'var(--status-p0)' : isP1 ? 'var(--status-p3)' : 'var(--status-nominal)';
@@ -76,8 +97,8 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
           title="SYSTEM_FINANCIAL_BURN_MONITOR"
           icon={<BurnIcon />}
           iconColor={burnColor}
-          initialPos={{ x: 100, y: 400 }}
-          initialSize={{ width: 400, height: 250 }}
+          initialPos={initialPos}
+          initialSize={initialSize}
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
@@ -85,6 +106,10 @@ export const BurnRateDashboard = ({ severity, zIndex, onFocus, isActive, moneyLo
           onMinimizeToggle={onMinimizeToggle}
           severityColor={severity === 'NOMINAL' ? undefined : burnColor}
           onClose={onClose}
+          isPoppedOut={isPoppedOut}
+          onPopOutToggle={onPopOutToggle}
+          isSnappedMain={isSnappedMain}
+          onSnapMainToggle={onSnapMainToggle}
         >
             <div className="burn-dashboard">
                 <div className="burn-dashboard__display">

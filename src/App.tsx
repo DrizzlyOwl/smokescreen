@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import './App.scss';
 import './styles/terminal.scss';
 import { AccessDenied } from './components/AccessDenied';
@@ -8,8 +9,31 @@ import { ShutdownScreen } from './components/ShutdownScreen';
 import { SystemControlCluster } from './components/SystemControlCluster';
 import { useIncidentState } from './hooks/useIncidentState';
 
+const MOBILE_THRESHOLD = 768;
+
 function App() {
   const state = useIncidentState();
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // If we're on a small screen and not in a state that should override it, 
+    // switch to the mobile pager view.
+    const isMobile = windowWidth <= MOBILE_THRESHOLD;
+    const isPagerParamSet = new URLSearchParams(window.location.search).has('pager');
+    
+    if (isMobile && state.appState !== 'MOBILE_PAGER' && state.appState !== 'SHUTDOWN') {
+      state.setAppState('MOBILE_PAGER');
+    } else if (!isMobile && state.appState === 'MOBILE_PAGER' && !isPagerParamSet) {
+      // If we resized back to desktop and didn't manually request the pager, go back to splash
+      state.setAppState('SPLASH');
+    }
+  }, [windowWidth, state]);
 
   if (state.appState === 'SHUTDOWN') {
     return <ShutdownScreen onComplete={() => window.location.reload()} />;
@@ -60,11 +84,15 @@ function App() {
   }
 
   return (
-    <div className={`crt-container ${state.isChaos ? 'glitch' : ''}`}>
+    <div className={`crt-container ${state.isChaos ? 'glitch' : ''} ${state.isTransitioning ? 'crt-boot' : ''} ${state.isDeclared ? 'simulation-chaotic' : ''}`}>
       <SystemControlCluster 
         panes={state.panes}
         minimizedPanes={state.minimizedPanes}
         zIndices={state.zIndices}
+        poppedOutPanes={state.poppedOutPanes}
+        snappedMainPanes={state.snappedMainPanes}
+        togglePopOut={state.togglePopOut}
+        toggleSnapMain={state.toggleSnapMain}
         activePane={state.activePane}
         bringToFront={state.bringToFront}
         loggedTogglePane={state.loggedTogglePane}
@@ -77,32 +105,19 @@ function App() {
         severity={state.severity}
         stack={state.stack}
         status={state.status}
-        systemMetrics={state.systemMetrics}
         moneyLost={state.moneyLost}
-        isTransitioning={state.isTransitioning}
         theme={state.theme}
         setTheme={state.setTheme}
         handleLogout={state.handleLogout}
-        unreadChat={state.unreadChat}
         typingUsers={state.typingUsers}
-        isDebugMode={state.isDebugMode}
-        loggedSetStack={state.loggedSetStack}
-        loggedSetSeverity={state.loggedSetSeverity}
         handleCommand={state.handleCommand}
-        isSlowBurn={state.isSlowBurn}
         isChaos={state.isChaos}
-        slowBurnCountdown={state.slowBurnCountdown}
-        loggedSetIsSlowBurn={state.loggedSetIsSlowBurn}
-        loggedCeaseTheatre={state.loggedCeaseTheatre}
-        loggedHandleDeclare={state.loggedHandleDeclare}
         incidentReport={state.incidentReport}
         setIncidentReport={state.setIncidentReport}
         terminalHistory={state.terminalHistory}
         setTerminalHistory={state.setTerminalHistory}
         displayText={state.displayText}
         setView={state.setView}
-        appState={state.appState}
-        easterEggs={state.easterEggs}
         activePlaybook={state.activePlaybook}
         startPlaybook={state.startPlaybook}
         stopPlaybook={state.stopPlaybook}
@@ -110,6 +125,8 @@ function App() {
         markAllAsRead={state.markAllAsRead}
         isEcoMode={state.isEcoMode}
         setIsEcoMode={state.setIsEcoMode}
+        chatMultiplier={state.chatMultiplier}
+        setChatMultiplier={state.setChatMultiplier}
       />
     </div>
   );

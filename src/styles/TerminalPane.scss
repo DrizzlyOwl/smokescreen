@@ -10,13 +10,9 @@
 
   &__output {
     flex: 1;
-    overflow-y: auto;
     padding: rem(12) rem(15);
     font-size: rem(14);
     line-height: 1.5;
-    display: flex;
-    flex-direction: column;
-    gap: rem(4);
 
     /* Custom scrollbar matching theme */
     &::-webkit-scrollbar {
@@ -34,6 +30,7 @@
   &__line {
     word-break: break-all;
     white-space: pre-wrap;
+    margin-bottom: rem(4);
     
     &--command {
       color: var(--terminal-green);
@@ -43,7 +40,6 @@
     &--output {
       color: var(--ui-text);
       opacity: 0.9;
-      margin-bottom: rem(8);
     }
 
     &--system {
@@ -63,8 +59,13 @@
     display: flex;
     align-items: center;
     gap: rem(8);
-    background: var(--ui-bg);
+    background: #000;
     border-top: rem(1) solid var(--ui-border);
+
+    .block-input-wrapper {
+      font-size: rem(14);
+      text-transform: uppercase;
+    }
   }
 
   &__input-prefix {

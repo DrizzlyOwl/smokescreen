@@ -24,14 +24,34 @@ const REGIONS = [
     { label: 'AF-SOUTH-1 (Cape Town)', lat: -33.9, lng: 18.4 }
 ];
 
-export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose, isMinimized, onMinimizeToggle }: { 
+export const OutageMap = ({ 
+    severity, 
+    zIndex, 
+    onFocus, 
+    isActive, 
+    onClose, 
+    isMinimized, 
+    onMinimizeToggle,
+    initialPos = { x: window.innerWidth - 650, y: 40 },
+    initialSize = { width: 600, height: 400 },
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle
+}: { 
     severity: Severity, 
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean, 
     onClose: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number },
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void
 }) => {
     const [nodes, setNodes] = useState<IncidentNode[]>([]);
     const { isEcoMode } = useTerminal();
@@ -81,8 +101,8 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose, isMini
           title="GLOBAL_INCIDENT_MONITOR"
           icon={<MapIcon />}
           iconColor={severity === 'NOMINAL' ? 'var(--terminal-green)' : isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)'}
-          initialPos={{ x: window.innerWidth - 650, y: 40 }}
-          initialSize={{ width: 600, height: 400 }}
+          initialPos={initialPos}
+          initialSize={initialSize}
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
@@ -90,6 +110,10 @@ export const OutageMap = ({ severity, zIndex, onFocus, isActive, onClose, isMini
           onMinimizeToggle={onMinimizeToggle}
           severityColor={severity === 'NOMINAL' ? undefined : (isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)')}
           onClose={onClose}
+          isPoppedOut={isPoppedOut}
+          onPopOutToggle={onPopOutToggle}
+          isSnappedMain={isSnappedMain}
+          onSnapMainToggle={onSnapMainToggle}
         >
             <div className="outage-map">
                 <svg 

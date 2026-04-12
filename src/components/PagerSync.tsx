@@ -8,7 +8,23 @@ import { useSync } from '../hooks/useSync';
 import { useTerminal } from '../hooks/useTerminal';
 import '../styles/PagerSync.scss';
 
-export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId, onClose, isMinimized, onMinimizeToggle }: { 
+export const PagerSync = ({ 
+    severity, 
+    stack, 
+    zIndex, 
+    onFocus, 
+    isActive, 
+    uplinkId, 
+    onClose, 
+    isMinimized, 
+    onMinimizeToggle,
+    initialPos = { x: 800, y: 50 },
+    initialSize = { width: 280, height: 440 },
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle
+}: { 
     severity: Severity, 
     stack: Stack,
     zIndex: number, 
@@ -17,7 +33,13 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
     uplinkId: string,
     onClose: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number },
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void
 }) => {
     const { isConnected, connectionCount, connectionStatus } = useSync();
     const { theme, regenerateUplinkId } = useTerminal();
@@ -50,8 +72,8 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
           title="SYSTEM_PAGERSYNC_UPLINK"
           icon={<PagerIcon />}
           iconColor={getStatusColor()}
-          initialPos={{ x: 800, y: 50 }}
-          initialSize={{ width: 280, height: 440 }}
+          initialPos={initialPos}
+          initialSize={initialSize}
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
@@ -59,6 +81,10 @@ export const PagerSync = ({ severity, stack, zIndex, onFocus, isActive, uplinkId
           onMinimizeToggle={onMinimizeToggle}
           severityColor={severity === 'NOMINAL' ? undefined : (isP0 ? 'var(--terminal-red)' : 'var(--terminal-amber)')}
           onClose={onClose}
+          isPoppedOut={isPoppedOut}
+          onPopOutToggle={onPopOutToggle}
+          isSnappedMain={isSnappedMain}
+          onSnapMainToggle={onSnapMainToggle}
         >
             <div className="pager-sync">
                 <div className="pager-sync__label">

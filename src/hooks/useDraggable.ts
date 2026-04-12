@@ -66,5 +66,5 @@ export const useDraggable = (initialPos = { x: 20, y: 20 }, storageKey?: string)
     };
   }, [isDragging, onMouseMove, onMouseUp]);
 
-  return { position, onMouseDown, isDragging };
+  return { position, setPosition, onMouseDown, isDragging };
 };

@@ -98,7 +98,7 @@ export const useUrlSync = (
         const newRelativePathQuery = window.location.pathname + newQuery;
         window.history.replaceState(null, '', newRelativePathQuery);
     }
-  }, [state.severity, state.stack, state.theme, state.isEcoMode, state.isDebugMode, state.isAudioOn, panesStr]);
+  }, [state.severity, state.stack, state.theme, state.isEcoMode, state.isDebugMode, state.isAudioOn, state.panes, panesStr]);
 };
 
 export const getInitialStateFromUrl = (): Partial<SyncState> => {

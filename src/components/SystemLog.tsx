@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import { LogsIcon } from './Icons';
 import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
@@ -6,7 +7,21 @@ import { useSync } from '../hooks/useSync';
 import LogWorker from '../utils/logWorker?worker';
 import '../styles/SystemLog.scss';
 
-export const SystemLog = ({ severity, zIndex, onFocus, isActive, onClose, isMinimized, onMinimizeToggle }: { 
+export const SystemLog = ({ 
+    severity, 
+    zIndex, 
+    onFocus, 
+    isActive, 
+    onClose, 
+    isMinimized, 
+    onMinimizeToggle,
+    initialPos = { x: 300, y: 150 },
+    initialSize = { width: 500, height: 400 },
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle
+}: { 
     severity: Severity, 
     zIndex: number, 
     onFocus: () => void, 
@@ -14,18 +29,17 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive, onClose, isMini
     uplinkId: string, 
     onClose: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number },
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void
 }) => {
     const [logs, setLogs] = useState<string[]>([]);
-    const scrollRef = useRef<HTMLDivElement>(null);
     const { send } = useSync();
     const workerRef = useRef<Worker | null>(null);
-
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [logs]);
 
     useEffect(() => {
         workerRef.current = new LogWorker();
@@ -71,8 +85,8 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive, onClose, isMini
           title="TAILING: /VAR/LOG/KERN.LOG"
           icon={<LogsIcon />}
           iconColor={isP0 ? 'var(--terminal-red)' : 'var(--terminal-green)'}
-          initialPos={{ x: 300, y: 150 }}
-          initialSize={{ width: 500, height: 400 }}
+          initialPos={initialPos}
+          initialSize={initialSize}
           zIndex={zIndex}
           onFocus={onFocus}
           isActive={isActive}
@@ -80,19 +94,23 @@ export const SystemLog = ({ severity, zIndex, onFocus, isActive, onClose, isMini
           onMinimizeToggle={onMinimizeToggle}
           severityColor={isP0 ? 'var(--terminal-red)' : undefined}
           onClose={onClose}
+          isPoppedOut={isPoppedOut}
+          onPopOutToggle={onPopOutToggle}
+          isSnappedMain={isSnappedMain}
+          onSnapMainToggle={onSnapMainToggle}
         >
-          <div 
-            ref={scrollRef}
+          <Virtuoso
             className={`system-log ${isP0 ? 'system-log--p0' : ''}`}
-          >
-            {logs.map((log, i) => (
-              <div key={i} className="system-log__entry">
+            data={logs}
+            followOutput="smooth"
+            itemContent={(_index, log) => (
+              <div className="system-log__entry">
                 <span className={getLogClass(log)}>
                   {log}
                 </span>
               </div>
-            ))}
-          </div>
+            )}
+          />
         </Pane>
     );
 };

@@ -1,6 +1,6 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import { AudioContextInstance } from './instances';
-import { useTerminal } from '../hooks/useTerminal';
+import { useAudioStore } from '../store/useAudioStore';
 import type { Severity } from '../data/incidents';
 
 interface ExtendedWindow extends Window {
@@ -14,7 +14,9 @@ interface PoolNode {
 }
 
 export function AudioProvider({ children, isLoggedIn, severity }: { children: React.ReactNode, isLoggedIn: boolean, severity: Severity }) {
-  const { isAudioOn, setIsAudioOn } = useTerminal();
+  const isAudioOn = useAudioStore(state => state.isAudioOn);
+  const setIsAudioOn = useAudioStore(state => state.setIsAudioOn);
+  
   const audioCtx = useRef<AudioContext | null>(null);
   const ambientNode = useRef<GainNode | null>(null);
   const ambientOsc = useRef<OscillatorNode | null>(null);

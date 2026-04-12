@@ -3,6 +3,7 @@ import { TechnicalPane } from './TechnicalPane';
 import { Button } from './Button';
 import { SettingsIcon } from './Icons';
 import { useTerminal } from '../hooks/useTerminal';
+import type { Theme } from '../contexts/types';
 import '../styles/SettingsPane.scss';
 
 interface SettingsPaneProps {
@@ -12,8 +13,14 @@ interface SettingsPaneProps {
   onClose: () => void;
   isMinimized: boolean;
   onMinimizeToggle: () => void;
-  currentTheme: 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai';
-  setTheme: (theme: 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai') => void;
+  currentTheme: Theme;
+  setTheme: (theme: Theme) => void;
+  initialPos?: { x: number, y: number };
+  initialSize?: { width: number, height: number };
+  isPoppedOut?: boolean;
+  onPopOutToggle?: () => void;
+  isSnappedMain?: boolean;
+  onSnapMainToggle?: () => void;
 }
 
 export const SettingsPane = ({
@@ -25,6 +32,12 @@ export const SettingsPane = ({
   onMinimizeToggle,
   currentTheme,
   setTheme,
+  initialPos,
+  initialSize = { width: 450, height: 550 },
+  isPoppedOut,
+  onPopOutToggle,
+  isSnappedMain,
+  onSnapMainToggle
 }: SettingsPaneProps) => {
   const { isDebugMode, setIsDebugMode, isEcoMode, setIsEcoMode } = useTerminal();
   const [apiKey, setApiKey] = useState(
@@ -82,7 +95,12 @@ export const SettingsPane = ({
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
       onClose={onClose}
-      initialSize={{ width: 450, height: 550 }}
+      initialPos={initialPos}
+      initialSize={initialSize}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
       footerText={
         <>
           KERNEL: REACT_19_PROD

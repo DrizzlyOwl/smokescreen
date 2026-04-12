@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, memo, useCallback } from 'react';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Pane } from './Pane';
 import { ChatIcon, CheckIcon } from './Icons';
 import { type ChatMessage } from '../hooks/useIncidentChat';
@@ -13,31 +14,45 @@ const ChatMessageItem = memo(({
     isGrouped, 
     avatarColor, 
     onRead,
-    onUserClick
+    onUserClick,
+    isActive
 }: { 
     message: ExtendedChatMessage, 
     isGrouped: boolean, 
     avatarColor: string,
     onRead: (id: string) => void,
-    onUserClick: (id: string) => void
+    onUserClick: (id: string) => void,
+    isActive: boolean
 }) => {
     const itemRef = useRef<HTMLDivElement>(null);
     const timerRef = useRef<number | null>(null);
+    const isIntersecting = useRef(false);
+
+    const startTimer = useCallback(() => {
+        if (message.read || timerRef.current || !isIntersecting.current || !isActive || !document.hasFocus()) return;
+        
+        timerRef.current = window.setTimeout(() => {
+            onRead(message.id);
+        }, 3000);
+    }, [message.id, message.read, onRead, isActive]);
+
+    const stopTimer = useCallback(() => {
+        if (timerRef.current) {
+            window.clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+    }, []);
 
     useEffect(() => {
         if (message.read) return;
 
         const observer = new IntersectionObserver(
             ([entry]) => {
+                isIntersecting.current = entry.isIntersecting;
                 if (entry.isIntersecting) {
-                    timerRef.current = window.setTimeout(() => {
-                        onRead(message.id);
-                    }, 3000);
+                    startTimer();
                 } else {
-                    if (timerRef.current) {
-                        window.clearTimeout(timerRef.current);
-                        timerRef.current = null;
-                    }
+                    stopTimer();
                 }
             },
             { threshold: 0.5 }
@@ -47,11 +62,26 @@ const ChatMessageItem = memo(({
             observer.observe(itemRef.current);
         }
 
+        const handleFocusChange = () => {
+            if (document.hasFocus() && isActive) {
+                startTimer();
+            } else {
+                stopTimer();
+            }
+        };
+
+        window.addEventListener('focus', handleFocusChange);
+        window.addEventListener('blur', handleFocusChange);
+        document.addEventListener('visibilitychange', handleFocusChange);
+
         return () => {
             observer.disconnect();
-            if (timerRef.current) window.clearTimeout(timerRef.current);
+            stopTimer();
+            window.removeEventListener('focus', handleFocusChange);
+            window.removeEventListener('blur', handleFocusChange);
+            document.removeEventListener('visibilitychange', handleFocusChange);
         };
-    }, [message.id, message.read, onRead]);
+    }, [message.read, startTimer, stopTimer, isActive]);
 
     return (
         <div 
@@ -82,8 +112,8 @@ const ChatMessageItem = memo(({
                 >
                     {message.user}
                 </span>
-                {message.bio && message.showBio && (
-                    <span className="war-room__message-bio">
+                {message.bio && (
+                    <span className="war-room__message-header-role-tag">
                         {message.bio}
                     </span>
                 )}
@@ -116,7 +146,13 @@ export const WarRoom = ({
     markAsRead,
     markAllAsRead,
     isMinimized,
-    onMinimizeToggle
+    onMinimizeToggle,
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle,
+    initialPos = { x: 40, y: 40 },
+    initialSize = { width: 450, height: 400 }
 }: { 
     messages: ChatMessage[],
     typingUsers: string[],
@@ -130,9 +166,15 @@ export const WarRoom = ({
     markAsRead: (id: string) => void,
     markAllAsRead: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number }
 }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [inputText, setInputText] = useState('');
   const [visibleBios, setVisibleBios] = useState<Set<string>>(new Set());
   const unreadCount = messages.filter(m => !m.read).length;
@@ -146,33 +188,43 @@ export const WarRoom = ({
     });
   }, []);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      const isNearBottom = scrollRef.current.scrollHeight - scrollRef.current.scrollTop - scrollRef.current.clientHeight < 100;
-      if (isNearBottom) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
-    }
-  }, [messages, typingUsers]);
-
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputText.trim() && isDeclared) {
         sendMessage(inputText, operatorName);
         setInputText('');
-        setTimeout(() => {
-            if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }, 0);
     }
   };
 
-  const getAvatarColor = (m: ChatMessage) => {
-    if (m.isBot) return 'var(--status-p0)';
-    if (m.user.includes('DBA') || m.user.includes('Arch')) return 'var(--status-p3)';
-    if (m.user.includes('SRE') || m.user.includes('Sec')) return 'var(--status-nominal)';
-    if (m.user.includes('Lead') || m.user.includes('Architect')) return 'var(--status-p0)';
-    if (m.user.includes('Backend') || m.user.includes('Platform')) return 'var(--terminal-cobalt)';
-    return 'var(--ui-border)';
+  const getAvatarColor = (user: string) => {
+    // Simple string hash for deterministic colors
+    let hash = 0;
+    for (let i = 0; i < user.length; i++) {
+        hash = user.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    const colors = [
+        'var(--terminal-green)',
+        'var(--terminal-amber)',
+        'var(--terminal-cobalt)',
+        'var(--terminal-red)',
+        'var(--status-p3)',
+        '#f0f', // Magenta
+        '#0ff'  // Cyan
+    ];
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const isWithinOneMinute = (t1: string, t2: string) => {
+    const [h1, m1] = t1.split(':').map(Number);
+    const [h2, m2] = t2.split(':').map(Number);
+    
+    // Simple check - within same hour and same/next minute
+    // or crossing hour boundary
+    const mins1 = h1 * 60 + m1;
+    const mins2 = h2 * 60 + m2;
+    return Math.abs(mins1 - mins2) <= 1;
   };
 
   const slackFontStack = '"Slack-Lato", "appleLogo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
@@ -182,16 +234,26 @@ export const WarRoom = ({
       id="chat"
       title={`CENTRAL_SRE_INCIDENT_RESPONSE_UPLINK ${unreadCount > 0 ? `(${unreadCount}_UNREAD)` : ''}`}
       icon={<ChatIcon />}
-      initialPos={{ x: 40, y: 40 }}
-      initialSize={{ width: 450, height: 400 }}
+      initialPos={initialPos}
+      initialSize={initialSize}
       zIndex={zIndex}
       onFocus={onFocus}
       isActive={isActive}
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
       onClose={onClose}
     >
       <div className="war-room">
+        {messages.length === 0 && (
+          <div className="war-room__empty-state">
+            <p>It's quiet... too quiet. The calm before the P0 storm.</p>
+          </div>
+        )}
+
         {unreadCount > 0 && (
             <div className="war-room__unread-banner">
                 <span>{unreadCount} new messages since last focus</span>
@@ -200,41 +262,48 @@ export const WarRoom = ({
                 </button>
             </div>
         )}
-        <div 
-          ref={scrollRef}
+        <Virtuoso
+          ref={virtuosoRef}
           className="war-room__chat-container"
           style={{ fontFamily: slackFontStack }}
-        >
-          {messages.map((m, i) => {
-            const isGrouped = i > 0 && messages[i-1].user === m.user && !m.isBot;
+          data={messages}
+          initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
+          followOutput="smooth"
+          alignToBottom
+          itemContent={(index, m) => {
+            const isGrouped = index > 0 && 
+                messages[index-1].user === m.user && 
+                !m.isBot &&
+                isWithinOneMinute(messages[index-1].time, m.time);
+                
             return (
                 <ChatMessageItem 
-                    key={m.id} 
                     message={{ ...m, showBio: visibleBios.has(m.id) }} 
                     isGrouped={isGrouped} 
-                    avatarColor={getAvatarColor(m)} 
+                    avatarColor={getAvatarColor(m.user)} 
                     onRead={markAsRead}
                     onUserClick={toggleBio}
+                    isActive={isActive}
                 />
             );
-          })}
-
-          {/* Typing Indicators */}
-          {typingUsers.length > 0 && (
-            <div className="war-room__typing">
-              <div className="war-room__typing-dots">
-                <span></span><span></span><span></span>
-              </div>
-              <span className="war-room__typing-text">
-                {typingUsers.length === 1 
-                  ? `${typingUsers[0]} is typing...` 
-                  : typingUsers.length === 2 
-                    ? `${typingUsers[0]} and ${typingUsers[1]} are typing...`
-                    : 'Multiple people are typing...'}
-              </span>
-            </div>
-          )}
-        </div>
+          }}
+          components={{
+            Footer: () => typingUsers.length > 0 ? (
+                <div className="war-room__typing">
+                  <div className="war-room__typing-dots">
+                    <span></span><span></span><span></span>
+                  </div>
+                  <span className="war-room__typing-text">
+                    {typingUsers.length === 1 
+                      ? `${typingUsers[0]} is typing...` 
+                      : typingUsers.length === 2 
+                        ? `${typingUsers[0]} and ${typingUsers[1]} are typing...`
+                        : 'Multiple people are typing...'}
+                  </span>
+                </div>
+            ) : null
+          }}
+        />
         
         {/* Input Area */}
         <form onSubmit={handleSend} className="war-room__input-area">

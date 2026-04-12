@@ -11,14 +11,26 @@ export const LatencyPane = ({
     isActive, 
     onClose,
     isMinimized,
-    onMinimizeToggle
+    onMinimizeToggle,
+    initialPos = { x: 600, y: 300 },
+    initialSize = { width: 350, height: 200 },
+    isPoppedOut,
+    onPopOutToggle,
+    isSnappedMain,
+    onSnapMainToggle
 }: { 
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean, 
     onClose: () => void,
     isMinimized: boolean,
-    onMinimizeToggle: () => void
+    onMinimizeToggle: () => void,
+    initialPos?: { x: number, y: number },
+    initialSize?: { width: number, height: number },
+    isPoppedOut?: boolean,
+    onPopOutToggle?: () => void,
+    isSnappedMain?: boolean,
+    onSnapMainToggle?: () => void
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [currentLatency, setCurrentLatency] = useState(24);
@@ -113,8 +125,12 @@ export const LatencyPane = ({
           isMinimized={isMinimized}
           onMinimizeToggle={onMinimizeToggle}
           onClose={onClose}
-          initialPos={{ x: 600, y: 300 }}
-          initialSize={{ width: 350, height: 200 }}
+          initialPos={initialPos}
+          initialSize={initialSize}
+          isPoppedOut={isPoppedOut}
+          onPopOutToggle={onPopOutToggle}
+          isSnappedMain={isSnappedMain}
+          onSnapMainToggle={onSnapMainToggle}
         >
           <div className="latency-metrics">
             <div className="latency-metrics__header">

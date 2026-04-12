@@ -16,6 +16,12 @@ interface PlaybookPaneProps {
   activePlaybook: Playbook | null;
   startPlaybook: (playbook: Playbook) => void;
   stopPlaybook: () => void;
+  initialPos?: { x: number, y: number };
+  initialSize?: { width: number, height: number };
+  isPoppedOut?: boolean;
+  onPopOutToggle?: () => void;
+  isSnappedMain?: boolean;
+  onSnapMainToggle?: () => void;
 }
 
 export const PlaybookPane: React.FC<PlaybookPaneProps> = ({
@@ -27,7 +33,13 @@ export const PlaybookPane: React.FC<PlaybookPaneProps> = ({
   onMinimizeToggle,
   activePlaybook,
   startPlaybook,
-  stopPlaybook
+  stopPlaybook,
+  initialPos,
+  initialSize = { width: 450, height: 550 },
+  isPoppedOut,
+  onPopOutToggle,
+  isSnappedMain,
+  onSnapMainToggle
 }) => {
   return (
     <TechnicalPane
@@ -42,8 +54,12 @@ export const PlaybookPane: React.FC<PlaybookPaneProps> = ({
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
       onClose={onClose}
-      initialPos={{ x: 400, y: 200 }}
-      initialSize={{ width: 450, height: 550 }}
+      initialPos={initialPos}
+      initialSize={initialSize}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
       footerText={
         <>
           ENGINE: SMOKESCREEN_PLAYBOOK_v5.0

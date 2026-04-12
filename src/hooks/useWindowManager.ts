@@ -55,12 +55,54 @@ export const useWindowManager = (initialPanes: PanesState) => {
     };
   });
   const [activePane, setActivePane] = useState<PaneId | null>(null);
+  const [poppedOutPanes, setPoppedOutPanes] = useState<Record<PaneId, boolean>>(() => {
+    const state: Partial<Record<PaneId, boolean>> = {};
+    (Object.keys(initialPanes) as PaneId[]).forEach(id => {
+      state[id] = false;
+    });
+    return state as Record<PaneId, boolean>;
+  });
+
+  const [snappedMainPanes, setSnappedMainPanes] = useState<Record<PaneId, boolean>>(() => {
+    const state: Partial<Record<PaneId, boolean>> = {};
+    (Object.keys(initialPanes) as PaneId[]).forEach(id => {
+      state[id] = false;
+    });
+    return state as Record<PaneId, boolean>;
+  });
+
+  const togglePopOut = useCallback((paneId: PaneId) => {
+    setPoppedOutPanes(prev => ({ ...prev, [paneId]: !prev[paneId] }));
+  }, []);
+
+  const toggleSnapMain = useCallback((paneId: PaneId) => {
+    setSnappedMainPanes(prev => ({ ...prev, [paneId]: !prev[paneId] }));
+  }, []);
 
   const bringToFront = useCallback((paneId: PaneId) => {
     setZIndices((prev) => {
       const currentMax = Math.max(...Object.values(prev));
-      const nextZ = currentMax + 1;
-      const nextState = { ...prev, [paneId]: nextZ };
+      
+      // If this pane is already at the top and there are other panes, 
+      // we don't necessarily need to increment, but doing it anyway is safer.
+      // However, to prevent infinite growth, if we're above a threshold, we can normalize.
+      
+      let nextState: ZIndicesState;
+      
+      if (currentMax > 2000) {
+        // Normalize all z-indices back to a lower range starting from 100
+        const sortedIds = (Object.keys(prev) as PaneId[]).sort((a, b) => prev[a] - prev[b]);
+        nextState = {} as ZIndicesState;
+        sortedIds.forEach((id, index) => {
+          nextState[id] = 100 + index;
+        });
+        // Ensure the current one is at the absolute top
+        nextState[paneId] = 100 + sortedIds.length;
+      } else {
+        const nextZ = currentMax + 1;
+        nextState = { ...prev, [paneId]: nextZ };
+      }
+      
       localStorage.setItem('smokescreen_zindices', JSON.stringify(nextState));
       return nextState;
     });
@@ -130,11 +172,15 @@ export const useWindowManager = (initialPanes: PanesState) => {
     panes,
     minimizedPanes,
     zIndices,
+    poppedOutPanes,
+    snappedMainPanes,
     activePane,
     openPane,
     closePane,
     togglePane,
     toggleMinimize,
+    togglePopOut,
+    toggleSnapMain,
     setMinimized,
     bringToFront,
     closeAll,

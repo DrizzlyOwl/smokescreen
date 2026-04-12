@@ -1,0 +1,133 @@
+@use 'utils' as *;
+@use 'mixins' as *;
+
+// Initial cursor setup for green theme (default)
+html {
+  font-size: 16px;
+  @include apply-theme-cursors('#18ff62');
+}
+
+[data-theme='accessibility'] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  @include apply-theme-cursors('#000000');
+}
+
+[data-theme='amber'] {
+  @include apply-theme-cursors('#ffb000');
+}
+
+[data-theme='cobalt'] {
+  @include apply-theme-cursors('#00d8ff');
+}
+
+[data-theme='dracula'] {
+  @include apply-theme-cursors('#bd93f9');
+}
+
+[data-theme='monokai'] {
+  @include apply-theme-cursors('#f92672');
+}
+
+[data-theme='cyberpunk'] {
+  @include apply-theme-cursors('#ff00ff');
+}
+
+[data-theme='high-contrast'] {
+  @include apply-theme-cursors('#ffffff');
+}
+
+%not-allowed-cursor {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23ff3b3b' stroke-width='2' fill='none'/%3E%3Cline x1='5' y1='19' x2='19' y2='5' stroke='%23ff3b3b' stroke-width='2'/%3E%3C/svg%3E") 12 12, not-allowed !important;
+
+  [data-theme='accessibility'] & {
+    cursor: not-allowed !important;
+  }
+}
+
+:disabled, [disabled], .disabled, [aria-disabled="true"] {
+  @extend %not-allowed-cursor;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--terminal-green);
+  overflow: hidden;
+  font-size: var(--text-l4);
+  line-height: 1.5;
+
+  [data-theme='accessibility'] & {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+}
+
+.crt-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: 
+    radial-gradient(circle at center, color-mix(in srgb, var(--glow-color), transparent 85%) 0%, rgba(0, 0, 0, 0.95) 85%),
+    var(--terminal-bg);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  @include crt-flicker;
+  @include scanlines;
+  filter: contrast(1.2) brightness(1.1);
+
+  &.glitch {
+    animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+  }
+
+  // Eco Mode: Disable expensive effects
+  .eco-mode & {
+    animation: none !important;
+    filter: none !important;
+    background: var(--terminal-bg) !important;
+    
+    &::before, &::after {
+        display: none !important;
+    }
+  }
+
+  [data-theme='accessibility'] & {
+    animation: none !important;
+    filter: none !important;
+    background: #ffffff !important;
+    
+    &::before, &::after {
+        display: none !important;
+    }
+  }
+}
+
+.terminal-content {
+  z-index: 3;
+  width: 90%;
+  max-width: rem(1100);
+  text-shadow: 0 0 var(--glow-spread) var(--glow-color);
+
+  .eco-mode & {
+    text-shadow: none !important;
+  }
+
+  [data-theme='accessibility'] & {
+    text-shadow: none !important;
+    color: #000 !important;
+  }
+}
+
+.terminal-header {
+  border-bottom: rem(2) solid var(--terminal-green);
+  padding-bottom: rem(5);
+  margin-bottom: rem(20);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}

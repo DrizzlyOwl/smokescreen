@@ -31,6 +31,7 @@
       animation: pulse 1.5s infinite;
       left: rem(-5);
       top: rem(-5);
+      will-change: transform, opacity;
     }
 
     &-dot {

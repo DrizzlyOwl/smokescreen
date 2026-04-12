@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { getRandomItem } from '../utils/telemetry';
 
 interface NavigatorUAData {
@@ -37,6 +37,7 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
   const [index, setIndex] = useState(0);
   const [memoryKB, setMemoryKB] = useState(0);
   const [isMemoryChecking, setIsMemoryChecking] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
   
   const nav = navigator as ExtendedNavigator;
 
@@ -217,53 +218,35 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
     return () => clearInterval(interval);
   }, [isMemoryChecking, hardware.ramGB]);
 
+  useEffect(() => {
+    if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [visibleLines, isMemoryChecking]);
+
   return (
-    <div className="crt-container" style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: '#0a0a0a',
-      zIndex: 10000,
-      padding: '40px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-start',
-      overflow: 'hidden',
-      color: 'var(--terminal-green)',
-      fontSize: 'var(--text-l3)',
-    }}>
-      <div style={{ textShadow: '0 0 10px var(--terminal-green)', whiteSpace: 'pre' }}>
+    <div className="boot-screen">
+      <div className="boot-screen__content">
         {visibleLines.map((line, i) => (
-          <div key={i} style={{ marginBottom: '5px', minHeight: '1.2em' }}>
+          <div key={i} className="boot-screen__line">
             {['SYSTEM_MEM_CHECK', 'SYSTEM_KB_PROBE', 'SYSTEM_DISK_PROBE', 'SYSTEM_POST_BEEP'].includes(line) 
                 ? null 
                 : (line ? `> ${line}` : '')}
           </div>
         ))}
         {isMemoryChecking && (
-            <div style={{ marginBottom: '5px', minHeight: '1.2em' }}>
+            <div className="boot-screen__line">
                 {`> MEMORY CHECK: ${memoryKB}KB`}
             </div>
         )}
+        <div ref={bottomRef} />
         {(index < logs.length || isMemoryChecking) && (
-          <span style={{ 
-            display: 'inline-block', 
-            width: '10px', 
-            height: '1.2rem', 
-            backgroundColor: 'var(--terminal-green)',
-            animation: 'flicker 0.1s infinite',
-            verticalAlign: 'middle'
-          }} />
+          <span className="boot-screen__cursor" />
         )}
       </div>
       
       {index >= logs.length && !isMemoryChecking && (
-        <div style={{ 
-          marginTop: 'auto', 
-          textAlign: 'center', 
-          opacity: 0.5, 
-          fontSize: 'var(--text-l4)',
-          animation: 'flicker 0.2s infinite'
-        }}>
+        <div className="boot-screen__footer">
           DECRYPTING INTERFACE...
         </div>
       )}

@@ -145,16 +145,21 @@
           &:hover { text-decoration: underline; }
         }
 
-        &-bio {
-          font-size: rem(11);
-          background: var(--ui-border);
-          color: var(--status-text);
-          padding: rem(1) rem(6);
-          border-radius: rem(10);
-          font-weight: bold;
+        &-role-tag {
+          font-size: rem(9);
+          text-transform: uppercase;
+          color: var(--ui-text-dim);
+          background: rgba(255, 255, 255, 0.05);
+          border: rem(1) solid rgba(255, 255, 255, 0.1);
+          padding: rem(1) rem(4);
+          border-radius: rem(2);
+          font-family: var(--font-mono);
+          line-height: 1;
           margin-left: rem(4);
-          opacity: 0.8;
-          animation: fade-in 0.2s ease-out;
+          display: inline-block;
+          vertical-align: middle;
+          font-weight: bold;
+          letter-spacing: rem(0.5);
         }
 
         &-time {
@@ -272,6 +277,19 @@
         cursor: not-allowed;
       }
     }
+  }
+
+  &__empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: rem(40);
+    text-align: center;
+    opacity: 0.3;
+    font-style: italic;
+    font-family: var(--font-mono);
+    color: var(--ui-text);
   }
 }
 

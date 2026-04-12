@@ -18,6 +18,10 @@ interface TechnicalPaneProps {
   onClose?: () => void;
   isMinimized: boolean;
   onMinimizeToggle: () => void;
+  isPoppedOut?: boolean;
+  onPopOutToggle?: () => void;
+  isSnappedMain?: boolean;
+  onSnapMainToggle?: () => void;
   footerText?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -37,6 +41,10 @@ export const TechnicalPane = ({
   onClose,
   isMinimized,
   onMinimizeToggle,
+  isPoppedOut = false,
+  onPopOutToggle,
+  isSnappedMain = false,
+  onSnapMainToggle,
   footerText,
   children,
 }: TechnicalPaneProps) => {
@@ -53,6 +61,10 @@ export const TechnicalPane = ({
       isActive={isActive}
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
+      isPoppedOut={isPoppedOut}
+      onPopOutToggle={onPopOutToggle}
+      isSnappedMain={isSnappedMain}
+      onSnapMainToggle={onSnapMainToggle}
       onClose={onClose}
       initialPos={initialPos}
       initialSize={initialSize}
