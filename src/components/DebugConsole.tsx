@@ -12,13 +12,42 @@ interface DebugLog {
 
 const DebugMenuControls = memo(({ 
     chatMultiplier, 
-    setChatMultiplier 
+    setChatMultiplier,
+    logMultiplier,
+    setLogMultiplier
 }: { 
     chatMultiplier: number, 
-    setChatMultiplier: (val: number) => void 
+    setChatMultiplier: (val: number) => void,
+    logMultiplier: number,
+    setLogMultiplier: (val: number) => void
 }) => {
     return (
         <div className="debug-menu__controls">
+          <div className="debug-menu__section">
+            <h3 className="debug-menu__section-title">Log Settings</h3>
+            <div className="debug-menu__field">
+              <label htmlFor="debug-logs" className="debug-menu__label">
+                LOG_DELAY_MULTIPLIER
+              </label>
+              <input 
+                id="debug-logs"
+                type="number" 
+                min="0.1" 
+                max="10.0" 
+                step="0.1" 
+                value={logMultiplier} 
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  if (!isNaN(val)) setLogMultiplier(val);
+                }}
+                className="debug-menu__input"
+              />
+            </div>
+          </div>
+
           <div className="debug-menu__section">
             <h3 className="debug-menu__section-title">Chat Settings</h3>
             <div className="debug-menu__field">
@@ -58,6 +87,8 @@ export const DebugConsole = ({
     initialSize = { width: 500, height: 400 },
     chatMultiplier = 1,
     setChatMultiplier = () => {},
+    logMultiplier = 1,
+    setLogMultiplier = () => {},
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
@@ -73,6 +104,8 @@ export const DebugConsole = ({
     initialSize?: { width: number, height: number },
     chatMultiplier?: number,
     setChatMultiplier?: (val: number) => void,
+    logMultiplier?: number,
+    setLogMultiplier?: (val: number) => void,
     isPoppedOut?: boolean,
     onPopOutToggle?: () => void,
     isSnappedMain?: boolean,
@@ -123,6 +156,8 @@ export const DebugConsole = ({
         <DebugMenuControls 
             chatMultiplier={chatMultiplier} 
             setChatMultiplier={setChatMultiplier} 
+            logMultiplier={logMultiplier}
+            setLogMultiplier={setLogMultiplier}
         />
 
         <div 

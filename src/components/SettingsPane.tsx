@@ -203,14 +203,6 @@ export const SettingsPane = ({
             >
                 CONTRAST
             </Button>
-            <Button 
-                onClick={() => setTheme('accessibility')} 
-                active={currentTheme === 'accessibility'}
-                size="x-small"
-                style={{ color: '#00ff00', borderColor: '#00ff00', fontFamily: 'sans-serif' }}
-            >
-                A11Y
-            </Button>
           </div>
         </section>
 

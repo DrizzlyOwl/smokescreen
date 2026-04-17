@@ -9,7 +9,7 @@ interface Jargon {
   errors: Record<Severity, string[]>;
 }
 
-const commonJargon: Jargon = {
+export const commonJargon: Jargon = {
   systems: [
     'Prometheus scraper', 'Kafka broker cluster', 'Vault secret engine', 'Redis sentinel', 
     'NGINX ingress controller', 'CoreDNS mesh', 'Consul agent', 'sidecar proxy',
@@ -30,7 +30,7 @@ const commonJargon: Jargon = {
   }
 };
 
-const stackJargon: Record<Stack, Jargon> = {
+export const stackJargon: Record<Stack, Jargon> = {
   AWS: {
     systems: [
       'EKS control plane', 'RDS Multi-AZ replica', 'S3 VPC endpoint', 'IAM policy engine', 
@@ -204,8 +204,8 @@ const indefiniteArticle = (word: string) => {
     return ['a', 'e', 'i', 'o', 'u'].includes(firstLetter) ? 'an' : 'a';
 };
 
-export const generateIncidentReport = (severity: Severity, stack: Stack): { text: string; ticketId: string; timeSaved: number } => {
-  if (severity === 'NOMINAL') return { text: '', ticketId: '', timeSaved: 0 };
+export const generateIncidentReport = (severity: Severity, stack: Stack): { text: string; ticketId: string; scoreEarned: number } => {
+  if (severity === 'NOMINAL') return { text: '', ticketId: '', scoreEarned: 0 };
 
   const getRand = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
   const useStackSpecific = Math.random() > 0.3;
@@ -240,13 +240,13 @@ Incident responders are currently ${action} to mitigate further spread.
 IMPACT:
 ${impacts[severity]}`;
 
-  const timeSaved = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
+  const scoreEarned = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
 
-  return { text: report, ticketId, timeSaved };
+  return { text: report, ticketId, scoreEarned };
 };
 
-export const generateAIIncidentReport = async (severity: Severity, stack: Stack, apiKey: string): Promise<{ text: string; ticketId: string; timeSaved: number }> => {
-  if (severity === 'NOMINAL') return { text: '', ticketId: '', timeSaved: 0 };
+export const generateAIIncidentReport = async (severity: Severity, stack: Stack, apiKey: string): Promise<{ text: string; ticketId: string; scoreEarned: number }> => {
+  if (severity === 'NOMINAL') return { text: '', ticketId: '', scoreEarned: 0 };
   
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ 
@@ -274,9 +274,9 @@ export const generateAIIncidentReport = async (severity: Severity, stack: Stack,
     const response = await result.response;
     const text = response.text();
     const ticketId = generateTicketId();
-    const timeSaved = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
+    const scoreEarned = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
     
-    return { text: text.trim(), ticketId, timeSaved };
+    return { text: text.trim(), ticketId, scoreEarned };
   } catch (error) {
     console.error("Gemini Error:", error);
     return generateIncidentReport(severity, stack);

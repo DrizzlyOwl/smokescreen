@@ -4,6 +4,7 @@ import { LogsIcon } from './Icons';
 import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
 import { useSync } from '../hooks/useSync';
+import { useIncidentStore } from '../store/useIncidentStore';
 import LogWorker from '../utils/logWorker?worker';
 import '../styles/SystemLog.scss';
 
@@ -39,18 +40,27 @@ export const SystemLog = ({
 }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const { send } = useSync();
+    const logMultiplier = useIncidentStore(state => state.logMultiplier);
     const workerRef = useRef<Worker | null>(null);
 
     useEffect(() => {
-        workerRef.current = new LogWorker();
-        
-        workerRef.current.onmessage = (e) => {
-            if (e.data.type === 'LOG') {
-                const newLog = e.data.log;
-                setLogs(prev => [...prev, newLog].slice(-200));
-                send({ type: 'LOG_MESSAGE', log: newLog });
-            }
-        };
+        if (!workerRef.current) {
+            workerRef.current = new LogWorker();
+            
+            workerRef.current.onmessage = (e) => {
+                if (e.data.type === 'LOG') {
+                    const { log: newLog, spike } = e.data;
+                    setLogs(prev => [...prev, newLog].slice(-200));
+                    send({ type: 'LOG_MESSAGE', log: newLog });
+
+                    if (spike) {
+                        window.dispatchEvent(new CustomEvent('METRIC_SPIKE', { detail: spike }));
+                    }
+                }
+            };
+        }
+
+        workerRef.current.postMessage({ type: 'START', severity, multiplier: logMultiplier });
 
         const handleInjectLog = (e: Event) => {
             const customEvent = e as CustomEvent<string>;
@@ -62,13 +72,15 @@ export const SystemLog = ({
 
         return () => {
             window.removeEventListener('INJECT_LOG', handleInjectLog);
-            workerRef.current?.terminate();
         };
-    }, [send]);
+    }, [severity, send, logMultiplier]);
 
     useEffect(() => {
-        workerRef.current?.postMessage({ type: 'START', severity });
-    }, [severity]);
+        return () => {
+            workerRef.current?.terminate();
+            workerRef.current = null;
+        };
+    }, []);
 
     const isP0 = severity === 'P0';
 
@@ -99,18 +111,25 @@ export const SystemLog = ({
           isSnappedMain={isSnappedMain}
           onSnapMainToggle={onSnapMainToggle}
         >
-          <Virtuoso
-            className={`system-log ${isP0 ? 'system-log--p0' : ''}`}
-            data={logs}
-            followOutput="smooth"
-            itemContent={(_index, log) => (
-              <div className="system-log__entry">
-                <span className={getLogClass(log)}>
-                  {log}
-                </span>
-              </div>
-            )}
-          />
+          <div className="system-log-wrapper" style={{ flex: 1, height: '100%', minHeight: 0 }}>
+            <Virtuoso
+              className={`system-log ${isP0 ? 'system-log--p0' : ''}`}
+              data={logs}
+              totalCount={logs.length}
+              followOutput={(isAtBottom) => {
+                if (isAtBottom) return 'smooth';
+                return false;
+              }}
+              alignToBottom
+              itemContent={(_index, log) => (
+                <div className="system-log__entry">
+                  <span className={getLogClass(log)}>
+                    {log}
+                  </span>
+                </div>
+              )}
+            />
+          </div>
         </Pane>
     );
 };

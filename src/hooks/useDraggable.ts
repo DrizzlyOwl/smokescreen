@@ -37,10 +37,14 @@ export const useDraggable = (initialPos = { x: 20, y: 20 }, storageKey?: string)
 
   const onMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
-      const newPos = {
-        x: e.clientX - offset.x,
-        y: e.clientY - offset.y
-      };
+      const newX = e.clientX - offset.x;
+      const newY = e.clientY - offset.y;
+
+      // Constrain to viewport (ensure a portion of the pane remains accessible)
+      const boundedX = Math.max(0, Math.min(newX, window.innerWidth - 100));
+      const boundedY = Math.max(0, Math.min(newY, window.innerHeight - 50));
+      const newPos = { x: boundedX, y: boundedY };
+
       setPosition(newPos);
       if (storageKey) {
         localStorage.setItem(`smokescreen_pos_${storageKey}`, JSON.stringify(newPos));

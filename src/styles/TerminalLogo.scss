@@ -1,0 +1,15 @@
+@use 'utils' as *;
+
+.terminal-logo {
+  font-size: rem(10);
+  line-height: 1.1;
+  color: var(--terminal-green);
+  margin-bottom: rem(20);
+  white-space: pre;
+  text-shadow: 0 0 rem(5) rgba(var(--terminal-green), 0.5);
+  font-family: var(--font-mono);
+
+  @media (max-width: 768px) {
+    font-size: rem(6);
+  }
+}

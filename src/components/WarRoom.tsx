@@ -3,6 +3,7 @@ import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Pane } from './Pane';
 import { ChatIcon, CheckIcon } from './Icons';
 import { type ChatMessage } from '../hooks/useIncidentChat';
+import { getBioByRole } from '../utils/team';
 import '../styles/WarRoom.scss';
 
 interface ExtendedChatMessage extends ChatMessage {
@@ -94,7 +95,8 @@ const ChatMessageItem = memo(({
             {!isGrouped && (
             <div 
                 className={`war-room__message-avatar war-room__message-avatar--${message.isBot ? 'bot' : 'user'}`}
-                style={{ backgroundColor: !message.avatarUrl ? avatarColor : undefined }}
+                style={{ backgroundColor: !message.avatarUrl ? avatarColor : undefined, cursor: 'pointer' }}
+                onClick={() => onUserClick(message.id)}
             >
                 {message.avatarUrl && !message.isBot ? (
                     <img src={message.avatarUrl} alt={message.user} />
@@ -113,7 +115,11 @@ const ChatMessageItem = memo(({
                     {message.user}
                 </span>
                 {message.bio && (
-                    <span className="war-room__message-header-role-tag">
+                    <span 
+                        className="war-room__message-header-role-tag"
+                        onClick={() => onUserClick(message.id)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         {message.bio}
                     </span>
                 )}
@@ -128,6 +134,12 @@ const ChatMessageItem = memo(({
                     : word + ' '
                 ))}
             </div>
+            {message.showBio && (
+                <div className="war-room__bio-bubble">
+                    <div className="war-room__bio-bubble-title">{message.bio || 'STAFF'}</div>
+                    <div className="war-room__bio-bubble-text">{getBioByRole(message.bio || 'STAFF')}</div>
+                </div>
+            )}
             </div>
         </div>
     );

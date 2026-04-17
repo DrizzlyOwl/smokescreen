@@ -292,6 +292,53 @@ export interface ChatMessage {
     bio?: string;
 }
 
+const WATERCOOLER_MESSAGES: Record<string, string[]> = {
+    'US': [
+        "Anyone want anything from the kitchen? I'm grabbing another coffee.",
+        "Did anyone catch the game last night? Wild ending.",
+        "The new office espresso machine is actually decent.",
+        "My mechanical keyboard is finally here. Productivity +10.",
+        "Is it Friday yet? This week has been long.",
+        "Someone left their laptop unlocked in the breakroom again...",
+        "Has anyone tried that new lunch spot down the street?",
+        "I'm about 4 coffees deep and I can see through time.",
+        "The building AC is set to 'Arctic' today. I'm freezing."
+    ],
+    'UK': [
+        "Heading to the kettle, anyone want a brew?",
+        "Absolute nightmare on the Jubilee line this morning.",
+        "The biscuit tin in the kitchen is looking tragically empty.",
+        "Weather is typical for London today. Grey and grey.",
+        "Anyone up for a cheeky Nando's at lunch?",
+        "I've had so much tea I'm basically a human teapot.",
+        "Did you see the match? Proper defensive masterclass.",
+        "Is it pub o'clock yet?",
+        "The tube was a total write-off today. Signal failure again."
+    ],
+    'EU': [
+        "Anyone up for a quick coffee break? The machine is actually working.",
+        "The commute this morning was quite smooth for once.",
+        "Has anyone seen the latest documentation on the internal wiki?",
+        "I am looking forward to the team dinner tomorrow evening.",
+        "The office temperature is quite pleasant today, don't you think?",
+        "Does anyone have a recommendation for a good local bistro?",
+        "I found a small bug in the testing framework, will fix it after lunch.",
+        "Is it time for a fika break yet?"
+    ]
+};
+
+const getLocalizedWatercooler = () => {
+    const locale = navigator.language.toUpperCase();
+    if (locale.includes('GB')) return WATERCOOLER_MESSAGES['UK'];
+    if (locale.includes('US')) return WATERCOOLER_MESSAGES['US'];
+    
+    // Check for common European locales to use EU English bucket
+    const euroLocales = ['DE', 'FR', 'ES', 'IT', 'NL', 'SE', 'BE', 'PL'];
+    if (euroLocales.some(ext => locale.includes(ext))) return WATERCOOLER_MESSAGES['EU'];
+
+    return WATERCOOLER_MESSAGES['US']; // Default
+};
+
 export const useIncidentChat = (
     severity: Severity,
     stack: Stack,
@@ -319,28 +366,37 @@ export const useIncidentChat = (
         userAvatars.current[user] = avatar;
         return avatar;
     }, []);
-    const processUserAndBio = useCallback((rawName: string) => {
-        // Remove common job titles and return as { name, bio }
-        const titles = [
-            'SRE', 'DBA', 'Lead', 'Architect', 'Director', 'Eng', 'Manager', 
-            'Platform', 'Backend', 'Network', 'SecOps', 'Monitoring', 'OnCall'
-        ];
-        
+    const processUserAndBio = useCallback((rawName: string, isBot: boolean = false) => {
         let name = rawName;
         let bio = '';
-        
-        // Find if name contains any of these
-        const parts = rawName.split('_');
-        const foundTitle = parts.find(p => titles.includes(p));
-        
-        if (foundTitle) {
-            name = parts.filter(p => p !== foundTitle).join(' ');
-            bio = foundTitle.toUpperCase() + ' Specialist';
-        } else {
-            name = parts.join(' ');
+
+        // 1. Extract role from brackets if present (from chatGenerator)
+        const bracketMatch = rawName.match(/^(.*?) \[(.*?)\]$/);
+        if (bracketMatch) {
+            name = bracketMatch[1];
+            bio = bracketMatch[2];
         }
-        
-        return { name, bio };
+
+        // 2. Enforce first name only for humans
+        if (!isBot) {
+            // Split by space, underscore, or dash and take the first part
+            const nameParts = name.split(/[ _-]/);
+            name = nameParts[0];
+        }
+
+        // 3. If no bio was in brackets, try to extract from original rawName parts
+        if (!bio) {
+            const titles = [
+                'SRE', 'DBA', 'LEAD', 'ARCHITECT', 'DIRECTOR', 'ENG', 'MANAGER', 
+                'PLATFORM', 'BACKEND', 'NETWORK', 'SECOPS', 'MONITORING', 'ONCALL',
+                'CISO', 'CTO', 'LEGAL', 'VP', 'NETENG', 'DATA', 'SYSTEMS', 'API'
+            ];
+            const rawParts = rawName.toUpperCase().split(/[ _/[\]]/);
+            const foundTitle = rawParts.find(p => titles.includes(p));
+            bio = foundTitle || (isBot ? 'SYSTEM_BOT' : 'STAFF');
+        }
+
+        return { name, bio: bio.toUpperCase() };
     }, []);
 
     const markAsRead = useCallback((messageId: string) => {
@@ -391,12 +447,12 @@ export const useIncidentChat = (
         return unsubscribe;
     }, [subscribe, onNewMessage, playPing, playTagPing, isFocused, getAvatarForUser]);
 
-    const sendMessage = useCallback((text: string, user: string, id?: string, isBot: boolean = false) => {
-        const { name, bio } = processUserAndBio(user);
+    const sendMessage = useCallback((text: string, user: string, id?: string, isBot: boolean = false, bioOverride?: string) => {
+        const { name, bio: defaultBio } = processUserAndBio(user, isBot);
         const newMessage: ChatMessage = {
             id: id || `msg-${Math.random().toString(36).substring(2, 11)}`,
             user: name,
-            bio,
+            bio: bioOverride || defaultBio,
             text,
             time: formatTime(),
             isBot,
@@ -408,9 +464,10 @@ export const useIncidentChat = (
 
     useEffect(() => {
         if (lastSeverity.current !== severity) {
-            const systemMsg = {
+            const systemMsg: ChatMessage = {
                 id: `sys-${Date.now()}`,
-                user: 'Smokescreen_OS_Bot',
+                user: 'Smokescreen',
+                bio: 'CORE_OS',
                 text: `--- ALERT LEVEL UPDATED TO ${severity} [${stack}] ---`,
                 time: formatTime(),
                 isBot: true,
@@ -425,26 +482,28 @@ export const useIncidentChat = (
 
     const getDynamicMessage = useCallback(async (currentSeverity: Severity): Promise<ChatMessage> => {
         let userRaw = 'Tech_Staff';
+        let bioOverride = '';
         let time = formatTime();
         let isBot = false;
         const id = `msg-${Math.random().toString(36).substring(2, 11)}`;
 
         try {
             const { generateDynamicMessage } = await import('../utils/chatGenerator');
-            const dynamicMsg = await generateDynamicMessage(currentSeverity, stack, operatorName);
-            
+            const dynamicMsg = await generateDynamicMessage(currentSeverity, stack, operatorName, navigator.language);
+
             if (dynamicMsg) {
                 if (dynamicMsg.user) userRaw = dynamicMsg.user;
                 if (dynamicMsg.time) time = dynamicMsg.time;
                 if (dynamicMsg.isBot !== undefined) isBot = !!dynamicMsg.isBot;
-                
+                if (dynamicMsg.bio) bioOverride = dynamicMsg.bio;
+
                 if ('text' in dynamicMsg && dynamicMsg.text) {
-                    const { name, bio } = processUserAndBio(userRaw);
+                    const { name, bio } = processUserAndBio(userRaw, isBot);
                     lastMessageText.current = dynamicMsg.text;
                     return { 
                         id, 
                         user: name,
-                        bio,
+                        bio: bioOverride || bio,
                         text: dynamicMsg.text, 
                         time, 
                         isBot,
@@ -452,16 +511,38 @@ export const useIncidentChat = (
                     };
                 }
             }
-        } catch (e) {
+        }
+ catch (e) {
             console.error('Failed to load dynamic chat generator:', e);
         }
 
+        // Fallback logic using the persistent team cast
+        if (userRaw === 'Tech_Staff') {
+            try {
+                const { ALL_PERSONAS } = await import('../utils/team');
+                const persona = ALL_PERSONAS[Math.floor(Math.random() * ALL_PERSONAS.length)];
+                userRaw = persona.name;
+                isBot = persona.isBot;
+                bioOverride = persona.role;
+            } catch (e) {
+                console.error('Failed to load team cast for fallback:', e);
+            }
+        }
+
         const pool = STACK_MESSAGES[stack][currentSeverity];
+        const watercooler = getLocalizedWatercooler();
         let text = getRandomItem(pool);
 
+        // Humans during NOMINAL state do watercooler chat
+        if (!isBot && currentSeverity === 'NOMINAL') {
+            text = getRandomItem(watercooler);
+        }
+
         // Prevent identical consecutive content
-        if (text === lastMessageText.current && pool.length > 1) {
-            const filteredPool = pool.filter(t => t !== lastMessageText.current);
+        if (text === lastMessageText.current && (pool.length > 1 || watercooler.length > 1)) {
+            const filteredPool = !isBot && currentSeverity === 'NOMINAL' 
+                ? watercooler.filter(t => t !== lastMessageText.current)
+                : pool.filter(t => t !== lastMessageText.current);
             text = getRandomItem(filteredPool);
         }
 
@@ -479,21 +560,12 @@ export const useIncidentChat = (
             }
         }
         
-        const tagProbability = currentSeverity === 'P0' ? 0.4 : 
-                               currentSeverity === 'P1' ? 0.6 : 
-                               currentSeverity === 'P3' ? 0.8 : 0.95;
-
-        if (!isBot && Math.random() > tagProbability) {
-            const tag = operatorName.split(' ')[0].toLowerCase() || 'operator';
-            text = `@${tag} ${text}`;
-        }
-        
         lastMessageText.current = text;
-        const { name, bio } = processUserAndBio(userRaw);
+        const { name, bio } = processUserAndBio(userRaw, isBot);
         return { 
             id, 
             user: name, 
-            bio, 
+            bio: bioOverride || bio, 
             text, 
             time, 
             isBot, 

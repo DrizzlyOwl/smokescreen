@@ -18,7 +18,6 @@ const OutageMap = lazy(() => import('./OutageMap').then(m => ({ default: m.Outag
 const SystemLog = lazy(() => import('./SystemLog').then(m => ({ default: m.SystemLog })));
 const BurnRateDashboard = lazy(() => import('./BurnRateDashboard').then(m => ({ default: m.BurnRateDashboard })));
 const DeploymentStatus = lazy(() => import('./DeploymentStatus').then(m => ({ default: m.DeploymentStatus })));
-const PagerSync = lazy(() => import('./PagerSync').then(m => ({ default: m.PagerSync })));
 const DebugConsole = lazy(() => import('./DebugConsole').then(m => ({ default: m.DebugConsole })));
 const ReadoutBox = lazy(() => import('./ReadoutBox').then(m => ({ default: m.ReadoutBox })));
 
@@ -38,13 +37,19 @@ interface PaneGridProps {
   sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
   typingUsers: string[];
   handleCommand: (cmd: string) => boolean;
+  commands: import('../hooks/useCommandRegistry').Command[];
+  commandHistory: string[];
   terminalHistory: TerminalLine[];
+  setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  activePlaybook: any;
-  startPlaybook: (p: any) => void;
+  activePlaybook: import('../data/playbooks/types').Playbook | null;
+  startPlaybook: (p: import('../data/playbooks/types').Playbook) => void;
   stopPlaybook: () => void;
+  logMultiplier: number;
+  setLogMultiplier: (multiplier: number) => void;
+  activeObjective: import('../contexts/types').Objective | null;
 }
 
 export const PaneGrid: React.FC<PaneGridProps> = ({
@@ -63,17 +68,23 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
   sendMessage,
   typingUsers,
   handleCommand,
+  commands,
+  commandHistory,
   terminalHistory,
+  setTerminalHistory,
   scrollRef,
   markAsRead,
   markAllAsRead,
   activePlaybook,
   startPlaybook,
-  stopPlaybook
+  stopPlaybook,
+  logMultiplier,
+  setLogMultiplier,
+  activeObjective
 }) => {
   const severity = useIncidentStore(state => state.severity);
   const stack = useIncidentStore(state => state.stack);
-  const isDeclared = !!useIncidentStore(state => state.incidentReport);
+  const isDeclared = useIncidentStore(state => state.isDeclared);
   const incidentReport = useIncidentStore(state => state.incidentReport);
   const setIncidentReport = useIncidentStore(state => state.setIncidentReport);
   const displayText = useIncidentStore(state => state.displayText);
@@ -123,9 +134,12 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
         return <TerminalPane 
           {...commonProps}
           terminalHistory={terminalHistory}
+          setTerminalHistory={setTerminalHistory}
+          commandHistory={commandHistory}
+          commands={commands}
           operatorName={operatorName}
           onCommand={handleCommand}
-          initialPos={{ x: 400, y: 460 }}
+          initialPos={{ x: 750, y: 100 }}
         />;
       case 'logs':
         return <SystemLog 
@@ -138,6 +152,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
         return <DeploymentStatus 
           {...commonProps}
           severity={severity} 
+          stack={stack}
           initialPos={{ x: 1020, y: 200 }}
         />;
       case 'metrics':
@@ -165,21 +180,13 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           moneyLost={moneyLost} 
           initialPos={{ x: 1250, y: 460 }}
         />;
-      case 'pager':
-        return <PagerSync 
-          {...commonProps}
-          severity={severity} 
-          stack={stack} 
-          uplinkId={uplinkId} 
-          initialPos={{ x: 1480, y: 50 }}
-        />;
       case 'playbooks':
         return <PlaybookPane 
           {...commonProps}
           activePlaybook={activePlaybook}
           startPlaybook={startPlaybook}
           stopPlaybook={stopPlaybook}
-          initialPos={{ x: 450, y: 200 }}
+          initialPos={{ x: 1480, y: 50 }}
         />;
       case 'debug':
         return <DebugConsole 
@@ -187,11 +194,13 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           initialPos={{ x: 50, y: 600 }}
           chatMultiplier={chatMultiplier}
           setChatMultiplier={setChatMultiplier}
+          logMultiplier={logMultiplier}
+          setLogMultiplier={setLogMultiplier}
         />;
       case 'howTo':
         return <HowToPane 
           {...commonProps}
-          initialPos={{ x: 500, y: 100 }}
+          initialPos={{ x: 50, y: 100 }}
         />;
       case 'readout':
         if (!incidentReport || incidentReport === 'HELP_DISPLAYED' || incidentReport.startsWith('COMMAND_NOT_RECOGNIZED')) return null;
@@ -206,23 +215,30 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
               {localStorage.getItem('gemini_api_key') && <div className="ai-badge">AI_ENHANCED</div>}
             </div>
           }
-          contentRef={scrollRef as any}
+          contentRef={scrollRef}
           footer={displayText === incidentReport && (
-              <div className="readout-box__footer-actions">
-                <Button onClick={() => { 
-                  navigator.clipboard.writeText(incidentReport); 
-                  const original = incidentReport;
-                  setIncidentReport('>>> CLIPBOARD_SYNC_COMPLETE <<<'); 
-                  setTimeout(() => setIncidentReport(original), 1500); 
-                }} active size="x-small">
-                  [ COPY_PLAYBOOK ]
-                </Button>
-                <Button onClick={() => setView('TICKET')} size="x-small">
-                  [ VIEW_RESTRICTED_TICKET ]
-                </Button>
-              </div>
-          )}
-        >
+               <div className="readout-box__footer-container">
+                 <div className="readout-box__workflow">
+                   <div className="readout-box__workflow-header">{'>>>'} REQUIRED_RESOLUTION_WORKFLOW {'<<<'}</div>
+                   <div className="readout-box__workflow-step">[1] EXECUTE MITIGATION: Route traffic via Outage Map [F3] OR authorize system overrides.</div>
+                   <div className="readout-box__workflow-step">[2] VERIFY STABILITY: Ensure Threat Level drops to NOMINAL.</div>
+                   <div className="readout-box__workflow-step">[3] INITIATE STAND-DOWN: Trigger 'resolve' via command line or global control strip.</div>
+                 </div>
+                 <div className="readout-box__footer-actions">
+                   <Button onClick={() => {
+                     navigator.clipboard.writeText(incidentReport);
+                     const original = incidentReport;
+                     setIncidentReport('>>> CLIPBOARD_SYNC_COMPLETE <<<');
+                     setTimeout(() => setIncidentReport(original), 1500);
+                   }} active size="x-small">
+                     [ COPY_PLAYBOOK ]
+                   </Button>
+                   <Button onClick={() => setView('TICKET')} size="x-small">
+                     [ VIEW_RESTRICTED_TICKET ]
+                   </Button>
+                 </div>
+               </div>
+           )}        >
           {displayText}
         </ReadoutBox>;
       default:
@@ -230,7 +246,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
     }
   };
 
-  const paneIds: PaneId[] = ['chat', 'logs', 'map', 'deploy', 'burn', 'pager', 'howTo', 'settings', 'metrics', 'playbooks', 'readout', 'terminal', 'debug'];
+  const paneIds: PaneId[] = ['chat', 'logs', 'map', 'deploy', 'burn', 'howTo', 'settings', 'metrics', 'playbooks', 'readout', 'terminal', 'debug'];
   const tiledPanes = paneIds.filter(id => panes[id] && !poppedOutPanes[id]);
   const mainSnappedPanes = tiledPanes.filter(id => snappedMainPanes[id]);
   const rightTiledPanes = tiledPanes.filter(id => !snappedMainPanes[id]);
@@ -246,6 +262,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
                 severity={severity}
                 stack={stack}
                 isDeclared={isDeclared}
+                objective={activeObjective}
               />
             ) : (
               <Suspense fallback={null}>

@@ -13,6 +13,9 @@ interface TerminalPaneProps {
   onMinimizeToggle: () => void;
   onCommand: (cmd: string) => boolean;
   terminalHistory: import('../hooks/useIncidentState').TerminalLine[];
+  setTerminalHistory: React.Dispatch<React.SetStateAction<import('../hooks/useIncidentState').TerminalLine[]>>;
+  commandHistory: string[];
+  commands: import('../hooks/useCommandRegistry').Command[];
   operatorName: string;
   initialPos?: { x: number, y: number };
   initialSize?: { width: number, height: number };
@@ -31,6 +34,9 @@ export const TerminalPane = ({
   onMinimizeToggle,
   onCommand,
   terminalHistory,
+  setTerminalHistory,
+  commandHistory,
+  commands,
   operatorName,
   initialPos = { x: 50, y: 450 },
   initialSize = { width: 600, height: 350 },
@@ -41,6 +47,7 @@ export const TerminalPane = ({
 }: TerminalPaneProps) => {
   const [input, setInput] = useState('');
   const [isError, setIsError] = useState(false);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,6 +55,85 @@ export const TerminalPane = ({
       inputRef.current?.focus();
     }
   }, [isActive, isMinimized]);
+
+  // Reset history index when input changes manually (not via arrows)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+    setHistoryIndex(-1);
+  };
+
+  const getGhostText = () => {
+    if (!input) return '';
+    const currentInput = input.toLowerCase();
+    const allPatterns = Array.from(new Set(commands.flatMap(c => c.patterns)));
+    const matches = allPatterns.filter(p => p.startsWith(currentInput)).sort();
+    if (matches.length > 0) {
+      return matches[0].substring(currentInput.length);
+    }
+    return '';
+  };
+
+  const ghostText = getGhostText();
+
+  const getCommonPrefix = (strings: string[]): string => {
+    if (!strings.length) return '';
+    let prefix = strings[0];
+    for (let i = 1; i < strings.length; i++) {
+      while (strings[i].indexOf(prefix) !== 0) {
+        prefix = prefix.substring(0, prefix.length - 1);
+        if (!prefix.length) return '';
+      }
+    }
+    return prefix;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!commandHistory) return;
+      const nextIndex = historyIndex + 1;
+      if (nextIndex < commandHistory.length) {
+        const cmd = commandHistory[commandHistory.length - 1 - nextIndex];
+        setInput(cmd);
+        setHistoryIndex(nextIndex);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!commandHistory) return;
+      const nextIndex = historyIndex - 1;
+      if (nextIndex >= 0) {
+        const cmd = commandHistory[commandHistory.length - 1 - nextIndex];
+        setInput(cmd);
+        setHistoryIndex(nextIndex);
+      } else if (nextIndex === -1) {
+        setInput('');
+        setHistoryIndex(-1);
+      }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const currentInput = input.toLowerCase();
+      if (!currentInput || !commands) return;
+
+      const allPatterns = Array.from(new Set(commands.flatMap(c => c.patterns)));
+      const matches = allPatterns.filter(p => p.startsWith(currentInput)).sort();
+
+      if (matches.length === 1) {
+        setInput(matches[0]);
+      } else if (matches.length > 1) {
+        const commonPrefix = getCommonPrefix(matches);
+        if (commonPrefix.length > currentInput.length) {
+          setInput(commonPrefix);
+        } else {
+          // If already at common prefix and multiple matches, list them in history
+          setTerminalHistory(prev => [
+            ...prev,
+            { text: `[ ${operatorName || 'OPERATOR'} ][@]SMOKESCREEN:~ $ ${input}`, type: 'command' },
+            { text: matches.join('  '), type: 'output' }
+          ]);
+        }
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +145,7 @@ export const TerminalPane = ({
         setTimeout(() => setIsError(false), 500);
       }
       setInput('');
+      setHistoryIndex(-1);
     }
   };
 
@@ -109,12 +196,14 @@ export const TerminalPane = ({
               <span className="block-input-wrapper__display">
                 {input}
                 <span className="block-input-wrapper__cursor" />
+                {ghostText && <span className="block-input-wrapper__ghost">{ghostText}</span>}
               </span>
               <input
                 ref={inputRef}
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
                 className="block-input-wrapper__real-input"
                 spellCheck={false}
                 autoComplete="off"

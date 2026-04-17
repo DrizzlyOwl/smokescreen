@@ -1,12 +1,27 @@
 @use 'utils' as *;
 @use 'variables';
-@use 'mixins';
+@use 'mixins' as *;
 @use 'animations';
 @use 'base';
 @use 'components';
 @use 'boot-screen';
 @use 'gateway';
-@use 'mobile-pager';
 
 // Ensure fonts are imported
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+.terminal-logo {
+  @include respond-to('mobile') {
+    svg {
+      width: 100%;
+      height: auto;
+      max-height: rem(60);
+    }
+  }
+}
+
+.crt-container {
+  @include respond-to('tablet') {
+    overflow-x: hidden;
+  }
+}

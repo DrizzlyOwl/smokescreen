@@ -20,7 +20,6 @@ export const DeployIcon = () => <IconBase>[K8S]</IconBase>;
 export const BurnIcon = () => <IconBase>[$$$]</IconBase>;
 export const ActivityIcon = () => <IconBase>[ACT]</IconBase>;
 export const AudioIcon = () => <IconBase>[VOL]</IconBase>;
-export const PagerIcon = () => <IconBase>[PGR]</IconBase>;
 export const PlaybookIcon = () => <IconBase>[BOK]</IconBase>;
 export const MetricsIcon = () => <IconBase>[MET]</IconBase>;
 export const HelpIcon = () => <IconBase>[HLP]</IconBase>;

@@ -7,12 +7,15 @@
   background: var(--ui-bg); 
   color: var(--ui-text);
   font-family: 'IBM Plex Mono', monospace;
+  overflow: hidden;
 
   &__output {
     flex: 1;
     padding: rem(12) rem(15);
     font-size: rem(14);
     line-height: 1.5;
+    overflow-x: hidden;
+    overflow-y: auto;
 
     /* Custom scrollbar matching theme */
     &::-webkit-scrollbar {
@@ -31,6 +34,7 @@
     word-break: break-all;
     white-space: pre-wrap;
     margin-bottom: rem(4);
+    max-width: 100%;
     
     &--command {
       color: var(--terminal-green);

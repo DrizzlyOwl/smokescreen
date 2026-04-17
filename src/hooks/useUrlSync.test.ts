@@ -1,9 +1,9 @@
 import { renderHook, act } from '@testing-library/react';
-import { useUrlSync, getInitialStateFromUrl, type SyncState } from './useUrlSync';
+import { useUrlSync, getInitialStateFromUrl, type UrlSyncState } from './useUrlSync';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('useUrlSync hook', () => {
-  const initialState: SyncState = {
+  const initialState: UrlSyncState = {
     severity: 'NOMINAL',
     stack: 'AWS',
     panes: {
@@ -13,7 +13,6 @@ describe('useUrlSync hook', () => {
       map: false,
       deploy: false,
       burn: false,
-      pager: false,
       howTo: false,
       settings: false,
       metrics: false,
@@ -53,7 +52,7 @@ describe('useUrlSync hook', () => {
       { initialProps: { state: initialState } }
     );
 
-    const newState: SyncState = {
+    const newState: UrlSyncState = {
       ...initialState,
       severity: 'P1',
       theme: 'cobalt'
@@ -77,5 +76,45 @@ describe('useUrlSync hook', () => {
     expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({
       severity: 'P3'
     }));
+  });
+
+  it('handles boolean flags (eco, debug, audio)', () => {
+    window.history.replaceState(null, '', '/?eco=true&debug=true&audio=true');
+    const state = getInitialStateFromUrl();
+    expect(state.isEcoMode).toBe(true);
+    expect(state.isDebugMode).toBe(true);
+    expect(state.isAudioOn).toBe(true);
+  });
+
+  it('removes parameters from URL when state returns to default', () => {
+    const onUpdate = vi.fn();
+    
+    // Start with non-default state
+    const customState: UrlSyncState = {
+      ...initialState,
+      severity: 'P0',
+      isEcoMode: true
+    };
+    
+    const { rerender } = renderHook(
+      ({ state }) => useUrlSync(state, onUpdate),
+      { initialProps: { state: customState } }
+    );
+
+    // Verify initial URL
+    expect(window.location.search).toContain('sev=P0');
+    expect(window.location.search).toContain('eco=true');
+
+    // Return to default
+    const defaultState: UrlSyncState = {
+        ...initialState,
+        panes: { ...initialState.panes, terminal: false }
+    };
+
+    act(() => {
+      rerender({ state: defaultState });
+    });
+
+    expect(window.location.search).toBe('');
   });
 });

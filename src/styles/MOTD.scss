@@ -1,0 +1,45 @@
+@use 'utils' as *;
+
+.motd {
+  background: rgba(var(--terminal-green), 0.05);
+  border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 70%);
+  padding: rem(15);
+  margin-bottom: rem(30);
+  font-family: var(--font-mono);
+  max-width: rem(800);
+  animation: flicker 0.15s infinite alternate;
+
+  .eco-mode & {
+    animation: none;
+  }
+
+  &__header {
+    font-size: rem(12);
+    color: var(--terminal-green);
+    font-weight: bold;
+    margin-bottom: rem(10);
+    border-bottom: rem(1) dashed color-mix(in srgb, var(--terminal-green), transparent 80%);
+    padding-bottom: rem(5);
+  }
+
+  &__content {
+    font-size: rem(13);
+    color: #fff;
+    line-height: 1.4;
+    font-style: italic;
+    margin-bottom: rem(10);
+  }
+
+  &__footer {
+    font-size: rem(10);
+    color: var(--terminal-green);
+    opacity: 0.5;
+    text-align: center;
+    letter-spacing: rem(1);
+  }
+}
+
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  100% { opacity: 1; }
+}

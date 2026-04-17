@@ -193,6 +193,14 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
     playTone(800, 'square', 0.05, 0.15, 0);
   }, [isAudioOn, playTone]);
 
+  const playMitigationSuccess = useCallback(() => {
+    if (!isAudioOn) return;
+    const notes = [440, 554.37, 659.25, 880]; // A major arpeggio
+    notes.forEach((freq, i) => {
+      playTone(freq, 'sine', 0.05, 0.4, i * 0.08);
+    });
+  }, [isAudioOn, playTone]);
+
   useEffect(() => {
     if (audioCtx.current && masterGain.current) {
         if (isAudioOn) {
@@ -301,6 +309,7 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
       playLoginChime,
       playLogoutChime,
       playPostBeep,
+      playMitigationSuccess,
       stopAllSounds
     }}>
       {children}

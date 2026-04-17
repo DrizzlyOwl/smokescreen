@@ -6,7 +6,6 @@ export type PaneId =
   | 'map'
   | 'deploy'
   | 'burn'
-  | 'pager'
   | 'howTo'
   | 'settings'
   | 'metrics'
@@ -44,9 +43,7 @@ export const useWindowManager = (initialPanes: PanesState) => {
       map: 102,
       deploy: 103,
       burn: 104,
-      pager: 105,
-      howTo: 106,
-      settings: 107,
+      howTo: 106,      settings: 107,
       metrics: 108,
       playbooks: 109,
       readout: 110,
@@ -119,12 +116,14 @@ export const useWindowManager = (initialPanes: PanesState) => {
   );
 
   const closePane = useCallback((paneId: PaneId) => {
+    if (paneId === 'terminal') return;
     setPanes((prev) => ({ ...prev, [paneId]: false }));
     setActivePane((current) => (current === paneId ? null : current));
   }, []);
 
   const togglePane = useCallback(
     (paneId: PaneId) => {
+      if (paneId === 'terminal') return;
       setPanes((prev) => {
         const nextState = !prev[paneId];
         if (nextState) {
@@ -149,7 +148,7 @@ export const useWindowManager = (initialPanes: PanesState) => {
     setPanes((prev) => {
       const next: Partial<PanesState> = {};
       (Object.keys(prev) as PaneId[]).forEach((key) => {
-        next[key] = false;
+        next[key] = key === 'terminal';
       });
       return next as PanesState;
     });

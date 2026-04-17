@@ -1,52 +1,46 @@
 import React, { useMemo } from 'react';
 import { StatReadout } from './StatReadout';
-import { ActivityIcon, DeployIcon, BurnIcon } from './Icons';
-import type { Severity, Stack } from '../data/incidents';
+import { ActivityIcon, DeployIcon } from './Icons';
+import { MissionHUD } from './MissionHUD';
+import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
+import { useSystemMetrics } from '../hooks/useSystemMetrics';
 import '../styles/TacticalOverview.scss';
 
 interface TacticalOverviewProps {
   severity: Severity;
   stack: Stack;
   isDeclared: boolean;
+  objective: import('../contexts/types').Objective | null;
 }
 
 export const TacticalOverview = ({ 
   severity, 
   stack, 
-  isDeclared 
+  isDeclared,
+  objective
 }: TacticalOverviewProps) => {
-  const [streamData, setStreamData] = React.useState<string[]>([]);
-  const coreCount = React.useMemo(() => navigator.hardwareConcurrency || 8, []);
+  const metrics = useSystemMetrics(severity);
+  const coreCount = React.useMemo(() => Math.min(navigator.hardwareConcurrency || 8, 4), []); // Cap at 4 for space
+  
   const [coreHistory, setCoreHistory] = React.useState<number[][]>(() => 
-    Array.from({ length: coreCount }, () => Array(20).fill(0))
+    Array.from({ length: coreCount }, () => Array(40).fill(0))
   );
+  const [memHistory, setMemHistory] = React.useState<number[]>(Array(40).fill(0));
 
+  // Sync sparklines with global metrics
   React.useEffect(() => {
-    const generateLine = () => 
-      `${Math.random().toString(16).substring(2, 10).toUpperCase()} ${Math.random().toString(16).substring(2, 10).toUpperCase()} ${Math.random().toString(16).substring(2, 10).toUpperCase()}`;
-    
-    setStreamData(Array.from({ length: 10 }, generateLine));
+    setCoreHistory(prev => prev.map(history => {
+      // Individual cores vary slightly around the global average
+      const variance = (Math.random() - 0.5) * 10;
+      const nextValue = Math.min(100, Math.max(0, metrics.cpu + variance));
+      return [...history.slice(1), nextValue];
+    }));
 
-    const interval = setInterval(() => {
-      setStreamData(prev => [...prev.slice(1), generateLine()]);
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  // Update CPU core history for sparkline effect
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setCoreHistory(prev => prev.map(history => {
-        const base = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 5;
-        const range = severity === 'P0' ? 40 : severity === 'P1' ? 50 : 20;
-        const nextValue = base + Math.random() * range;
-        return [...history.slice(1), nextValue];
-      }));
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [severity]);
+    setMemHistory(prev => {
+      const memPercent = (metrics.ram / 32) * 100;
+      return [...prev.slice(1), memPercent];
+    });
+  }, [metrics]);
 
   const statusColor = useMemo(() => {
     switch (severity) {
@@ -57,38 +51,43 @@ export const TacticalOverview = ({
     }
   }, [severity]);
 
-  // ASCII Sparkline generator
-  const getAsciiSparkline = (history: number[]) => {
-    const chars = [' ', ' ', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
-    return history.map(val => {
-        const idx = Math.min(Math.floor((val / 100) * chars.length), chars.length - 1);
-        return chars[idx];
-    }).join('');
+  // CSS Bar Chart generator
+  const renderCssSparkline = (history: number[]) => {
+    return (
+      <div className="tactical-overview__css-chart">
+        {history.map((val, idx) => (
+          <div 
+            key={idx} 
+            className="tactical-overview__css-bar" 
+            style={{ height: `${Math.max(4, val)}%` }} 
+          />
+        ))}
+      </div>
+    );
   };
 
-  // Generate some "service blocks" for visual density
+  // Generate service nodes from stack-specific jargon
   const services = useMemo(() => {
-    const names = ['AUTH', 'DB-CORE', 'API-GW', 'CACHE', 'QUEUE', 'CDN', 'IMG-SRV', 'LOG-COLL'];
-    return names.map(name => {
-      // Deterministic but "random-looking" status based on name and severity
+    const systems = stackJargon[stack]?.systems || commonJargon.systems;
+    return systems.map(name => {
       const nameHash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
       const threshold = severity === 'P0' ? 0.6 : severity === 'P1' ? 0.3 : 0.05;
       const isUp = (nameHash % 100) / 100 > threshold;
       
-      // Deterministic latency based on name and severity
       const baseLatency = severity === 'P0' ? 400 : severity === 'P1' ? 150 : 20;
       const jitter = nameHash % (severity === 'P0' ? 600 : 80);
       
       return {
-        name,
+        name: name.toUpperCase(),
         status: isUp ? 'UP' : 'DN',
         latency: `${baseLatency + jitter}ms`
       };
     });
-  }, [severity]);
+  }, [severity, stack]);
 
   return (
     <div className={`tactical-overview tactical-overview--${severity.toLowerCase()}`}>
+      <MissionHUD objective={objective} />
       <div className="tactical-overview__grid">
         {/* Hero Section: System Status */}
         <div className="tactical-overview__hero">
@@ -104,16 +103,21 @@ export const TacticalOverview = ({
           
           <div className="tactical-overview__visualizer">
             <div className="tactical-overview__cpu-grid">
+               <div className="tactical-overview__core tactical-overview__mem-block" style={{ color: 'var(--terminal-amber)' }}>
+                  <div className="tactical-overview__core-label">
+                    CLUSTER_MEM <span className="tactical-overview__core-usage">{metrics.ram}Gi / 32Gi</span>
+                  </div>
+                  {renderCssSparkline(memHistory)}
+               </div>
+
                {coreHistory.map((history, i) => {
                  const currentUsage = history[history.length - 1];
                  return (
                    <div key={i} className="tactical-overview__core" style={{ color: statusColor }}>
                       <div className="tactical-overview__core-label">
-                        CPU_{i} <span className="tactical-overview__core-usage">{Math.round(currentUsage)}%</span>
+                        CORE_{i} <span className="tactical-overview__core-usage">{Math.round(currentUsage)}%</span>
                       </div>
-                      <div className="tactical-overview__ascii-chart">
-                          {getAsciiSparkline(history)}
-                      </div>
+                      {renderCssSparkline(history)}
                    </div>
                  );
                })}
@@ -137,25 +141,9 @@ export const TacticalOverview = ({
             ))}
           </div>
         </div>
-
-        {/* Visual Data Stream */}
-        <div className="tactical-overview__stream">
-           <div className="tactical-overview__section-header">
-            <BurnIcon />
-            <h3>DATA_EXFILTRATION_STREAM</h3>
-          </div>
-          <div className="tactical-overview__stream-content">
-            {streamData.map((line, i) => (
-              <div key={i} className="tactical-overview__stream-line">
-                {line}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
       
       <div className="tactical-overview__footer">
-        <div className="tactical-overview__scanline"></div>
         <div className="tactical-overview__timestamp">
           SYSTEM_TIME: {new Date().toISOString()}
         </div>

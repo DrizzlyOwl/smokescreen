@@ -1,13 +1,16 @@
 import { renderHook, act } from '@testing-library/react';
 import { useIncidentChat } from './useIncidentChat';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { SyncPayload } from '../contexts/types';
 
 const mockSend = vi.fn();
-const mockSubscribe = vi.fn((handler) => {
+const mockSubscribe = vi.fn((handler: (data: SyncPayload) => void) => {
   // Store handler to trigger it manually in tests if needed
-  (globalThis as any).chatHandler = handler;
+  (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler = handler;
   return vi.fn();
 });
+
+// ... (rest of the file)
 
 // Mock dependencies
 vi.mock('./useSync', () => ({
@@ -19,6 +22,14 @@ vi.mock('./useSync', () => ({
 
 vi.mock('../utils/avatarGenerator', () => ({
   generateBitmapAvatar: vi.fn(() => 'mock-avatar-url')
+}));
+
+vi.mock('../utils/chatGenerator', () => ({
+  generateDynamicMessage: vi.fn(async () => ({
+    user: 'Bot',
+    text: 'Dynamic message',
+    isBot: true
+  }))
 }));
 
 describe('useIncidentChat hook', () => {
@@ -56,7 +67,7 @@ describe('useIncidentChat hook', () => {
 
     // Simulate incoming message
     act(() => {
-      (globalThis as any).chatHandler({
+      (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler({
         type: 'CHAT_MESSAGE',
         message: { id: 'm1', text: 'Hi', user: 'Bot', time: '12:00', isBot: true }
       });
@@ -77,11 +88,11 @@ describe('useIncidentChat hook', () => {
     ));
 
     act(() => {
-      (globalThis as any).chatHandler({
+      (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler({
         type: 'CHAT_MESSAGE',
         message: { id: 'm1', text: 'Hi', user: 'Bot', time: '12:00', isBot: true }
       });
-      (globalThis as any).chatHandler({
+      (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler({
         type: 'CHAT_MESSAGE',
         message: { id: 'm2', text: 'Hi again', user: 'Bot', time: '12:01', isBot: true }
       });
@@ -100,7 +111,7 @@ describe('useIncidentChat hook', () => {
     ));
 
     act(() => {
-      (globalThis as any).chatHandler({
+      (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler({
         type: 'CHAT_MESSAGE',
         message: { id: 'm1', text: 'Hello @operator', user: 'Bot', time: '12:00', isBot: true }
       });
@@ -116,7 +127,7 @@ describe('useIncidentChat hook', () => {
     ));
 
     act(() => {
-      (globalThis as any).chatHandler({
+      (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler({
         type: 'TYPING_INDICATOR',
         user: 'BotUser',
         isTyping: true
@@ -126,7 +137,7 @@ describe('useIncidentChat hook', () => {
     expect(result.current.typingUsers).toContain('BotUser');
 
     act(() => {
-      (globalThis as any).chatHandler({
+      (globalThis as unknown as { chatHandler: (data: SyncPayload) => void }).chatHandler({
         type: 'TYPING_INDICATOR',
         user: 'BotUser',
         isTyping: false
@@ -134,5 +145,41 @@ describe('useIncidentChat hook', () => {
     });
 
     expect(result.current.typingUsers).not.toContain('BotUser');
+  });
+
+  it('adds a system message when severity level is updated', () => {
+    const { rerender, result } = renderHook(
+      ({ severity }) => useIncidentChat(severity, 'AWS', 'Operator', 'room-1', mockOnNewMessage),
+      { initialProps: { severity: 'NOMINAL' as import('../data/incidents').Severity } }
+    );
+
+    act(() => {
+      rerender({ severity: 'P0' as import('../data/incidents').Severity });
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(result.current.messages[0].text).toContain('--- ALERT LEVEL UPDATED TO P0 [AWS] ---');
+    expect(result.current.messages[0].user).toBe('Smokescreen');
+  });
+
+  it('respects chatMultiplier for message delays', async () => {
+    // chatMultiplier = 0.1 (10x faster)
+    renderHook(() => useIncidentChat(
+      'P0', 'AWS', 'Operator', 'room-1', mockOnNewMessage, mockPlayPing, mockPlayTagPing, true, false, 0.1
+    ));
+
+    // Base delay for P0 is 3000ms. With 0.1 multiplier it's 300ms.
+    await act(async () => {
+        await vi.advanceTimersByTimeAsync(350);
+    });
+
+    // Check if send was called for typing indicator
+    expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'TYPING_INDICATOR',
+        isTyping: true
+    }));
   });
 });

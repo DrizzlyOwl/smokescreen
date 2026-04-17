@@ -49,30 +49,21 @@ export const getCommands = (actions: CommandActions): Command[] => [
     },
     {
       id: 'burn',
-      patterns: ['show burn', 'show cost', 'burn', 'cost'],
+      patterns: ['show burn', 'burn', 'money', 'cost'],
       action: () => actions.openPane('burn'),
-      description: 'Display financial burn monitor',
+      description: 'Display real-time infrastructure burn rate dashboard',
       category: 'PANES',
       usage: 'burn',
       confirmation: 'CALCULATING_INFRASTRUCTURE_BURN_RATE... [OK]',
     },
     {
-      id: 'pager',
-      patterns: ['show pager', 'sync pager', 'pager', 'uplink'],
-      action: () => actions.openPane('pager'),
-      description: 'Display mobile pager sync QR',
-      category: 'PANES',
-      usage: 'pager',
-      confirmation: 'INITIALIZING_MOBILE_PAGER_SYNC... [OK]',
-    },
-    {
       id: 'howto',
       patterns: ['show howto', 'how to', 'howto', 'manual'],
       action: () => actions.openPane('howTo'),
-      description: 'Display operator SOP manual',
+      description: 'Display official Smokescreen game manual',
       category: 'PANES',
       usage: 'howto',
-      confirmation: 'OPENING_SOP_OPERATOR_MANUAL... [OK]',
+      confirmation: 'OPENING_SMOKESCREEN_GAME_MANUAL... [OK]',
     },
     {
       id: 'settings',
@@ -333,22 +324,13 @@ export const getCommands = (actions: CommandActions): Command[] => [
       confirmation: 'VISUAL_THEME_SET: CYBERPUNK_NEON [OK]',
     },
     {
-      id: 'theme_highcontrast',
-      patterns: ['theme high-contrast', 'high-contrast'],
+      id: 'theme_high_contrast',
+      patterns: ['theme contrast', 'contrast', 'mono'],
       action: () => actions.setTheme('high-contrast'),
-      description: 'Set theme to High Contrast',
+      description: 'Set theme to High-Contrast (Monochromatic)',
       category: 'SYSTEM',
-      usage: 'theme high-contrast',
+      usage: 'theme contrast',
       confirmation: 'VISUAL_THEME_SET: HIGH_CONTRAST [OK]',
-    },
-    {
-      id: 'theme_accessibility',
-      patterns: ['theme accessibility', 'a11y'],
-      action: () => actions.setTheme('accessibility'),
-      description: 'Set theme to Accessibility (Standard Fonts)',
-      category: 'SYSTEM',
-      usage: 'theme accessibility',
-      confirmation: 'VISUAL_THEME_SET: ACCESSIBILITY_MODE [OK]',
     },
     {
       id: 'eco_on',
@@ -371,6 +353,18 @@ export const getCommands = (actions: CommandActions): Command[] => [
 
 
     // Action
+    {
+      id: 'analyze',
+      patterns: ['analyze', 'diagnose', 'sitrep'],
+      action: () => {
+        actions.generateStrategy();
+        actions.openPane('readout');
+      },
+      description: 'Run automated diagnostics and generate response strategy',
+      category: 'ACTION',
+      usage: 'analyze',
+      confirmation: 'INITIATING_SYSTEM_DIAGNOSTICS... GENERATING_STRATEGY... [OK]',
+    },
     {
       id: 'declare',
       patterns: ['declare', 'emergency', 'panic'],
@@ -424,6 +418,18 @@ export const getCommands = (actions: CommandActions): Command[] => [
       category: 'ACTION',
       usage: 'playbook <id>',
       confirmation: 'INITIALIZING_SCENARIO: $arg... [OK]',
+    },
+    {
+      id: 'override_test',
+      patterns: ['override_test', 'trigger_puzzle'],
+      action: (ctx) => {
+        const type = ctx.arg as 'phrase' | 'hold' | undefined;
+        actions.triggerApproval(type);
+      },
+      description: 'Force-trigger a critical action puzzle',
+      category: 'ACTION',
+      usage: 'override_test [phrase|hold]',
+      confirmation: 'TRIGGERING_MANUAL_OVERRIDE_WORKFLOW... [OK]',
     },
     {
       id: 'logout',

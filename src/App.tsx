@@ -3,10 +3,11 @@ import './App.scss';
 import './styles/terminal.scss';
 import { AccessDenied } from './components/AccessDenied';
 import { BootScreen } from './components/BootScreen';
-import { MobilePager } from './components/MobilePager';
 import { SecureGateway } from './components/SecureGateway';
 import { ShutdownScreen } from './components/ShutdownScreen';
 import { SystemControlCluster } from './components/SystemControlCluster';
+import { ApprovalModal } from './components/ApprovalModal';
+import { AfterActionReport } from './components/AfterActionReport';
 import { useIncidentState } from './hooks/useIncidentState';
 
 const MOBILE_THRESHOLD = 768;
@@ -22,31 +23,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // If we're on a small screen and not in a state that should override it, 
-    // switch to the mobile pager view.
     const isMobile = windowWidth <= MOBILE_THRESHOLD;
-    const isPagerParamSet = new URLSearchParams(window.location.search).has('pager');
-    
-    if (isMobile && state.appState !== 'MOBILE_PAGER' && state.appState !== 'SHUTDOWN') {
-      state.setAppState('MOBILE_PAGER');
-    } else if (!isMobile && state.appState === 'MOBILE_PAGER' && !isPagerParamSet) {
-      // If we resized back to desktop and didn't manually request the pager, go back to splash
-      state.setAppState('SPLASH');
+
+    if (isMobile && state.appState !== 'SHUTDOWN') {
+      // In a real app we might show a "use desktop" message, 
+      // but for smokescreen we just let it be or handle it in CSS.
     }
   }, [windowWidth, state]);
 
   if (state.appState === 'SHUTDOWN') {
     return <ShutdownScreen onComplete={() => window.location.reload()} />;
-  }
-
-  if (state.appState === 'MOBILE_PAGER') {
-    return (
-      <MobilePager 
-        uplinkId={state.uplinkId} 
-        initialSeverity={state.severity}
-        initialStack={state.stack}
-      />
-    );
   }
 
   if (state.appState === 'SPLASH') {
@@ -59,6 +45,12 @@ function App() {
         clientStats={state.clientStats}
         isEcoMode={state.isEcoMode}
         setIsEcoMode={state.setIsEcoMode}
+        gameMode={state.gameMode}
+        setGameMode={state.setGameMode}
+        stack={state.stack}
+        setStack={state.loggedSetStack}
+        selectedPlaybookId={state.selectedPlaybookId}
+        setSelectedPlaybookId={state.setSelectedPlaybookId}
       />
     );
   }
@@ -85,6 +77,26 @@ function App() {
 
   return (
     <div className={`crt-container ${state.isChaos ? 'glitch' : ''} ${state.isTransitioning ? 'crt-boot' : ''} ${state.isDeclared ? 'simulation-chaotic' : ''}`}>
+      {state.activeApproval && (
+        <ApprovalModal 
+          approval={state.activeApproval} 
+          onResolve={() => state.setApproval(null)} 
+          onFail={(reason) => {
+            state.setTerminalHistory(prev => [
+              ...prev, 
+              { text: `CRITICAL_ERROR: ${reason}. MANUAL_OVERRIDE_FAILED.`, type: 'error' }
+            ]);
+          }}
+        />
+      )}
+      {state.isResolving && (
+        <AfterActionReport 
+          score={state.lastScoreEarned} 
+          mitigations={state.mitigationCount} 
+          moneyLost={state.moneyLost}
+          onAcknowledge={state.executeCeaseTheatre} 
+        />
+      )}
       <SystemControlCluster 
         panes={state.panes}
         minimizedPanes={state.minimizedPanes}
@@ -111,6 +123,9 @@ function App() {
         handleLogout={state.handleLogout}
         typingUsers={state.typingUsers}
         handleCommand={state.handleCommand}
+        loggedCeaseTheatre={state.loggedCeaseTheatre}
+        commands={state.commands}
+        commandHistory={state.commandHistory}
         isChaos={state.isChaos}
         incidentReport={state.incidentReport}
         setIncidentReport={state.setIncidentReport}
@@ -127,6 +142,13 @@ function App() {
         setIsEcoMode={state.setIsEcoMode}
         chatMultiplier={state.chatMultiplier}
         setChatMultiplier={state.setChatMultiplier}
+        logMultiplier={state.logMultiplier}
+        setLogMultiplier={state.setLogMultiplier}
+        loggedHandleDeclare={state.loggedHandleDeclare}
+        gameMode={state.gameMode}
+        activeObjective={state.activeObjective}
+        mitigationCount={state.mitigationCount}
+        unreadChat={state.unreadChat}
       />
     </div>
   );

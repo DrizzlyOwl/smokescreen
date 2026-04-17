@@ -51,29 +51,47 @@ export const useResizable = (
 
       // Handle horizontal
       if (resizeDir.includes('e')) {
-        newWidth = Math.max(200, initialSizeRef.current.width + deltaX);
+        const potentialWidth = initialSizeRef.current.width + deltaX;
+        // Clamp to min 200 and max based on window width
+        newWidth = Math.max(200, Math.min(potentialWidth, window.innerWidth - initialPosRef.current.x));
       } else if (resizeDir.includes('w')) {
         const potentialWidth = initialSizeRef.current.width - deltaX;
-        if (potentialWidth >= 200) {
-          newWidth = potentialWidth;
-          newX = initialPosRef.current.x + deltaX;
-        } else {
+        const potentialX = initialPosRef.current.x + deltaX;
+        
+        if (potentialX < 0) {
+          // If trying to resize beyond left edge, clamp X to 0 and calculate width from there
+          newX = 0;
+          newWidth = initialSizeRef.current.width + initialPosRef.current.x;
+        } else if (potentialWidth < 200) {
+          // Clamp to min width
           newWidth = 200;
           newX = initialPosRef.current.x + (initialSizeRef.current.width - 200);
+        } else {
+          newWidth = potentialWidth;
+          newX = potentialX;
         }
       }
 
       // Handle vertical
       if (resizeDir.includes('s')) {
-        newHeight = Math.max(100, initialSizeRef.current.height + deltaY);
+        const potentialHeight = initialSizeRef.current.height + deltaY;
+        // Clamp to min 100 and max based on window height
+        newHeight = Math.max(100, Math.min(potentialHeight, window.innerHeight - initialPosRef.current.y));
       } else if (resizeDir.includes('n')) {
         const potentialHeight = initialSizeRef.current.height - deltaY;
-        if (potentialHeight >= 100) {
-          newHeight = potentialHeight;
-          newY = initialPosRef.current.y + deltaY;
-        } else {
+        const potentialY = initialPosRef.current.y + deltaY;
+
+        if (potentialY < 0) {
+          // If trying to resize beyond top edge, clamp Y to 0 and calculate height from there
+          newY = 0;
+          newHeight = initialSizeRef.current.height + initialPosRef.current.y;
+        } else if (potentialHeight < 100) {
+          // Clamp to min height
           newHeight = 100;
           newY = initialPosRef.current.y + (initialSizeRef.current.height - 100);
+        } else {
+          newHeight = potentialHeight;
+          newY = potentialY;
         }
       }
 

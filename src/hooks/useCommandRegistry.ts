@@ -19,6 +19,7 @@ export interface CommandResult {
 }
 
 export interface CommandActions {
+  gameMode: import('../store/useIncidentStore').GameMode;
   togglePane: (id: PaneId) => void;
   openPane: (id: PaneId) => void;
   closePane: (id: PaneId) => void;
@@ -37,6 +38,10 @@ export interface CommandActions {
   help: (commands: Command[]) => void;
   startPlaybook: (id: string) => void;
   setEcoMode: (on: boolean) => void;
+  triggerApproval: (type?: 'phrase' | 'hold' | 'slider') => void;
+  mitigationCount: number;
+  isDeclared: boolean;
+  generateStrategy: () => Promise<void>;
 }
 
 export const useCommandRegistry = (actions: CommandActions) => {
@@ -79,9 +84,26 @@ export const useCommandRegistry = (actions: CommandActions) => {
     );
 
     if (match) {
+      // Arcade Mode Restrictions
+      if (actions.gameMode === 'ARCADE' && (match.category === 'THREAT' || match.category === 'STACK' || match.id === 'eject')) {
+        return { 
+            isValid: false, 
+            message: `ERROR: MANUAL OVERRIDE DENIED. ARCADE MODE ACTIVE. FOLLOW PLAYBOOK DIRECTIVES.` 
+        };
+      }
+
       if (match.usage && match.usage.includes('<') && !match.patterns.some(p => p.includes(' '))) {
          return { isValid: false, message: `USAGE: ${match.usage}` };
       }
+
+      // Remediation Guard: Block resolution if no mitigations logged
+      if (match.id === 'cease' && actions.isDeclared && actions.mitigationCount === 0) {
+        return { 
+            isValid: false, 
+            message: `ERROR: RESOLUTION DENIED. NO MITIGATION ACTIONS LOGGED. PERFORM FAILOVER ROUTING [MAP] OR AUTHORIZE OVERRIDES FIRST.` 
+        };
+      }
+
       match.action({});
       return { 
         isValid: true, 
@@ -94,6 +116,14 @@ export const useCommandRegistry = (actions: CommandActions) => {
     );
 
     if (match) {
+      // Arcade Mode Restrictions
+      if (actions.gameMode === 'ARCADE' && (match.category === 'THREAT' || match.category === 'STACK' || match.id === 'eject')) {
+        return { 
+            isValid: false, 
+            message: `ERROR: MANUAL OVERRIDE DENIED. ARCADE MODE ACTIVE. FOLLOW PLAYBOOK DIRECTIVES.` 
+        };
+      }
+
       const matchedPattern = match.patterns.find((p) => cmd.startsWith(p.toLowerCase() + ' '));
       const arg = cmd.slice(matchedPattern!.length).trim();
       

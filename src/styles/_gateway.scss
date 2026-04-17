@@ -1,4 +1,5 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 /* Smokescreen Gateway (Splash) */
 .gateway {
@@ -9,6 +10,12 @@
   background-color: #000;
   padding: rem(40);
   overflow-y: auto;
+  min-height: 100vh;
+
+  @include respond-to('mobile') {
+    padding: rem(20);
+    align-items: center;
+  }
 
   &__console {
     z-index: 1;
@@ -18,8 +25,8 @@
     width: 100%;
     animation: warm-up 0.5s ease-out;
 
-    @media (max-width: 768px) {
-      width: 100%;
+    @include respond-to('mobile') {
+      text-align: center;
     }
 
     .eco-mode & {
@@ -38,6 +45,11 @@
         opacity: 0.3;
         letter-spacing: rem(1);
         white-space: nowrap;
+
+        @include respond-to('mobile') {
+            white-space: normal;
+            font-size: 0.7rem;
+        }
     }
   }
 
@@ -51,8 +63,19 @@
     text-align: left;
     background: rgba(0, 0, 0, 0.3);
 
+    @include respond-to('mobile') {
+        flex-direction: column;
+        gap: rem(10);
+        align-items: center;
+        text-align: center;
+    }
+
     &-right {
       text-align: right;
+
+      @include respond-to('mobile') {
+        text-align: center;
+      }
     }
   }
 
@@ -68,7 +91,7 @@
     margin: 0 0 rem(5) 0; 
     letter-spacing: rem(4);
 
-    @media (max-width: 768px) {
+    @include respond-to('mobile') {
       font-size: 2.2rem;
       letter-spacing: rem(2);
     }
@@ -84,6 +107,11 @@
   &__input-group {
     margin-bottom: rem(25);
     text-align: left;
+
+    @include respond-to('mobile') {
+        text-align: center;
+        width: 100%;
+    }
   }
 
   &__input-label {
@@ -98,6 +126,10 @@
     position: relative;
     display: flex;
     align-items: center;
+
+    @include respond-to('mobile') {
+        justify-content: center;
+    }
   }
 
   &__cursor {
@@ -105,6 +137,10 @@
     left: rem(15);
     color: var(--terminal-green);
     font-size: var(--text-l4);
+
+    @include respond-to('mobile') {
+        display: none; // Hide absolute cursor on mobile for cleaner input
+    }
   }
 
   &__input {
@@ -119,6 +155,11 @@
     text-transform: uppercase;
     box-sizing: border-box;
 
+    @include respond-to('mobile') {
+        padding: rem(12);
+        text-align: center;
+    }
+
     &--small {
       padding: rem(10);
     }
@@ -129,6 +170,90 @@
     flex-direction: column;
     gap: rem(12);
     margin-top: rem(20);
+  }
+
+  &__field {
+    margin-bottom: rem(20);
+  }
+
+  &__action-btn {
+    all: unset;
+    height: rem(26);
+    padding: 0 rem(12);
+    font-size: rem(11);
+    color: var(--terminal-green);
+    cursor: pointer;
+    background: #111;
+    border: rem(1) solid var(--terminal-green);
+    font-weight: bold;
+    font-family: var(--font-mono);
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+
+    @include respond-to('mobile') {
+        height: rem(44); // Better touch target
+        padding: 0 rem(20);
+        font-size: rem(13);
+        flex: 1 1 calc(50% - rem(8));
+    }
+
+    &:hover {
+      background: var(--terminal-green);
+      color: #000;
+    }
+
+    &.active {
+      background: var(--terminal-green);
+      color: #000;
+      box-shadow: 0 0 rem(10) var(--terminal-green);
+    }
+
+    &:focus {
+      outline: rem(2) solid white;
+      outline-offset: rem(2);
+      box-shadow: 0 0 rem(15) white;
+    }
+  }
+
+  &__btn-badge {
+    margin-left: rem(8);
+    font-size: rem(9);
+    background: #fff;
+    color: #000;
+    padding: 0 rem(4);
+    border-radius: rem(2);
+    animation: blink 1s step-end infinite;
+  }
+
+  &__btn-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: rem(8);
+    margin-top: rem(5);
+
+    @include respond-to('mobile') {
+        justify-content: center;
+    }
+  }
+
+  &__description-block {
+    color: var(--terminal-green); 
+    font-size: 0.8rem; 
+    opacity: 0.7; 
+    margin-top: rem(10);
+    padding: rem(10);
+    border-left: rem(2) solid var(--terminal-green);
+    background: rgba(var(--terminal-green), 0.05);
+    line-height: 1.4;
+
+    @include respond-to('mobile') {
+        text-align: center;
+        border-left: none;
+        border-top: rem(2) solid var(--terminal-green);
+    }
   }
 
   &__eco-toggle {
@@ -163,28 +288,5 @@
     opacity: 0.3;
     text-align: center;
     font-size: var(--text-l4);
-  }
-
-  &__pager-link {
-    margin-top: rem(25);
-    border-top: rem(1) dashed color-mix(in srgb, var(--terminal-green), transparent 80%);
-    padding-top: rem(20);
-    text-align: left;
-
-    &-label {
-      font-size: 0.9rem;
-      color: color-mix(in srgb, var(--terminal-green), transparent 50%);
-      margin-bottom: rem(8);
-      font-weight: bold;
-    }
-
-    &-input-group {
-      display: flex;
-      gap: rem(8);
-    }
-
-    &-button {
-      min-width: rem(100);
-    }
   }
 }

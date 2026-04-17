@@ -3,7 +3,7 @@ import type { Severity, Stack } from '../data/incidents';
 import type { PanesState, PaneId } from './useWindowManager';
 import type { Theme } from '../contexts/types';
 
-export interface SyncState {
+export interface UrlSyncState {
   severity: Severity;
   stack: Stack;
   panes: PanesState;
@@ -14,8 +14,8 @@ export interface SyncState {
 }
 
 export const useUrlSync = (
-  state: SyncState,
-  onUpdate: (state: Partial<SyncState>) => void
+  state: UrlSyncState,
+  onUpdate: (state: Partial<UrlSyncState>) => void
 ) => {
   const isInitialMount = useRef(true);
   const onUpdateRef = useRef(onUpdate);
@@ -28,7 +28,7 @@ export const useUrlSync = (
   // Initial load from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const updates: Partial<SyncState> = {};
+    const updates: Partial<UrlSyncState> = {};
 
     if (params.has('sev')) updates.severity = params.get('sev') as Severity;
     if (params.has('stack')) updates.stack = params.get('stack') as Stack;
@@ -101,9 +101,9 @@ export const useUrlSync = (
   }, [state.severity, state.stack, state.theme, state.isEcoMode, state.isDebugMode, state.isAudioOn, state.panes, panesStr]);
 };
 
-export const getInitialStateFromUrl = (): Partial<SyncState> => {
+export const getInitialStateFromUrl = (): Partial<UrlSyncState> => {
     const params = new URLSearchParams(window.location.search);
-    const state: Partial<SyncState> = {};
+    const state: Partial<UrlSyncState> = {};
 
     if (params.has('sev')) state.severity = params.get('sev') as Severity;
     if (params.has('stack')) state.stack = params.get('stack') as Stack;

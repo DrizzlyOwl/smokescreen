@@ -9,7 +9,7 @@ import type { ChatMessage, Theme } from '../contexts/types';
 import type { PaneId, PanesState, MinimizedState, ZIndicesState } from '../hooks/useWindowManager';
 import '../styles/SystemControlCluster.scss';
 
-interface SystemControlClusterProps {
+export interface SystemControlClusterProps {
   panes: PanesState;
   minimizedPanes: MinimizedState;
   zIndices: ZIndicesState;
@@ -35,6 +35,9 @@ interface SystemControlClusterProps {
   handleLogout: () => void;
   typingUsers: string[];
   handleCommand: (cmd: string) => boolean;
+  loggedCeaseTheatre: () => void;
+  commands: import('../hooks/useCommandRegistry').Command[];
+  commandHistory: string[];
   isChaos: boolean;
   incidentReport: string;
   setIncidentReport: (r: string) => void;
@@ -51,6 +54,13 @@ interface SystemControlClusterProps {
   setIsEcoMode: (on: boolean) => void;
   chatMultiplier: number;
   setChatMultiplier: (multiplier: number) => void;
+  logMultiplier: number;
+  setLogMultiplier: (multiplier: number) => void;
+  loggedHandleDeclare: () => void;
+  gameMode: import('../store/useIncidentStore').GameMode;
+  activeObjective: import('../contexts/types').Objective | null;
+  mitigationCount: number;
+  unreadChat: number;
 }
 
 export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props) => {
@@ -79,6 +89,13 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
         panes={props.panes}
         loggedTogglePane={props.loggedTogglePane}
         handleLogout={props.handleLogout}
+        severity={props.severity}
+        isDeclared={props.isDeclared}
+        onDeclare={props.loggedHandleDeclare}
+        onResolve={props.loggedCeaseTheatre}
+        mitigationCount={props.mitigationCount}
+        unreadChat={props.unreadChat}
+        gameMode={props.gameMode}
       />
     </>
   );

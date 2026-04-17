@@ -1,75 +1,158 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { Playbook, PlaybookEvent } from '../data/playbooks/types';
-import type { Severity } from '../data/incidents';
+import { type Severity, type Stack } from '../data/incidents';
 import type { ChatMessage } from '../contexts/types';
 
 interface PlaybookEngineProps {
-  sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
+  sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bio?: string) => void;
   injectLog: (log: string) => void;
   setSeverity: (s: Severity) => void;
   setIsChaos: (on: boolean) => void;
+  addBeacon: (id: string) => void;
+  triggerApproval: (type?: 'phrase' | 'hold' | 'slider') => void;
+  triggerOverride: () => void;
+  triggerInterrupt: () => void;
+  setObjective: (obj: import('../contexts/types').Objective | null) => void;
+  stack: Stack;
+  operatorName: string;
+  declareIncident: () => void;
 }
 
-export const usePlaybookEngine = ({ sendMessage, injectLog, setSeverity, setIsChaos }: PlaybookEngineProps) => {
+export const usePlaybookEngine = ({ 
+  sendMessage, 
+  injectLog, 
+  setSeverity, 
+  setIsChaos, 
+  addBeacon, 
+  triggerApproval,
+  triggerOverride,
+  triggerInterrupt,
+  setObjective,
+  stack, 
+  operatorName,
+  declareIncident 
+}: PlaybookEngineProps) => {
   const [activePlaybook, setActivePlaybook] = useState<Playbook | null>(null);
-  const activeTimeouts = useRef<number[]>([]);
+  const [currentEventIndex, setCurrentIndex] = useState(-1);
+  const [isWaiting, setIsWaiting] = useState(false);
+  
+  const timerRef = useRef<number | null>(null);
 
-  const clearTimeouts = useCallback(() => {
-    activeTimeouts.current.forEach(window.clearTimeout);
-    activeTimeouts.current = [];
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+    }
   }, []);
 
   const stopPlaybook = useCallback(() => {
-    clearTimeouts();
+    clearTimer();
     setActivePlaybook(null);
+    setCurrentIndex(-1);
+    setIsWaiting(false);
     setIsChaos(false);
-  }, [clearTimeouts, setIsChaos]);
+    setObjective(null);
+  }, [clearTimer, setIsChaos, setObjective]);
+
+  const resumePlaybook = useCallback(() => {
+    if (!isWaiting) return;
+    setIsWaiting(false);
+    setCurrentIndex(prev => prev + 1);
+  }, [isWaiting]);
+
+  const parseText = useCallback((text: string) => {
+    return text
+        .replace(/\{\{STACK\}\}/g, stack)
+        .replace(/@operator/g, `@${operatorName.split(' ')[0].toLowerCase()}`);
+  }, [stack, operatorName]);
+
+  const executeEvent = useCallback((event: PlaybookEvent) => {
+    switch (event.type) {
+      case 'CHAT': {
+        const p = event.payload as ChatMessage;
+        sendMessage(parseText(p.text), p.user, p.id, p.isBot, p.bio);
+        break;
+      }
+      case 'LOG':
+        injectLog(parseText(event.payload as string));
+        break;
+      case 'SEVERITY': {
+        const sev = event.payload as Severity;
+        setSeverity(sev);
+        if (sev === 'P0' || sev === 'P1') {
+            declareIncident();
+        }
+        break;
+      }
+      case 'CHAOS':
+        setIsChaos(event.payload as boolean);
+        break;
+      case 'BEACON':
+        addBeacon(event.payload as string);
+        break;
+      case 'APPROVAL':
+        triggerApproval(event.payload as 'phrase' | 'hold' | 'slider' | undefined);
+        break;
+      case 'OVERRIDE':
+        triggerOverride();
+        break;
+      case 'INTERRUPT':
+        triggerInterrupt();
+        break;
+      case 'OBJECTIVE':
+        setObjective(event.payload as import('../contexts/types').Objective);
+        break;
+      case 'WAIT':
+        setIsWaiting(true);
+        break;
+    }
+  }, [sendMessage, injectLog, setSeverity, setIsChaos, addBeacon, triggerApproval, triggerOverride, triggerInterrupt, setObjective, declareIncident, parseText]);
+
+  // Main execution loop
+  useEffect(() => {
+    if (!activePlaybook || currentEventIndex < 0 || isWaiting) return;
+
+    if (currentEventIndex >= activePlaybook.events.length) {
+        // Playbook finished
+        const timeout = window.setTimeout(() => {
+            setActivePlaybook(null);
+            setObjective(null);
+            setCurrentIndex(-1);
+        }, 1000);
+        return () => window.clearTimeout(timeout);
+    }
+
+    const event = activePlaybook.events[currentEventIndex];
+    const prevEvent = currentEventIndex > 0 ? activePlaybook.events[currentEventIndex - 1] : null;
+    const delay = event.offsetMs - (prevEvent ? prevEvent.offsetMs : 0);
+
+    timerRef.current = window.setTimeout(() => {
+        executeEvent(event);
+        if (event.type !== 'WAIT') {
+            setCurrentIndex(prev => prev + 1);
+        }
+    }, Math.max(0, delay));
+
+    return () => clearTimer();
+  }, [activePlaybook, currentEventIndex, isWaiting, executeEvent, clearTimer, setObjective]);
 
   const startPlaybook = useCallback((playbook: Playbook) => {
     stopPlaybook();
     setActivePlaybook(playbook);
-
-    playbook.events.forEach((event: PlaybookEvent) => {
-      const timeoutId = window.setTimeout(() => {
-        switch (event.type) {
-          case 'CHAT': {
-            const p = event.payload as Omit<ChatMessage, 'time'>;
-            sendMessage(p.text, p.user, p.id, p.isBot);
-            break;
-          }
-          case 'LOG':
-            injectLog(event.payload as string);
-            break;
-          case 'SEVERITY':
-            setSeverity(event.payload as Severity);
-            break;
-          case 'CHAOS':
-            setIsChaos(event.payload as boolean);
-            break;
-        }
-      }, event.offsetMs);
-      
-      activeTimeouts.current.push(timeoutId);
-    });
-
-    // Automatically clear active playbook state when done
-    const maxOffset = playbook.events.length > 0 ? Math.max(...playbook.events.map(e => e.offsetMs)) : 0;
-    const finalTimeout = window.setTimeout(() => {
-      setActivePlaybook(null);
-    }, maxOffset + 100);
-    activeTimeouts.current.push(finalTimeout);
-
-  }, [sendMessage, injectLog, setSeverity, setIsChaos, stopPlaybook]);
+    setCurrentIndex(0);
+  }, [stopPlaybook]);
 
   useEffect(() => {
     return () => {
-      clearTimeouts();
+      clearTimer();
     };
-  }, [clearTimeouts]);
+  }, [clearTimer]);
 
   return {
     activePlaybook,
     startPlaybook,
-    stopPlaybook
+    stopPlaybook,
+    resumePlaybook,
+    isWaiting
   };
 };

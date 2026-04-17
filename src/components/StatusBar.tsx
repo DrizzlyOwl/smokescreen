@@ -7,6 +7,7 @@ import { useTerminalStore } from '../store/useTerminalStore';
 export const StatusBar: React.FC = () => {
   const severity = useIncidentStore(state => state.severity);
   const stack = useIncidentStore(state => state.stack);
+  const gameMode = useIncidentStore(state => state.gameMode);
   const status = useIncidentStore(state => state.status);
   const isChaos = useIncidentStore(state => state.isChaos);
   
@@ -50,25 +51,30 @@ export const StatusBar: React.FC = () => {
   };
 
   return (
-    <div className={`status-line status-line--${severity.toLowerCase()}`}>
-      <div className="status-line__left">
-        <span>SRE_OS v5.0 // SYS_STATUS: {status}</span>
-        {isChaos && <span className="unstable-tag">!! UNSTABLE !!</span>}
-      </div>
-      <div className="status-line__right">
-        <span>STACK:{stack}</span>
-        <span className="separator">|</span>
-        <span>FPS:{fps}</span>
-        <span className="separator">|</span>
-        <div 
-          className={`status-line__battery ${isEcoMode ? 'eco-active' : ''}`}
-          onClick={() => setIsEcoMode(!isEcoMode)}
-          title="Toggle Eco Mode"
-        >
-          <BatteryIcon level={getBatteryLevel()} />
-          {batteryLevel}%
+    <div className="status-bar">
+        <div className={`status-line status-line--${severity.toLowerCase()}`}>
+            <div className="status-line__left">
+                <span className="status-line__os-ver">SRE_OS v5.0 //</span>
+                <span>SYS_STATUS: {status}</span>
+                {isChaos && <span className="unstable-tag">!! UNSTABLE !!</span>}
+                <span className="separator">|</span>
+                <span>MODE:{gameMode}</span>
+            </div>
+            <div className="status-line__right">
+                <span>STACK:{stack}</span>
+                <span className="separator">|</span>
+                <span className="status-line__fps">FPS:{fps}</span>
+                <span className="separator">|</span>
+                <div 
+                    className={`status-line__battery ${isEcoMode ? 'eco-active' : ''}`}
+                    onClick={() => setIsEcoMode(!isEcoMode)}
+                    title="Toggle Eco Mode"
+                >
+                    <BatteryIcon level={getBatteryLevel()} />
+                    {batteryLevel}%
+                </div>
+            </div>
         </div>
-      </div>
     </div>
   );
 };

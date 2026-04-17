@@ -25,6 +25,10 @@ describe('useCommandRegistry', () => {
     handleLogout: vi.fn<() => void>(),
     help: vi.fn<() => void>(),
     startPlaybook: vi.fn<(id: string) => void>(),
+    setEcoMode: vi.fn<(on: boolean) => void>(),
+    triggerApproval: vi.fn<(type?: 'phrase' | 'hold' | 'slider') => void>(),
+    mitigationCount: 0,
+    isDeclared: false
   };
 
   it('correctly identifies and executes a threat level command', () => {
@@ -107,5 +111,22 @@ describe('useCommandRegistry', () => {
     
     expect(result.isValid).toBe(false);
     expect(result.message).toContain('ERROR: COMMAND NOT FOUND IN CATEGORY [PANES]');
+  });
+
+  it('enforces Remediation Guard on resolve command', () => {
+    // Case 1: Declared but no mitigation
+    const actionsWithNoMitigation = { ...mockActions, isDeclared: true, mitigationCount: 0 };
+    const { handleCommand: handleCommand1 } = useCommandRegistry(actionsWithNoMitigation as unknown as CommandActions);
+    
+    const result1 = handleCommand1('resolve');
+    expect(result1.isValid).toBe(false);
+    expect(result1.message).toContain('RESOLUTION DENIED. NO MITIGATION ACTIONS LOGGED.');
+
+    // Case 2: Declared and has mitigation
+    const actionsWithMitigation = { ...mockActions, isDeclared: true, mitigationCount: 1 };
+    const { handleCommand: handleCommand2 } = useCommandRegistry(actionsWithMitigation as unknown as CommandActions);
+    
+    const result2 = handleCommand2('resolve');
+    expect(result2.isValid).toBe(true);
   });
 });

@@ -21,12 +21,15 @@ interface TerminalStore {
   
   isEcoMode: boolean;
   setIsEcoMode: (val: boolean) => void;
+
+  commandHistory: string[];
+  addCommandToHistory: (cmd: string) => void;
 }
 
 const urlState = getInitialStateFromUrl();
 
 export const useTerminalStore = create<TerminalStore>((set) => ({
-  appState: new URLSearchParams(window.location.search).get('pager') ? 'MOBILE_PAGER' : 'SPLASH',
+  appState: 'SPLASH',
   setAppState: (appState) => set({ appState }),
   
   operatorName: localStorage.getItem('operator_name') || '',
@@ -42,11 +45,7 @@ export const useTerminalStore = create<TerminalStore>((set) => ({
     set({ theme });
   },
   
-  uplinkId: (() => {
-    const pagerId = new URLSearchParams(window.location.search).get('pager');
-    if (pagerId) return pagerId.toUpperCase();
-    return `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-  })(),
+  uplinkId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
   setUplinkId: (uplinkId) => set({ uplinkId }),
   regenerateUplinkId: () => set({ 
     uplinkId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}` 
@@ -65,4 +64,12 @@ export const useTerminalStore = create<TerminalStore>((set) => ({
     else document.body.classList.remove('eco-mode');
     set({ isEcoMode });
   },
+
+  commandHistory: [],
+  addCommandToHistory: (cmd) => set((state) => ({
+    // Only add if it's not the same as the last command to avoid duplicates
+    commandHistory: state.commandHistory[state.commandHistory.length - 1] === cmd 
+        ? state.commandHistory 
+        : [...state.commandHistory, cmd].slice(-50) // Keep last 50 commands
+  })),
 }));

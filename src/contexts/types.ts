@@ -1,7 +1,7 @@
 import type { Severity, Stack } from '../data/incidents';
 
-export type AppState = 'SPLASH' | 'BOOT' | 'READY' | 'MOBILE_PAGER' | 'SHUTDOWN';
-export type Theme = 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai' | 'cyberpunk' | 'high-contrast' | 'accessibility';
+export type AppState = 'SPLASH' | 'BOOT' | 'READY' | 'SHUTDOWN';
+export type Theme = 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai' | 'cyberpunk' | 'high-contrast';
 
 export interface ChatMessage {
   id: string;
@@ -10,12 +10,19 @@ export interface ChatMessage {
   time: string;
   isBot: boolean;
   read?: boolean;
+  avatarUrl?: string;
+  bio?: string;
 }
 
 export interface DebugLogEntry {
   timestamp: string;
   action: string;
   data: string;
+}
+
+export interface Objective {
+  title: string;
+  status: 'pending' | 'warning' | 'active' | 'complete';
 }
 
 export type SyncPayload = 
@@ -66,7 +73,7 @@ export interface IncidentContextType {
   isSlowBurn: boolean;
   isChaos: boolean;
   slowBurnCountdown: number;
-  totalSaved: number;
+  mitigationScore: number;
   setSeverity: (s: Severity) => void;
   setStack: (s: Stack) => void;
   setIncidentReport: (e: string) => void;
@@ -87,5 +94,6 @@ export interface AudioContextType {
   playLoginChime: () => void;
   playLogoutChime: () => void;
   playPostBeep: () => void;
+  playMitigationSuccess: () => void;
   stopAllSounds: () => void;
 }

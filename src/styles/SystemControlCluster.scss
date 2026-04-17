@@ -1,46 +1,72 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
-/* 80s Mainframe TUI Styles */
-
-.status-line {
-  position: fixed;
+.status-bar {
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: rem(24);
-  z-index: 10000;
+  background: #000;
+  border-bottom: rem(1) solid var(--terminal-green);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 rem(10);
+  padding: 0 rem(15);
   font-family: var(--font-mono);
-  font-weight: bold;
-  font-size: rem(12);
-  background: var(--terminal-green);
-  color: var(--terminal-bg);
-  box-shadow: 0 rem(2) rem(10) rgba(0, 0, 0, 0.8);
+  font-size: rem(10);
+  color: var(--terminal-green);
+  z-index: 10000;
+}
 
-  &--p0 { background: var(--terminal-red); }
-  &--p1 { background: var(--terminal-amber); }
-  
+.status-line {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  &--p0 { color: var(--terminal-red); }
+  &--p1 { color: var(--terminal-amber); }
+
   &__left, &__right {
     display: flex;
     align-items: center;
-    gap: rem(15);
+    gap: rem(10);
   }
 
-  .unstable-tag {
-    animation: flicker 0.1s infinite;
-    background: #000;
-    color: var(--terminal-red);
-    padding: 0 rem(5);
+  &__os-ver {
+    @include respond-to('mobile') {
+        display: none;
+    }
+  }
+
+  &__fps {
+    @include respond-to('mobile') {
+        display: none;
+    }
   }
 
   .separator {
-    opacity: 0.5;
+    opacity: 0.3;
+    @include respond-to('mobile') {
+        &:nth-of-type(1), &:nth-of-type(3) { display: none; }
+    }
   }
 
-  &__battery {
+  .unstable-tag {
+    background: var(--terminal-red);
+    color: #fff;
+    padding: 0 rem(4);
+    font-weight: 900;
+    animation: flash-red 0.5s infinite;
+  }
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: rem(15);
+
+  &__item {
     display: flex;
     align-items: center;
     gap: rem(5);
@@ -60,7 +86,7 @@
 }
 
 .command-strip {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
@@ -75,10 +101,23 @@
   font-family: var(--font-mono);
   box-shadow: 0 rem(-2) rem(15) rgba(var(--terminal-green), 0.2);
 
+  @include respond-to('mobile') {
+    height: auto;
+    min-height: rem(44);
+    flex-direction: column;
+    padding: rem(5);
+    justify-content: center;
+  }
+
   &__info {
     font-size: rem(11);
     color: var(--terminal-green);
     font-weight: bold;
+
+    @include respond-to('mobile') {
+        margin-bottom: rem(4);
+        font-size: rem(9);
+    }
   }
 
   &__actions {
@@ -86,6 +125,16 @@
     gap: rem(4);
     height: 100%;
     align-items: center;
+
+    @include respond-to('mobile') {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: rem(2);
+        gap: rem(6);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        &::-webkit-scrollbar { display: none; }
+    }
   }
 
   &__btn {
@@ -98,6 +147,16 @@
     background: #111;
     border: rem(1) solid var(--terminal-green);
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+
+    @include respond-to('mobile') {
+        height: rem(36);
+        padding: 0 rem(12);
+        font-size: rem(12);
+    }
 
     &:hover {
       background: var(--terminal-green);
@@ -109,7 +168,68 @@
       color: #000;
       box-shadow: 0 0 rem(10) var(--terminal-green);
     }
+
+    .f-key {
+        opacity: 0.5;
+        margin-right: rem(4);
+        @include respond-to('mobile') {
+            display: none;
+        }
+    }
+
+    .command-strip__unread-badge {
+      background: var(--terminal-red);
+      color: #fff;
+      padding: 0 rem(4);
+      border-radius: rem(2);
+      font-size: rem(9);
+      margin-left: rem(4);
+      vertical-align: middle;
+      display: inline-block;
+      line-height: 1.2;
+      animation: pulse 1s infinite;
+    }
+
+    &--declare {
+      background: var(--terminal-red);
+      color: #fff;
+      border-color: var(--terminal-red);
+      animation: pulse-red 1s infinite alternate;
+      &:hover { background: #ff5555; border-color: #ff5555; }
+    }
+
+    &--resolve {
+      background: var(--terminal-green);
+      color: #000;
+      border-color: var(--terminal-green);
+      animation: pulse-green 1s infinite alternate;
+      &:hover { filter: brightness(1.2); }
+    }
+
+    &--beacon {
+      background: var(--terminal-amber) !important;
+      color: #000 !important;
+      animation: beacon-pulse 0.8s infinite alternate !important;
+      box-shadow: 0 0 rem(15) var(--terminal-amber);
+    }
   }
+}
+
+@keyframes beacon-pulse {
+  from { opacity: 1; transform: scale(1); filter: brightness(1); }
+  to { opacity: 0.8; transform: scale(1.1); filter: brightness(1.5); }
+}
+
+@keyframes flash-red {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes flash-green {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .tiled-layout {
@@ -123,8 +243,9 @@
   display: flex;
   flex-direction: column;
 
-  @media (max-width: 1024px) {
+  @include respond-to('tablet') {
     overflow-y: auto;
+    padding-bottom: rem(60);
   }
 }
 
@@ -136,7 +257,7 @@
   padding: rem(4);
   box-sizing: border-box;
 
-  @media (max-width: 1024px) {
+  @include respond-to('tablet') {
     flex-direction: column;
     height: auto;
     min-height: 100%;
@@ -152,7 +273,7 @@
     flex-direction: column;
     gap: rem(4);
 
-    @media (max-width: 1024px) {
+    @include respond-to('tablet') {
       flex: none;
       height: 60vh;
       min-height: rem(400);
@@ -170,18 +291,10 @@
         display: none;
     }
 
-    @media (max-width: 1024px) {
+    @include respond-to('tablet') {
       flex: none;
       height: auto;
       padding-bottom: rem(20);
-    }
-
-    @media (max-width: 900px) {
-      // Restore stack behavior instead of fixed overlay
-      position: relative;
-      top: 0;
-      bottom: 0;
-      background: transparent;
     }
   }
 }

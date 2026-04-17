@@ -65,6 +65,7 @@
     margin-bottom: 0;
     transition: background 0.1s ease;
     border-left: rem(2) solid transparent;
+    position: relative;
 
     &:hover {
       background: var(--ui-bg-alt);
@@ -117,9 +118,14 @@
       overflow: hidden;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+      transition: transform 0.2s;
       
       &--bot {
         box-shadow: 0 0 rem(10) rgba(224, 30, 90, 0.3);
+      }
+
+      &:hover:not(&--bot) {
+        transform: scale(1.05);
       }
 
       img {
@@ -129,6 +135,13 @@
         image-rendering: pixelated;
         image-rendering: crisp-edges;
       }
+    }
+
+    &-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     &-header {
@@ -142,7 +155,11 @@
           color: var(--ui-text);
           font-size: rem(15);
           cursor: pointer;
-          &:hover { text-decoration: underline; }
+          transition: all 0.2s;
+          &:hover { 
+            color: var(--terminal-green);
+            text-decoration: underline; 
+          }
         }
 
         &-role-tag {
@@ -160,6 +177,13 @@
           vertical-align: middle;
           font-weight: bold;
           letter-spacing: rem(0.5);
+          transition: all 0.2s ease;
+
+          &:hover {
+            color: var(--terminal-green);
+            border-color: var(--terminal-green);
+            background: rgba(var(--terminal-green), 0.1);
+          }
         }
 
         &-time {
@@ -198,7 +222,68 @@
       cursor: pointer;
       &:hover { background: rgba(224, 30, 90, 0.2); }
     }
-  }
+  } // End of &__message
+
+  &__bio-bubble {
+      margin-top: rem(12);
+      margin-bottom: rem(12);
+      background: #05070a;
+      border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 60%);
+      border-left: rem(4) solid var(--terminal-green);
+      padding: 0;
+      border-radius: 0 rem(8) rem(8) 0;
+      font-size: rem(14);
+      box-shadow: 0 rem(10) rem(30) rgba(0, 0, 0, 0.5), 0 0 rem(20) color-mix(in srgb, var(--terminal-green), transparent 95%);
+      animation: bio-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: rem(340);
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+      
+      /* Clipped corner effect */
+      clip-path: polygon(
+        0 0, 
+        calc(100% - rem(15)) 0, 
+        100% rem(15), 
+        100% 100%, 
+        0 100%
+      );
+
+      &-title {
+        background: color-mix(in srgb, var(--terminal-green), transparent 90%);
+        color: var(--terminal-green);
+        font-weight: 900;
+        font-size: rem(10);
+        text-transform: uppercase;
+        padding: rem(6) rem(16);
+        font-family: var(--font-mono);
+        letter-spacing: rem(2);
+        display: flex;
+        align-items: center;
+        gap: rem(8);
+        border-bottom: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 80%);
+
+        &::before {
+            content: "[ID_DATA]";
+            font-size: rem(8);
+            opacity: 0.6;
+        }
+      }
+
+      &-text {
+        color: var(--ui-text);
+        line-height: 1.5;
+        font-weight: 500;
+        padding: rem(12) rem(16);
+        font-family: var(--font-mono);
+        font-size: rem(13);
+        
+        &::before {
+            content: "> ";
+            color: var(--terminal-green);
+        }
+      }
+    }
 
   &__typing {
     display: flex;
@@ -224,6 +309,10 @@
         &:nth-child(2) { animation-delay: 0.2s; }
         &:nth-child(3) { animation-delay: 0.4s; }
       }
+    }
+
+    &-text {
+        /* Inherits from __typing */
     }
   }
 
@@ -291,6 +380,11 @@
     font-family: var(--font-mono);
     color: var(--ui-text);
   }
+}
+
+@keyframes bio-pop {
+  from { transform: scale(0.9) translateY(rem(10)); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
 }
 
 @keyframes typing-dot {

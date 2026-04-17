@@ -60,17 +60,28 @@ const KERNEL_LOGS: Record<string, string[]> = {
 let interval: number | null = null;
 
 self.onmessage = (e: MessageEvent) => {
-    const { type, severity } = e.data;
+    const { type, severity, multiplier = 1 } = e.data;
 
     if (type === 'START') {
-        if (interval) clearInterval(interval);
+        if (interval) {
+            clearInterval(interval);
+        }
         
-        const delay = severity === 'P0' ? 100 : severity === 'P1' ? 400 : severity === 'P3' ? 1200 : 2500;
+        const baseDelay = severity === 'P0' ? 100 : severity === 'P1' ? 400 : severity === 'P3' ? 1200 : 2500;
+        const delay = baseDelay * multiplier;
         
         interval = self.setInterval(() => {
             const pool = KERNEL_LOGS[severity] || KERNEL_LOGS.NOMINAL;
             const log = pool[Math.floor(Math.random() * pool.length)];
-            self.postMessage({ type: 'LOG', log });
+            
+            let spike = null;
+            if (log.includes('Out of memory') || log.includes('oom-kill') || log.includes('MEMORY_CORRUPTION')) {
+                spike = { metric: 'ram', target: 28 + Math.random() * 4, duration: 6000 };
+            } else if (log.includes('CPU') || log.includes('HARD LOCKUP') || log.includes('FATAL') || log.includes('PANIC')) {
+                spike = { metric: 'cpu', target: 95 + Math.random() * 5, duration: 8000 };
+            }
+
+            self.postMessage({ type: 'LOG', log, spike });
         }, delay);
     }
 

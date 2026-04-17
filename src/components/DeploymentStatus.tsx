@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { DeployIcon } from './Icons';
-import type { Severity } from '../data/incidents';
+import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { Pane } from './Pane';
 import '../styles/DeploymentStatus.scss';
 
@@ -13,14 +13,9 @@ interface PodStatus {
   memory: string;
 }
 
-const POD_NAMES = [
-  'api-gateway', 'auth-service', 'payment-processor', 'user-profile', 
-  'redis-master', 'postgres-0', 'worker-pool-a', 'worker-pool-b',
-  'search-indexer', 'notification-engine', 'billing-sync', 'audit-logger'
-];
-
 export const DeploymentStatus = ({ 
     severity, 
+    stack,
     zIndex, 
     onFocus, 
     isActive, 
@@ -35,6 +30,7 @@ export const DeploymentStatus = ({
     onSnapMainToggle
 }: { 
     severity: Severity, 
+    stack: Stack,
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean, 
@@ -48,14 +44,40 @@ export const DeploymentStatus = ({
     isSnappedMain?: boolean,
     onSnapMainToggle?: () => void
 }) => {
-  const [pods, setPods] = useState<PodStatus[]>(() => POD_NAMES.map(name => ({
-    name: `${name}-${Math.random().toString(36).substring(2, 7)}`,
+  const workloadNames = useMemo(() => {
+    const systems = stackJargon[stack]?.systems || commonJargon.systems;
+    return systems.map((name, index) => ({
+        raw: name,
+        id: `${name.toLowerCase().replace(/\s+/g, '-')}-${index}`
+    }));
+  }, [stack]);
+
+  const [pods, setPods] = useState<PodStatus[]>(() => workloadNames.map(item => ({
+    name: item.id,
     status: 'Running',
     restarts: 0,
-    age: '12d',
+    age: severity === 'NOMINAL' ? '12d' : '1s',
     cpu: '12m',
     memory: '128Mi'
   })));
+
+  // Sync state during render when workloadNames or severity changes
+  const [prevWorkloadNames, setPrevWorkloadNames] = useState(workloadNames);
+  const [prevSeverity, setPrevSeverity] = useState(severity);
+
+  if (workloadNames !== prevWorkloadNames || severity !== prevSeverity) {
+    setPrevWorkloadNames(workloadNames);
+    setPrevSeverity(severity);
+    setPods(workloadNames.map(item => ({
+        name: item.id,
+        status: 'Running',
+        restarts: 0,
+        age: severity === 'NOMINAL' ? '12d' : '1s',
+        cpu: '12m',
+        memory: '128Mi'
+    })));
+  }
+
   const [tfLog, setTfLog] = useState<string[]>([]);
   const tfScrollRef = useRef<HTMLDivElement>(null);
 
@@ -66,6 +88,8 @@ export const DeploymentStatus = ({
   }, [tfLog]);
 
   useEffect(() => {
+    if (pods.length === 0) return;
+
     const updatePods = () => {
       setPods(prev => prev.map(pod => {
         // Base CPU/Mem simulation
@@ -110,7 +134,7 @@ export const DeploymentStatus = ({
     updatePods();
     const interval = setInterval(updatePods, 3000);
     return () => clearInterval(interval);
-  }, [severity]);
+  }, [severity, pods.length]);
 
   useEffect(() => {
     const addLog = () => {
@@ -151,7 +175,7 @@ export const DeploymentStatus = ({
   return (
     <Pane
       id="deploy"
-      title="KUBERNETES_WORKLOAD_STATUS"
+      title={`${stack}_WORKLOAD_STATUS`}
       icon={<DeployIcon />}
       iconColor={severity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
       initialPos={initialPos}

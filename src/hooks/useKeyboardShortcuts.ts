@@ -14,6 +14,7 @@ export const useKeyboardShortcuts = ({ loggedTogglePane }: ShortcutsProps) => {
         case 'F3': e.preventDefault(); loggedTogglePane('deploy'); break;
         case 'F4': e.preventDefault(); loggedTogglePane('chat'); break;
         case 'F5': e.preventDefault(); loggedTogglePane('metrics'); break;
+        case 'F8': e.preventDefault(); loggedTogglePane('playbooks'); break;
         case 'F9': e.preventDefault(); loggedTogglePane('settings'); break;
         case 'F10': e.preventDefault(); loggedTogglePane('howTo'); break;
       }

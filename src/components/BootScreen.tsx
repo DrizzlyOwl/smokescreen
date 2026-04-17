@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { getRandomItem } from '../utils/telemetry';
+import { MOTD } from './MOTD';
 
 interface NavigatorUAData {
   getHighEntropyValues: (hints: string[]) => Promise<{
@@ -102,6 +103,7 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
         'SYSTEM_MEM_CHECK',
         'SYSTEM_KB_PROBE',
         'SYSTEM_DISK_PROBE',
+        'SYSTEM_MOTD_PAUSE',
         '',
         easterEgg,
         'INITIALIZING SYSTEM DEFAULTS...',
@@ -176,6 +178,13 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
       return () => clearTimeout(timer);
     }
 
+    if (line === 'SYSTEM_MOTD_PAUSE') {
+      const timer = setTimeout(() => {
+          setIndex(prev => prev + 1);
+      }, 3000); // 3 second pause for MOTD reading
+      return () => clearTimeout(timer);
+    }
+
     if (line === 'SYSTEM_POST_BEEP') {
         const timer = setTimeout(() => {
             playPostBeep();
@@ -226,10 +235,11 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
 
   return (
     <div className="boot-screen">
+      <MOTD />
       <div className="boot-screen__content">
         {visibleLines.map((line, i) => (
           <div key={i} className="boot-screen__line">
-            {['SYSTEM_MEM_CHECK', 'SYSTEM_KB_PROBE', 'SYSTEM_DISK_PROBE', 'SYSTEM_POST_BEEP'].includes(line) 
+            {['SYSTEM_MEM_CHECK', 'SYSTEM_KB_PROBE', 'SYSTEM_DISK_PROBE', 'SYSTEM_POST_BEEP', 'SYSTEM_MOTD_PAUSE'].includes(line) 
                 ? null 
                 : (line ? `> ${line}` : '')}
           </div>

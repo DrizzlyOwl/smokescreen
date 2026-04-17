@@ -35,10 +35,6 @@
     gap: rem(2);
     font-weight: bold;
     text-shadow: 0 0 rem(10) currentColor;
-    
-    [data-theme='accessibility'] & {
-        text-shadow: none !important;
-    }
   }
 
   &__value {

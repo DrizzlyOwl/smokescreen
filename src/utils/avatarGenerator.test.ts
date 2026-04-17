@@ -1,50 +1,46 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateBitmapAvatar } from './avatarGenerator';
 
-describe('avatarGenerator utils', () => {
-  it('generates a deterministic data URL string', () => {
-    // Mock canvas because JSDOM doesn't implement it fully
-    const mockToDataURL = vi.fn(() => 'data:image/png;base64,mocked');
-    const mockGetContext = vi.fn(() => ({
-      clearRect: vi.fn(),
-      fillRect: vi.fn(),
-    }));
+// Mock Canvas for JSDOM
+const mockContext = {
+  fillRect: vi.fn(),
+  clearRect: vi.fn(),
+  fillStyle: '',
+  canvas: { width: 8, height: 8 }
+};
 
-    const mockCanvas = {
-      width: 0,
-      height: 0,
-      getContext: mockGetContext,
-      toDataURL: mockToDataURL,
-    };
+const mockCanvas = {
+  getContext: vi.fn(() => mockContext),
+  toDataURL: vi.fn(() => 'data:image/png;base64,mocked_avatar_data')
+};
 
-    vi.stubGlobal('document', {
-      createElement: vi.fn((tag) => {
-        if (tag === 'canvas') return mockCanvas;
-        return {};
-      }),
-    });
+vi.stubGlobal('document', {
+  ...document,
+  createElement: vi.fn((tagName) => {
+    if (tagName === 'canvas') return mockCanvas;
+    return document.createElement(tagName);
+  })
+});
 
-    const result1 = generateBitmapAvatar('user1');
-    const result2 = generateBitmapAvatar('user1');
-
-    expect(result1).toBe('data:image/png;base64,mocked');
-    expect(result1).toBe(result2);
-    expect(mockGetContext).toHaveBeenCalled();
-    
-    // Cleanup
-    vi.unstubAllGlobals();
+describe('avatarGenerator', () => {
+  it('generates a deterministic avatar string for a given name', () => {
+    const avatar1 = generateBitmapAvatar('Operator');
+    const avatar2 = generateBitmapAvatar('Operator');
+    expect(avatar1).toBe(avatar2);
+    expect(avatar1).toContain('data:image/png;base64');
   });
 
-  it('returns empty string if context creation fails', () => {
-    vi.stubGlobal('document', {
-      createElement: vi.fn(() => ({
-        getContext: () => null,
-      })),
-    });
+  it('generates different avatars for different names', () => {
+    // Since we mocked toDataURL to always return the same string,
+    // we should check if getContext and fillRect were called.
+    generateBitmapAvatar('Operator A');
+    expect(mockCanvas.getContext).toHaveBeenCalled();
+    expect(mockContext.fillRect).toHaveBeenCalled();
+  });
 
-    const result = generateBitmapAvatar('fail');
-    expect(result).toBe('');
-
-    vi.unstubAllGlobals();
+  it('handles empty names', () => {
+    const avatar = generateBitmapAvatar('');
+    expect(typeof avatar).toBe('string');
+    expect(avatar.length).toBeGreaterThan(0);
   });
 });

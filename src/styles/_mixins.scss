@@ -31,10 +31,6 @@
 // Mixins
 @mixin crt-flicker {
   animation: gaussian-flicker 0.15s infinite;
-  
-  [data-theme='accessibility'] & {
-    animation: none !important;
-  }
 }
 
 @mixin scanlines {
@@ -48,9 +44,21 @@
     z-index: 2000;
     background-size: 100% 0.125rem, 0.1875rem 100%; // rem(2), rem(3)
     pointer-events: none;
-    
-    [data-theme='accessibility'] & {
-        display: none !important;
+  }
+}
+
+$breakpoints: (
+  'mobile': 768px,
+  'tablet': 1024px,
+  'laptop': 1440px
+);
+
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (max-width: map-get($breakpoints, $breakpoint)) {
+      @content;
     }
+  } @else {
+    @warn "Invalid breakpoint: #{$breakpoint}.";
   }
 }

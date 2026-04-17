@@ -10,7 +10,6 @@ describe('useWindowManager', () => {
     map: false,
     deploy: false,
     burn: false,
-    pager: false,
     howTo: false,
     settings: false,
     metrics: false,
@@ -153,7 +152,7 @@ describe('useWindowManager', () => {
     expect(newResult.current.zIndices.chat).toBeLessThan(2000);
   });
 
-  it('closes all panes', () => {
+  it('closes all panes (except locked terminal)', () => {
     const { result } = renderHook(() => useWindowManager(initialPanes));
     
     act(() => {
@@ -164,7 +163,7 @@ describe('useWindowManager', () => {
     
     expect(result.current.panes.chat).toBe(false);
     expect(result.current.panes.logs).toBe(false);
-    expect(result.current.panes.terminal).toBe(false);
+    expect(result.current.panes.terminal).toBe(true); // Locked
     expect(result.current.activePane).toBeNull();
   });
 

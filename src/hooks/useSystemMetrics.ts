@@ -6,10 +6,24 @@ export const useSystemMetrics = (severity: Severity) => {
     cpu: 12,
     ram: 4.2
   });
+  const [activeSpikes, setActiveSpikes] = useState<Record<string, { target: number, expiresAt: number }>>({});
+
+  useEffect(() => {
+    const handleSpike = (e: Event) => {
+      const { metric, target, duration } = (e as CustomEvent).detail;
+      setActiveSpikes(prev => ({
+        ...prev,
+        [metric]: { target, expiresAt: Date.now() + duration }
+      }));
+    };
+
+    window.addEventListener('METRIC_SPIKE', handleSpike);
+    return () => window.removeEventListener('METRIC_SPIKE', handleSpike);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMetrics(() => {
+      setMetrics((prev) => {
         let baseCpu = 5;
         let cpuVolatility = 5;
         let baseRam = 4.0;
@@ -41,18 +55,35 @@ export const useSystemMetrics = (severity: Severity) => {
             ramVolatility = 0.1;
         }
 
-        const newCpu = Math.min(100, Math.max(0, baseCpu + (Math.random() - 0.5) * cpuVolatility));
-        const newRam = Math.min(32, Math.max(0, baseRam + (Math.random() - 0.5) * ramVolatility));
+        const now = Date.now();
+        let targetCpu = baseCpu + (Math.random() - 0.5) * cpuVolatility;
+        let targetRam = baseRam + (Math.random() - 0.5) * ramVolatility;
 
+        // Apply spikes if active
+        if (activeSpikes.cpu && activeSpikes.cpu.expiresAt > now) {
+          targetCpu = activeSpikes.cpu.target + (Math.random() - 0.5) * 2;
+        }
+        if (activeSpikes.ram && activeSpikes.ram.expiresAt > now) {
+          targetRam = activeSpikes.ram.target + (Math.random() - 0.5) * 0.5;
+        }
+
+        // Clean up expired spikes (optional, or let them stay in state until next spike)
+        
+        const newCpu = Math.min(100, Math.max(0, targetCpu));
+        const newRam = Math.min(32, Math.max(0, targetRam));
+
+        // Smooth transition (lerp) for sustained feel
+        const lerp = (start: number, end: number, amt: number) => (1 - amt) * start + amt * end;
+        
         return {
-          cpu: Math.round(newCpu),
-          ram: parseFloat(newRam.toFixed(1))
+          cpu: Math.round(lerp(prev.cpu, newCpu, 0.5)),
+          ram: parseFloat(lerp(prev.ram, newRam, 0.5).toFixed(1))
         };
       });
-    }, 2000);
+    }, 400); // 2.5Hz update for much better visual fluidity
 
     return () => clearInterval(interval);
-  }, [severity]);
+  }, [severity, activeSpikes]);
 
   return metrics;
 };

@@ -1,10 +1,10 @@
 import type { Severity } from '../incidents';
-import type { ChatMessage } from '../../contexts/types';
+import type { ChatMessage, Objective } from '../../contexts/types';
 
 export interface PlaybookEvent {
   offsetMs: number;
-  type: 'CHAT' | 'LOG' | 'SEVERITY' | 'CHAOS' | 'METRIC';
-  payload: Omit<ChatMessage, 'time'> | string | Severity | boolean | MetricPayload;
+  type: 'CHAT' | 'LOG' | 'SEVERITY' | 'CHAOS' | 'METRIC' | 'BEACON' | 'APPROVAL' | 'OVERRIDE' | 'INTERRUPT' | 'OBJECTIVE' | 'WAIT';
+  payload: Omit<ChatMessage, 'time'> | string | Severity | boolean | MetricPayload | Objective | null;
 }
 
 export interface MetricPayload {
@@ -32,5 +32,6 @@ export interface Playbook {
   id: string;
   name: string;
   description: string;
+  difficulty: 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
   events: PlaybookEvent[];
 }

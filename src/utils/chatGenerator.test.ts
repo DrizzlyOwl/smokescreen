@@ -24,6 +24,12 @@ vi.mock('@faker-js/faker', () => ({
   }
 }));
 
+vi.mock('./team', () => ({
+  ALL_PERSONAS: [
+    { name: 'MockUser', role: 'SRE', focus: 'Testing', isBot: false }
+  ]
+}));
+
 describe('chatGenerator utils', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -54,7 +60,7 @@ describe('chatGenerator utils', () => {
     
     // Force error in mock
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
-    (GoogleGenerativeAI as any).mockImplementationOnce(() => {
+    (GoogleGenerativeAI as unknown as import('vitest').Mock).mockImplementationOnce(() => {
         throw new Error('API Fail');
     });
 

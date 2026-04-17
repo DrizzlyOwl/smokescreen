@@ -68,11 +68,43 @@
     padding-top: rem(10);
     border-top: rem(1) dashed var(--ui-border);
     display: flex;
+    flex-direction: column;
     gap: rem(12);
+
+    &-container {
+      display: flex;
+      flex-direction: column;
+      gap: rem(15);
+    }
 
     &-actions {
       display: flex;
       gap: rem(12);
+    }
+  }
+
+  &__workflow {
+    font-family: inherit;
+    font-size: var(--text-l2);
+    color: var(--terminal-green);
+    border: rem(1) solid rgba(var(--terminal-green), 0.2);
+    padding: rem(10);
+    background: rgba(0, 0, 0, 0.2);
+
+    &-header {
+      font-weight: bold;
+      margin-bottom: rem(8);
+      color: var(--terminal-amber);
+      text-decoration: underline;
+    }
+
+    &-step {
+      margin-bottom: rem(4);
+      opacity: 0.9;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 }
