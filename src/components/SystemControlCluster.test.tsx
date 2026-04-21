@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SystemControlCluster } from './SystemControlCluster';
+import { SystemControlCluster, type SystemControlClusterProps } from './SystemControlCluster';
 
-// Mock children to simplify testing of the cluster itself
 vi.mock('./StatusBar', () => ({
   StatusBar: () => <div data-testid="status-bar-mock" />
 }));
@@ -21,21 +20,78 @@ vi.mock('../hooks/useKeyboardShortcuts', () => ({
 }));
 
 describe('SystemControlCluster', () => {
-  const mockProps: any = {
+  const mockProps: SystemControlClusterProps = {
     panes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
       howTo: false, settings: false, metrics: false, playbooks: false, 
       readout: false, terminal: true, debug: false 
     },
+    minimizedPanes: { 
+      chat: false, logs: false, map: false, deploy: false, burn: false, 
+      howTo: false, settings: false, metrics: false, playbooks: false, 
+      readout: false, terminal: false, debug: false 
+    },
+    zIndices: { 
+      chat: 100, logs: 101, map: 102, deploy: 103, burn: 104, 
+      howTo: 105, settings: 106, metrics: 107, playbooks: 108, 
+      readout: 109, terminal: 110, debug: 111 
+    },
+    poppedOutPanes: { 
+      chat: false, logs: false, map: false, deploy: false, burn: false, 
+      howTo: false, settings: false, metrics: false, playbooks: false, 
+      readout: false, terminal: false, debug: false 
+    },
+    snappedMainPanes: { 
+      chat: false, logs: false, map: false, deploy: false, burn: false, 
+      howTo: false, settings: false, metrics: false, playbooks: false, 
+      readout: false, terminal: false, debug: false 
+    },
+    togglePopOut: vi.fn(),
+    toggleSnapMain: vi.fn(),
+    activePane: null,
+    bringToFront: vi.fn(),
     loggedTogglePane: vi.fn(),
-    handleLogout: vi.fn(),
-    severity: 'NOMINAL',
+    toggleMinimize: vi.fn(),
+    messages: [],
+    sendMessage: vi.fn(),
     isDeclared: false,
+    operatorName: 'Test Op',
+    uplinkId: 'test-id',
+    severity: 'NOMINAL',
+    stack: 'AWS',
+    status: 'OPERATIONAL',
+    moneyLost: 0,
+    theme: 'classic',
+    setTheme: vi.fn(),
+    handleLogout: vi.fn(),
+    typingUsers: [],
+    handleCommand: vi.fn(),
     loggedHandleDeclare: vi.fn(),
     loggedCeaseTheatre: vi.fn(),
+    commands: [],
+    commandHistory: [],
+    isChaos: false,
+    incidentReport: '',
+    setIncidentReport: vi.fn(),
+    terminalHistory: [],
+    setTerminalHistory: vi.fn(),
+    displayText: '',
+    setView: vi.fn(),
+    activePlaybook: null,
+    startPlaybook: vi.fn(),
+    stopPlaybook: vi.fn(),
+    markAsRead: vi.fn(),
+    markAllAsRead: vi.fn(),
+    isEcoMode: false,
+    setIsEcoMode: vi.fn(),
+    chatMultiplier: 1,
+    setChatMultiplier: vi.fn(),
+    logMultiplier: 1,
+    setLogMultiplier: vi.fn(),
+    gameMode: 'ARCADE',
+    activeObjective: null,
     mitigationCount: 0,
     unreadChat: 0,
-    displayText: '',
   };
 
   it('renders all core components', () => {
