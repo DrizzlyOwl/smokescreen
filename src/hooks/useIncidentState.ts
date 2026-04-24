@@ -90,7 +90,7 @@ export const useIncidentState = () => {
     closeAll, openAll, setPanes 
   } = useWindowManager({
     chat: false, logs: false, map: false, deploy: false,
-    burn: false, howTo: !localStorage.getItem('smokescreen_visited'), settings: false, metrics: false, playbooks: false, readout: false, terminal: true, debug: false
+    burn: false, howTo: !localStorage.getItem('smokescreen_visited'), settings: false, metrics: false, playbooks: false, incidentPlaybook: false, readout: false, terminal: true, debug: false
   });
 
   const clientStats = useClientStats();
@@ -440,6 +440,7 @@ export const useIncidentState = () => {
     setEcoMode: setIsEcoMode,
     triggerApproval: triggerApprovalAction,
     mitigationCount,
+    incrementMitigationCount,
     isDeclared,
     generateStrategy
   });

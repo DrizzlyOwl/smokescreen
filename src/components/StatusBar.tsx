@@ -4,7 +4,12 @@ import { useClientStats } from '../hooks/useClientStats';
 import { useIncidentStore } from '../store/useIncidentStore';
 import { useTerminalStore } from '../store/useTerminalStore';
 
-export const StatusBar: React.FC = () => {
+interface StatusBarProps {
+  activeObjective?: import('../contexts/types').Objective | null;
+  playbookProgress?: { current: number, total: number } | null;
+}
+
+export const StatusBar: React.FC<StatusBarProps> = ({ activeObjective, playbookProgress }) => {
   const severity = useIncidentStore(state => state.severity);
   const stack = useIncidentStore(state => state.stack);
   const gameMode = useIncidentStore(state => state.gameMode);
@@ -59,6 +64,30 @@ export const StatusBar: React.FC = () => {
                 {isChaos && <span className="unstable-tag">!! UNSTABLE !!</span>}
                 <span className="separator">|</span>
                 <span>MODE:{gameMode}</span>
+                {activeObjective && (
+                  <>
+                    <span className="separator">|</span>
+                    <span className={`active-objective active-objective--${activeObjective.status}`}>
+                      OBJ: {activeObjective.title}
+                    </span>
+                  </>
+                )}
+            </div>
+            <div className="status-line__center">
+                {playbookProgress && (
+                  <div className="playbook-progress">
+                    <span className="playbook-progress__label">PLAYBOOK_EVENTS:</span>
+                    <div className="playbook-progress__bar">
+                      {Array.from({ length: playbookProgress.total }).map((_, i) => (
+                        <div 
+                          key={i} 
+                          className={`playbook-progress__segment ${i < playbookProgress.current ? 'active' : ''}`} 
+                        />
+                      ))}
+                    </div>
+                    <span className="playbook-progress__count">{playbookProgress.current}/{playbookProgress.total}</span>
+                  </div>
+                )}
             </div>
             <div className="status-line__right">
                 <span>STACK:{stack}</span>

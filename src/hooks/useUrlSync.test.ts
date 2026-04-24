@@ -7,18 +7,9 @@ describe('useUrlSync hook', () => {
     severity: 'NOMINAL',
     stack: 'AWS',
     panes: {
-      chat: false,
-      logs: false,
-      terminal: true,
-      map: false,
-      deploy: false,
-      burn: false,
-      howTo: false,
-      settings: false,
-      metrics: false,
-      playbooks: false,
-      readout: false,
-      debug: false
+      chat: false, logs: false, terminal: true, map: false, deploy: false, 
+      burn: false, howTo: false, settings: false, metrics: false, playbooks: false, 
+      incidentPlaybook: false, readout: false, debug: false
     },
     theme: 'classic',
     isEcoMode: false,

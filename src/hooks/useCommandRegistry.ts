@@ -40,6 +40,7 @@ export interface CommandActions {
   setEcoMode: (on: boolean) => void;
   triggerApproval: (type?: 'phrase' | 'hold' | 'slider') => void;
   mitigationCount: number;
+  incrementMitigationCount: () => void;
   isDeclared: boolean;
   generateStrategy: () => Promise<void>;
 }

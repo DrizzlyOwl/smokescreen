@@ -59,6 +59,68 @@
     font-weight: 900;
     animation: flash-red 0.5s infinite;
   }
+
+  .active-objective {
+    font-weight: bold;
+    color: var(--terminal-green);
+    text-shadow: 0 0 rem(5) var(--terminal-green);
+
+    &--warning {
+      color: var(--terminal-amber);
+      text-shadow: 0 0 rem(5) var(--terminal-amber);
+    }
+    
+    &--active {
+      color: var(--terminal-green);
+    }
+
+    &--complete {
+      color: var(--terminal-green);
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+  }
+}
+
+.status-line__center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.playbook-progress {
+  display: flex;
+  align-items: center;
+  gap: rem(8);
+  font-size: rem(9);
+  color: var(--terminal-green);
+  opacity: 0.8;
+
+  &__bar {
+    display: flex;
+    gap: rem(2);
+    height: rem(6);
+  }
+
+  &__segment {
+    width: rem(10);
+    height: 100%;
+    background: rgba(var(--terminal-green), 0.1);
+    border: rem(1) solid rgba(var(--terminal-green), 0.3);
+
+    &.active {
+      background: var(--terminal-green);
+      box-shadow: 0 0 rem(5) var(--terminal-green);
+    }
+  }
+
+  &__label {
+    @include respond-to('mobile') {
+      display: none;
+    }
+  }
 }
 
 .system-status {

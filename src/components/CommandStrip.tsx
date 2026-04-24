@@ -68,9 +68,10 @@ export const CommandStrip: React.FC<CommandStripProps> = ({
           <span className="f-key">[F4]</span> CHAT {unreadChat > 0 && <span className="command-strip__unread-badge">({unreadChat})</span>}
         </button>
         <button className={`command-strip__btn ${panes.metrics ? 'active' : ''} ${getBeaconClass('metrics')}`} onClick={() => loggedTogglePane('metrics')}><span className="f-key">[F5]</span> METR</button>
-        <button className={`command-strip__btn ${panes.playbooks ? 'active' : ''} ${getBeaconClass('playbooks')}`} onClick={() => loggedTogglePane('playbooks')}><span className="f-key">[F8]</span> PLYBK</button>
-        <button className={`command-strip__btn ${panes.settings ? 'active' : ''} ${getBeaconClass('settings')}`} onClick={() => loggedTogglePane('settings')}><span className="f-key">[F9]</span> CFG</button>
-        <button className={`command-strip__btn ${panes.howTo ? 'active' : ''} ${getBeaconClass('howTo')}`} onClick={() => loggedTogglePane('howTo')}><span className="f-key">[F10]</span> HELP</button>
+        <button className={`command-strip__btn ${panes.playbooks ? 'active' : ''} ${getBeaconClass('playbooks')}`} onClick={() => loggedTogglePane('playbooks')}><span className="f-key">[F8]</span> DECK</button>
+        <button className={`command-strip__btn ${panes.incidentPlaybook ? 'active' : ''} ${getBeaconClass('incidentPlaybook')}`} onClick={() => loggedTogglePane('incidentPlaybook')}><span className="f-key">[F9]</span> PLAYBOOK</button>
+        <button className={`command-strip__btn ${panes.settings ? 'active' : ''} ${getBeaconClass('settings')}`} onClick={() => loggedTogglePane('settings')}><span className="f-key">[F11]</span> CFG</button>
+        <button className={`command-strip__btn ${panes.howTo ? 'active' : ''} ${getBeaconClass('howTo')}`} onClick={() => loggedTogglePane('howTo')}><span className="f-key">[F12]</span> HELP</button>
         <button className="command-strip__btn" onClick={handleLogout}><span className="f-key">[ESC]</span> EXIT</button>
       </div>
     </div>

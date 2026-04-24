@@ -273,7 +273,7 @@ describe('useIncidentState', () => {
         panes: { 
           chat: true, logs: false, map: false, deploy: false, burn: false, 
           howTo: false, settings: false, metrics: false, playbooks: false, 
-          readout: false, terminal: false, debug: false 
+          incidentPlaybook: false, readout: false, terminal: false, debug: false 
         }
       });
     });

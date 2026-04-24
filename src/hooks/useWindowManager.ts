@@ -10,6 +10,7 @@ export type PaneId =
   | 'settings'
   | 'metrics'
   | 'playbooks'
+  | 'incidentPlaybook'
   | 'readout'
   | 'terminal'
   | 'debug';
@@ -43,12 +44,14 @@ export const useWindowManager = (initialPanes: PanesState) => {
       map: 102,
       deploy: 103,
       burn: 104,
-      howTo: 106,      settings: 107,
+      howTo: 106,
+      settings: 107,
       metrics: 108,
       playbooks: 109,
-      readout: 110,
-      terminal: 111,
-      debug: 112,
+      incidentPlaybook: 110,
+      readout: 111,
+      terminal: 112,
+      debug: 113,
     };
   });
   const [activePane, setActivePane] = useState<PaneId | null>(null);

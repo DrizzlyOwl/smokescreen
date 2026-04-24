@@ -24,27 +24,27 @@ describe('SystemControlCluster', () => {
     panes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
       howTo: false, settings: false, metrics: false, playbooks: false, 
-      readout: false, terminal: true, debug: false 
+      incidentPlaybook: false, readout: false, terminal: true, debug: false 
     },
     minimizedPanes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
       howTo: false, settings: false, metrics: false, playbooks: false, 
-      readout: false, terminal: false, debug: false 
+      incidentPlaybook: false, readout: false, terminal: false, debug: false 
     },
     zIndices: { 
       chat: 100, logs: 101, map: 102, deploy: 103, burn: 104, 
       howTo: 105, settings: 106, metrics: 107, playbooks: 108, 
-      readout: 109, terminal: 110, debug: 111 
+      incidentPlaybook: 109, readout: 110, terminal: 111, debug: 112 
     },
     poppedOutPanes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
       howTo: false, settings: false, metrics: false, playbooks: false, 
-      readout: false, terminal: false, debug: false 
+      incidentPlaybook: false, readout: false, terminal: false, debug: false 
     },
     snappedMainPanes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
       howTo: false, settings: false, metrics: false, playbooks: false, 
-      readout: false, terminal: false, debug: false 
+      incidentPlaybook: false, readout: false, terminal: false, debug: false 
     },
     togglePopOut: vi.fn(),
     toggleSnapMain: vi.fn(),

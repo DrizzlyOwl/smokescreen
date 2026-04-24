@@ -34,4 +34,5 @@ export interface Playbook {
   description: string;
   difficulty: 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
   events: PlaybookEvent[];
+  runbookText?: string;
 }

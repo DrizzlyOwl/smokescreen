@@ -20,6 +20,7 @@ const BurnRateDashboard = lazy(() => import('./BurnRateDashboard').then(m => ({ 
 const DeploymentStatus = lazy(() => import('./DeploymentStatus').then(m => ({ default: m.DeploymentStatus })));
 const DebugConsole = lazy(() => import('./DebugConsole').then(m => ({ default: m.DebugConsole })));
 const ReadoutBox = lazy(() => import('./ReadoutBox').then(m => ({ default: m.ReadoutBox })));
+const IncidentPlaybookPane = lazy(() => import('./IncidentPlaybookPane').then(m => ({ default: m.IncidentPlaybookPane })));
 
 interface PaneGridProps {
   panes: PanesState;
@@ -188,6 +189,12 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           stopPlaybook={stopPlaybook}
           initialPos={{ x: 1480, y: 50 }}
         />;
+      case 'incidentPlaybook':
+        return <IncidentPlaybookPane 
+          {...commonProps}
+          activePlaybook={activePlaybook}
+          initialPos={{ x: 1480, y: 50 }}
+        />;
       case 'debug':
         return <DebugConsole 
           {...commonProps}
@@ -246,7 +253,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
     }
   };
 
-  const paneIds: PaneId[] = ['chat', 'logs', 'map', 'deploy', 'burn', 'howTo', 'settings', 'metrics', 'playbooks', 'readout', 'terminal', 'debug'];
+  const paneIds: PaneId[] = ['chat', 'logs', 'map', 'deploy', 'burn', 'howTo', 'settings', 'metrics', 'playbooks', 'incidentPlaybook', 'readout', 'terminal', 'debug'];
   const tiledPanes = paneIds.filter(id => panes[id] && !poppedOutPanes[id]);
   const mainSnappedPanes = tiledPanes.filter(id => snappedMainPanes[id]);
   const rightTiledPanes = tiledPanes.filter(id => !snappedMainPanes[id]);

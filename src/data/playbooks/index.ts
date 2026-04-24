@@ -4,11 +4,13 @@ import { getPersonByRole } from '../../utils/team';
 export const PLAYBOOKS: Record<string, Playbook> = {
     'l1-routine-patch': {
         id: 'l1-routine-patch',
-        name: 'L1: Routine Patching',
+        name: 'Scenario L1: Routine Patching',
         description: 'Standard security-hardened image rotation across the production cluster. Low risk.',
         difficulty: 'L1',
+        runbookText: '### PATCHING_RUNBOOK\n1. Monitor node drain in **DEPLOYMENT_STATUS**.\n2. Once nodes are healthy, run `patch confirm` in the terminal.',
         events: [
             { offsetMs: 0, type: 'OBJECTIVE', payload: { title: 'Mission Briefing: AMI Rotation', status: 'active' } },
+            { offsetMs: 2000, type: 'BEACON', payload: 'incidentPlaybook' },
             { offsetMs: 5000, type: 'CHAT', payload: { id: 'l1-1', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Initiating standard node-drain for secure AMI rotation.', isBot: false } },
             { offsetMs: 15000, type: 'SEVERITY', payload: 'P3' },
             { offsetMs: 20000, type: 'CHAT', payload: { id: 'l1-instruct-1', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: '@operator Open the K8s Deployment pane [F3] to monitor the evacuation.', isBot: false } },
@@ -23,9 +25,10 @@ export const PLAYBOOKS: Record<string, Playbook> = {
     },
     'l2-network-flap': {
         id: 'l2-network-flap',
-        name: 'L2: Network Flap',
+        name: 'Scenario L2: Network Flap',
         description: 'BGP prefix flapping causing intermittent connectivity loss. Requires manual override.',
         difficulty: 'L2',
+        runbookText: '### BGP_EMERGENCY_RUNBOOK\n1. Analyze packet drops in **SYSTEM_LOGS**.\n2. When prompted, execute `bgp reset` in the terminal.\n3. Type the authorization phrase to finalize peer stability.',
         events: [
             { offsetMs: 0, type: 'OBJECTIVE', payload: { title: 'Mission Briefing: Peer Instability', status: 'active' } },
             { offsetMs: 5000, type: 'CHAT', payload: { id: 'l2-1', user: getPersonByRole('NetEng').name, bio: getPersonByRole('NetEng').role, text: 'Detected BGP prefix instability on upstream transit peers.', isBot: false } },
@@ -52,9 +55,10 @@ export const PLAYBOOKS: Record<string, Playbook> = {
     },
     'l3-db-deadlock': {
         id: 'l3-db-deadlock',
-        name: 'L3: Database Deadlock',
+        name: 'Scenario L3: Database Deadlock',
         description: 'Synchronous lock contention on primary write shards. Requires multiple approvals.',
         difficulty: 'L3',
+        runbookText: '### DATABASE_DEADLOCK_RUNBOOK\n1. Authorize query kill sequence with `db kill` in terminal.\n2. Hold **DEPLOY** button in the Deployment pane to force-rebalance the pool.',
         events: [
             { offsetMs: 0, type: 'OBJECTIVE', payload: { title: 'Mission Briefing: Lock Contention', status: 'active' } },
             { offsetMs: 5000, type: 'CHAT', payload: { id: 'l3-1', user: getPersonByRole('DBA').name, bio: getPersonByRole('DBA').role, text: 'Critical lock contention detected on user_sessions table.', isBot: false } },
@@ -77,9 +81,10 @@ export const PLAYBOOKS: Record<string, Playbook> = {
     },
     'l4-cascade-failure': {
         id: 'l4-cascade-failure',
-        name: 'L4: Cascade Failure',
+        name: 'Scenario L4: Cascade Failure',
         description: 'Multi-region service mesh failure with executive pressure. High complexity.',
         difficulty: 'L4',
+        runbookText: '### CASCADING_FAILURE_RUNBOOK\n1. Reroute EMEA/US-EAST traffic on the **OUTAGE_MAP**.\n2. Run `mesh restart` to restore control plane connectivity.\n3. Execute emergency failover via slider in **APPROVAL_SYSTEM**.',
         events: [
             { offsetMs: 0, type: 'OBJECTIVE', payload: { title: 'Mission Briefing: Mesh Collapse', status: 'active' } },
             { offsetMs: 5000, type: 'CHAT', payload: { id: 'l4-1', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Service mesh control plane is non-responsive. Cascading timeouts detected.', isBot: false } },
@@ -104,9 +109,10 @@ export const PLAYBOOKS: Record<string, Playbook> = {
     },
     'l5-extinction-event': {
         id: 'l5-extinction-event',
-        name: 'L5: Extinction Event',
+        name: 'Scenario L5: Extinction Event',
         description: 'Coordinated ransomware attack and total infrastructure wipe. Extreme difficulty.',
         difficulty: 'L5',
+        runbookText: '### EXTINCTION_PROTOCOL\n1. Run `vault seal` in terminal to prevent further data purge.\n2. Complete multiple authorization puzzles (Phrase -> Hold -> Slider) to isolate global keys.\n3. Pray.',
         events: [
             { offsetMs: 0, type: 'OBJECTIVE', payload: { title: 'SURVIVE THE PURGE', status: 'active' } },
             { offsetMs: 2000, type: 'CHAT', payload: { id: 'l5-1', user: 'Sentry', bio: 'ERROR_TRACKING', text: 'TOTAL INFRASTRUCTURE BREACH. IRREVERSIBLE DATA PURGE DETECTED.', isBot: true } },

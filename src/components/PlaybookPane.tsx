@@ -44,8 +44,8 @@ export const PlaybookPane: React.FC<PlaybookPaneProps> = ({
   return (
     <TechnicalPane
       id="playbooks"
-      title="INCIDENT_PLAYBOOK_LIBRARY"
-      paneTitle="INCIDENT: AUTOMATION"
+      title="SCENARIO_DECK"
+      paneTitle="INCIDENT: SIMULATOR"
       classification="RESTRICTED_ACCESS"
       icon={<PlaybookIcon />}
       zIndex={zIndex}

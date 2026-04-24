@@ -153,6 +153,7 @@ export const usePlaybookEngine = ({
     startPlaybook,
     stopPlaybook,
     resumePlaybook,
-    isWaiting
+    isWaiting,
+    currentEventIndex
   };
 };

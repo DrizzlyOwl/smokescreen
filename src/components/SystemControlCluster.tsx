@@ -61,6 +61,7 @@ export interface SystemControlClusterProps {
   activeObjective: import('../contexts/types').Objective | null;
   mitigationCount: number;
   unreadChat: number;
+  currentEventIndex?: number;
 }
 
 export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props) => {
@@ -78,7 +79,13 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
 
   return (
     <>
-      <StatusBar />
+      <StatusBar 
+        activeObjective={props.activeObjective}
+        playbookProgress={props.activePlaybook ? { 
+          current: props.currentEventIndex ?? 0, 
+          total: props.activePlaybook.events.length 
+        } : null}
+      />
       
       <PaneGrid 
         {...props}
