@@ -3,7 +3,7 @@
 .boot-screen {
   position: fixed;
   inset: 0;
-  background-color: #000;
+  background-color: var(--bg-color);
   z-index: 10000;
   padding: rem(40);
   display: flex;
@@ -14,29 +14,64 @@
   font-family: var(--font-mono);
   font-size: rem(14);
 
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
   &__content {
-    white-space: pre;
+    white-space: pre-wrap;
     line-height: 1.4;
+    position: relative;
+    z-index: 1;
   }
 
   &__line {
-    margin-bottom: rem(4);
+    margin-bottom: rem(2);
     min-height: 1.2em;
+    word-break: break-all;
   }
 
   &__cursor {
     display: inline-block;
-    width: rem(10);
+    width: rem(8);
     height: 1.2em;
     background-color: var(--terminal-green);
     animation: blink-cursor 0.8s step-end infinite;
     vertical-align: middle;
+    margin-left: rem(4);
+    box-shadow: 0 0 rem(5) var(--terminal-green);
   }
 
   &__footer {
     margin-top: auto;
+    padding-top: rem(40);
     opacity: 0.5;
     font-size: rem(12);
     letter-spacing: rem(1);
+    text-align: center;
   }
+
+  /* Scanline/CRT Overlay */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+    pointer-events: none;
+    z-index: 5;
+  }
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }

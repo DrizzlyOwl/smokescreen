@@ -1,292 +1,240 @@
 @use 'utils' as *;
 @use 'mixins' as *;
 
-/* Smokescreen Gateway (Splash) */
+.gateway-wrapper {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-color);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: rem(20);
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%
+    ),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
 .gateway {
-  display: flex; 
-  flex-direction: column; 
-  align-items: flex-start; 
-  justify-content: flex-start; 
-  background-color: #000;
+  width: 100%;
+  max-width: rem(600);
+  background: var(--bg-color);
+  border: rem(2) solid var(--terminal-green);
   padding: rem(40);
-  overflow-y: auto;
-  min-height: 100vh;
+  position: relative;
+  box-shadow: 0 0 rem(20) color-mix(in srgb, var(--glow-color), transparent 85%);
+  animation: warm-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   @include respond-to('mobile') {
-    padding: rem(20);
-    align-items: center;
+    padding: rem(30) rem(20);
   }
 
-  &__console {
-    z-index: 1;
-    text-align: left; 
-    padding: 0;
-    max-width: rem(800);
-    width: 100%;
-    animation: warm-up 0.5s ease-out;
-
-    @include respond-to('mobile') {
-      text-align: center;
-    }
-
-    .eco-mode & {
-        animation: none !important;
-    }
-
-    &::after {
-        content: "PROPERTY OF SRE DIVISION | SERIAL: SS-OS-5.0-BETA";
-        position: relative;
-        display: block;
-        margin-top: rem(40);
-        bottom: 0;
-        left: 0;
-        transform: none;
-        font-size: 0.8rem;
-        opacity: 0.3;
-        letter-spacing: rem(1);
-        white-space: nowrap;
-
-        @include respond-to('mobile') {
-            white-space: normal;
-            font-size: 0.7rem;
-        }
-    }
-  }
-
-  &__technical-readout {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: rem(20);
-    padding: rem(8);
-    border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 80%);
-    font-size: 0.75rem;
-    text-align: left;
-    background: rgba(0, 0, 0, 0.3);
-
-    @include respond-to('mobile') {
-        flex-direction: column;
-        gap: rem(10);
-        align-items: center;
-        text-align: center;
-    }
-
-    &-right {
-      text-align: right;
-
-      @include respond-to('mobile') {
-        text-align: center;
-      }
-    }
-  }
-
-  &__label {
-    font-size: var(--text-l4); 
-    opacity: 0.6; 
-    margin-bottom: rem(5); 
-    font-weight: bold;
+  &__header {
+    text-align: center;
+    margin-bottom: rem(40);
   }
 
   &__title {
-    font-size: 3.5rem; 
-    margin: 0 0 rem(5) 0; 
-    letter-spacing: rem(4);
-
-    @include respond-to('mobile') {
-      font-size: 2.2rem;
-      letter-spacing: rem(2);
-    }
-  }
-
-  &__subtitle {
-    font-size: 1rem; 
-    opacity: 0.5; 
-    letter-spacing: rem(2); 
-    margin-bottom: rem(25);
-  }
-
-  &__input-group {
-    margin-bottom: rem(25);
-    text-align: left;
-
-    @include respond-to('mobile') {
-        text-align: center;
-        width: 100%;
-    }
-  }
-
-  &__input-label {
-    display: block;
-    margin-bottom: rem(10);
-    font-size: var(--text-l4);
-    color: var(--terminal-green);
+    font-size: rem(24);
     font-weight: bold;
-  }
-
-  &__input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-
-    @include respond-to('mobile') {
-        justify-content: center;
-    }
-  }
-
-  &__cursor {
-    position: absolute;
-    left: rem(15);
     color: var(--terminal-green);
-    font-size: var(--text-l4);
-
-    @include respond-to('mobile') {
-        display: none; // Hide absolute cursor on mobile for cleaner input
-    }
-  }
-
-  &__input {
-    background: rgba(0, 0, 0, 0.3);
-    border: rem(1) solid var(--terminal-green);
-    color: var(--terminal-green);
-    font-size: var(--text-l4);
-    padding: rem(12) rem(12) rem(12) rem(35);
-    outline: none;
-    width: 100%;
-    font-family: inherit;
-    text-transform: uppercase;
-    box-sizing: border-box;
-
-    @include respond-to('mobile') {
-        padding: rem(12);
-        text-align: center;
-    }
-
-    &--small {
-      padding: rem(10);
-    }
-  }
-
-  &__controls {
-    display: flex;
-    flex-direction: column;
-    gap: rem(12);
+    letter-spacing: rem(2);
     margin-top: rem(20);
   }
 
-  &__field {
-    margin-bottom: rem(20);
-  }
-
-  &__action-btn {
-    all: unset;
-    height: rem(26);
-    padding: 0 rem(12);
-    font-size: rem(11);
-    color: var(--terminal-green);
-    cursor: pointer;
-    background: #111;
-    border: rem(1) solid var(--terminal-green);
-    font-weight: bold;
-    font-family: var(--font-mono);
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.1s ease;
-
-    @include respond-to('mobile') {
-        height: rem(44); // Better touch target
-        padding: 0 rem(20);
-        font-size: rem(13);
-        flex: 1 1 calc(50% - rem(8));
-    }
-
-    &:hover {
-      background: var(--terminal-green);
-      color: #000;
-    }
-
-    &.active {
-      background: var(--terminal-green);
-      color: #000;
-      box-shadow: 0 0 rem(10) var(--terminal-green);
-    }
-
-    &:focus {
-      outline: rem(2) solid white;
-      outline-offset: rem(2);
-      box-shadow: 0 0 rem(15) white;
-    }
-  }
-
-  &__btn-badge {
-    margin-left: rem(8);
-    font-size: rem(9);
-    background: #fff;
-    color: #000;
-    padding: 0 rem(4);
-    border-radius: rem(2);
-    animation: blink 1s step-end infinite;
-  }
-
-  &__btn-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: rem(8);
+  &__subtitle {
+    font-size: rem(10);
+    color: var(--ui-text-dim);
+    letter-spacing: rem(1);
     margin-top: rem(5);
-
-    @include respond-to('mobile') {
-        justify-content: center;
-    }
+    text-transform: uppercase;
   }
 
-  &__description-block {
-    color: var(--terminal-green); 
-    font-size: 0.8rem; 
-    opacity: 0.7; 
-    margin-top: rem(10);
-    padding: rem(10);
-    border-left: rem(2) solid var(--terminal-green);
-    background: rgba(var(--terminal-green), 0.05);
-    line-height: 1.4;
-
-    @include respond-to('mobile') {
-        text-align: center;
-        border-left: none;
-        border-top: rem(2) solid var(--terminal-green);
-    }
+  &__body {
+    min-height: rem(280);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: var(--font-mono);
   }
 
-  &__eco-toggle {
+  &__terminal-box {
+    display: flex;
+    flex-direction: column;
+    gap: rem(10);
+  }
+
+  &__line {
     display: flex;
     align-items: center;
-    cursor: pointer;
-    gap: rem(10);
-    background: rgba(255, 255, 255, 0.03);
-    padding: rem(8) rem(12);
-    border-radius: rem(4);
-    border: rem(1) solid var(--terminal-green); 
-    justify-content: center;
+    gap: rem(4);
+    font-size: rem(14);
+    color: var(--terminal-green);
+
+    &.error {
+        color: var(--terminal-red);
+        animation: shake 0.4s ease-in-out;
+    }
+
+    &--hint {
+        margin-top: rem(20);
+        opacity: 0.4;
+        font-size: rem(10);
+    }
   }
 
-  &__eco-checkbox {
-    width: rem(16);
-    height: rem(16);
-    accent-color: var(--terminal-green);
+  &__prompt {
+    font-weight: bold;
+    white-space: nowrap;
   }
 
-  &__eco-label {
-    font-weight: bold; 
-    font-size: 0.8rem; 
-    color: var(--terminal-green); 
-    display: flex; 
-    align-items: center; 
+  &__value {
+    font-weight: 900;
+  }
+
+  &__inline-input {
+    all: unset;
+    flex: 1;
+    color: var(--terminal-green);
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 900;
+    text-transform: uppercase;
+
+    &::placeholder {
+        opacity: 0.3;
+    }
+  }
+
+  &__modes-list {
+    margin-top: rem(10);
+    padding-left: rem(20);
+    display: flex;
+    flex-direction: column;
     gap: rem(5);
   }
 
-  &__footer-note {
-    margin-top: rem(30);
-    opacity: 0.3;
-    text-align: center;
-    font-size: var(--text-l4);
+  &__mode-item {
+    font-size: rem(13);
+    color: var(--ui-text-dim);
+    transition: all 0.2s;
+
+    &.active {
+        color: var(--terminal-green);
+        font-weight: bold;
+    }
   }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: rem(20);
+  }
+
+  &__spinner {
+    width: rem(40);
+    height: rem(40);
+    border: rem(3) solid color-mix(in srgb, var(--terminal-green), transparent 80%);
+    border-top-color: var(--terminal-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  &__loading-text {
+    font-size: rem(12);
+    letter-spacing: rem(1);
+    color: var(--terminal-green);
+  }
+
+  &__loading-bar {
+    width: 100%;
+    height: rem(4);
+    background: color-mix(in srgb, var(--terminal-green), transparent 90%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  &__loading-progress {
+    position: absolute;
+    height: 100%;
+    width: 30%;
+    background: var(--terminal-green);
+    animation: loading-progress 1.5s infinite ease-in-out;
+  }
+
+  &__granted {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: rem(15);
+    color: var(--terminal-green);
+    animation: fade-in 0.3s ease-out;
+
+    svg {
+        width: rem(48);
+        height: rem(48);
+        filter: drop-shadow(0 0 rem(10) var(--terminal-green));
+    }
+  }
+
+  &__granted-text {
+    font-size: rem(24);
+    font-weight: bold;
+    letter-spacing: rem(4);
+  }
+
+  &__granted-sub {
+    font-size: rem(10);
+    opacity: 0.7;
+  }
+
+  &__footer {
+    margin-top: rem(40);
+    padding-top: rem(20);
+    border-top: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 80%);
+  }
+
+  &__meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: rem(9);
+    color: var(--ui-text-dim);
+    font-family: var(--font-mono);
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    z-index: 5;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loading-progress {
+  0% { left: -30%; }
+  100% { left: 100%; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(rem(-10)); }
+  75% { transform: translateX(rem(10)); }
 }

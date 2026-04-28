@@ -1,4 +1,5 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .readout-box {
   padding: rem(20);
@@ -42,8 +43,7 @@
   }
 
   &__content {
-    line-height: 1.6;
-    font-size: var(--text-l3);
+    @include technical-typography;
     white-space: pre-wrap;
     min-height: rem(200);
     max-height: rem(300);
@@ -63,31 +63,11 @@
     }
   }
 
-  &__footer {
-    margin-top: rem(15);
-    padding-top: rem(10);
-    border-top: rem(1) dashed var(--ui-border);
-    display: flex;
-    flex-direction: column;
-    gap: rem(12);
-
-    &-container {
-      display: flex;
-      flex-direction: column;
-      gap: rem(15);
-    }
-
-    &-actions {
-      display: flex;
-      gap: rem(12);
-    }
-  }
-
   &__workflow {
     font-family: inherit;
     font-size: var(--text-l2);
     color: var(--terminal-green);
-    border: rem(1) solid rgba(var(--terminal-green), 0.2);
+    border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 80%);
     padding: rem(10);
     background: rgba(0, 0, 0, 0.2);
 

@@ -20,14 +20,63 @@
   --glow-spread: 0.9375rem; // rem(15)
   --scanline-opacity: 0.1;
   --bg-color: #000;
+  --font-mono: 'IBM Plex Mono', monospace;
   
-  --text-l1: 2.5rem;
-  --text-l2: 1.8rem;
+  --text-l1: 1.75rem;
+  --text-l2: 1.25rem;
   --text-l3: 1.1rem;
-  --text-l4: 0.9rem;
+  --text-l4: 1rem; // Min 16px
 
   // Status colors (Default Green)
   --status-text: #000;
+  --status-nominal: var(--terminal-green);
+  --status-p3: var(--terminal-amber);
+  --status-p1: var(--terminal-amber);
+  --status-p0: var(--terminal-red);
+}
+
+[data-theme='protanopia'] {
+  --terminal-green: #0072B2;
+  --terminal-amber: #F0E442;
+  --terminal-red: #D55E00;
+  --terminal-cobalt: #56B4E9;
+  --glow-color: var(--terminal-green);
+  --ui-bg: #001a33;
+  --ui-bg-alt: #000d1a;
+  --ui-border: #004d99;
+  --ui-text: #e6f2ff;
+  --status-nominal: var(--terminal-green);
+  --status-p3: var(--terminal-amber);
+  --status-p1: var(--terminal-amber);
+  --status-p0: var(--terminal-red);
+}
+
+[data-theme='deuteranopia'] {
+  --terminal-green: #357ebd;
+  --terminal-amber: #f0e442;
+  --terminal-red: #d55e00;
+  --terminal-cobalt: #56b4e9;
+  --glow-color: var(--terminal-green);
+  --ui-bg: #001a33;
+  --ui-bg-alt: #000d1a;
+  --ui-border: #004d99;
+  --ui-text: #e6f2ff;
+  --status-nominal: var(--terminal-green);
+  --status-p3: var(--terminal-amber);
+  --status-p1: var(--terminal-amber);
+  --status-p0: var(--terminal-red);
+}
+
+[data-theme='tritanopia'] {
+  --terminal-green: #1f78b4;
+  --terminal-amber: #ff7f00;
+  --terminal-red: #e31a1c;
+  --terminal-cobalt: #a6cee3;
+  --glow-color: var(--terminal-green);
+  --ui-bg: #1a1a1a;
+  --ui-bg-alt: #0d0d0d;
+  --ui-border: #333333;
+  --ui-text: #f2f2f2;
   --status-nominal: var(--terminal-green);
   --status-p3: var(--terminal-amber);
   --status-p1: var(--terminal-amber);
@@ -45,6 +94,11 @@
   
   --status-text: #000;
   --status-nominal: var(--terminal-amber);
+  
+  // Incident Palette
+  --status-p3: #ff7f00; // Phosphor Burn (Dark Orange)
+  --status-p1: #ff4500; // Overheating (Red-Orange)
+  --status-p0: #ff0000; // Critical Failure (Pure Red)
 }
 
 [data-theme='cobalt'] {

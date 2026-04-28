@@ -1,14 +1,49 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .stat-readout {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6);
+  font-family: var(--font-mono);
+  font-size: rem(13);
   
   &__label {
-    opacity: 0.6;
+    opacity: 0.5;
+    color: var(--ui-text-dim);
+    font-weight: bold;
   }
 
   &__value {
     color: var(--terminal-green);
-    font-weight: bold;
+    font-weight: 900;
+  }
+
+  /* Trend Modifiers */
+  &--trend-up {
+    .stat-readout__value::after {
+        content: " ▲";
+        font-size: 0.8em;
+        color: var(--terminal-green);
+    }
+  }
+
+  &--trend-down {
+    .stat-readout__value {
+        color: var(--terminal-red);
+    }
+    .stat-readout__value::after {
+        content: " ▼";
+        font-size: 0.8em;
+        color: var(--terminal-red);
+    }
+  }
+
+  &--trend-neutral {
+    .stat-readout__value::after {
+        content: " ▬";
+        font-size: 0.8em;
+        opacity: 0.5;
+    }
   }
 }

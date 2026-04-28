@@ -1,4 +1,5 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .pane {
   background: var(--ui-bg);
@@ -7,28 +8,12 @@
   flex-direction: column;
   overflow: hidden;
   pointer-events: all;
-
-  /* Tiled Mode Overrides */
-  &--tiled {
-    border: none;
-    border-bottom: rem(2) solid var(--ui-border);
-    
-    &:last-child {
-        border-bottom: none;
-    }
-  }
+  transition: border-color 0.2s, box-shadow 0.2s;
 
   &.active {
     border-color: var(--terminal-green);
-    
-    &.pane--tiled {
-        .pane__header {
-            background: var(--terminal-green);
-            color: var(--terminal-bg);
-            
-            .pane__title { color: var(--terminal-bg); }
-        }
-    }
+    box-shadow: 0 0 rem(15) color-mix(in srgb, var(--terminal-green), transparent 90%);
+    z-index: 100 !important;
   }
 
   &.minimized {
@@ -36,23 +21,62 @@
     flex: 0 0 auto !important;
   }
 
+  &.dragging {
+    opacity: 0.8;
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  /* Tiled Mode */
+  &--tiled {
+    border: none;
+    border-bottom: rem(1) solid var(--ui-border);
+    border-radius: 0 !important;
+    
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &.active {
+        box-shadow: none;
+        .pane__header {
+            background: color-mix(in srgb, var(--terminal-green), transparent 90%);
+            .pane__title {
+                color: var(--terminal-green);
+            }
+        }
+    }
+  }
+
+  /* Mobile Mode */
+  &--mobile {
+    width: 100% !important;
+    max-width: none !important;
+    left: 0 !important;
+    top: 0 !important;
+    position: relative !important;
+    margin-bottom: rem(10);
+    border-radius: rem(4);
+    height: auto !important;
+  }
+
   &__header {
-    background: #222;
-    padding: rem(4) rem(8);
+    background: var(--ui-bg-alt);
+    padding: rem(6) rem(12);
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: rem(1) solid var(--ui-border);
     user-select: none;
     gap: rem(12);
-    min-height: rem(24);
-  }
+    min-height: rem(32);
 
-  &__header-extras {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    &.drag-handle {
+      cursor: grab;
+      &:active {
+        cursor: grabbing;
+      }
+    }
   }
 
   &__title {
@@ -63,6 +87,11 @@
     align-items: center;
     text-transform: uppercase;
     letter-spacing: rem(1);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__icon {
@@ -70,47 +99,61 @@
     align-items: center;
     justify-content: center;
     margin-right: rem(8);
-    font-size: rem(10);
+    font-size: rem(14);
+    flex-shrink: 0;
+  }
+
+  &__header-extras {
+    display: flex;
+    align-items: center;
+    margin-right: rem(10);
   }
 
   &__actions {
     display: flex;
     gap: rem(4);
     align-items: center;
+    flex-shrink: 0;
   }
 
   &__action-button {
-    padding: 0 rem(4) !important;
-    height: rem(18) !important;
-    font-size: rem(10) !important;
-    background: #333 !important;
-    border: none !important;
+    padding: 0 rem(6) !important;
+    height: rem(22) !important;
+    font-size: rem(12) !important;
+    background: var(--ui-bg) !important;
+    border: rem(1) solid var(--ui-border) !important;
+    color: var(--ui-text-dim) !important;
+
+    &:hover {
+        background: var(--ui-bg-alt) !important;
+        color: var(--terminal-green) !important;
+        border-color: var(--terminal-green) !important;
+    }
   }
 
   &__content {
     position: relative;
     overflow: hidden;
-    background: #000;
+    background: var(--bg-color);
     flex: 1;
     display: flex;
     flex-direction: column;
-  }
-
-  /* Legacy Draggable Styles */
-  &:not(.pane--tiled) {
-    position: fixed;
-    box-shadow: 0 rem(10) rem(30) rgba(0, 0, 0, 0.8);
-    z-index: 10;
+    min-height: 0;
   }
 
   &__resize-handle {
     position: absolute;
     z-index: 100;
     
-    &--n { top: 0; left: 0; right: 0; height: 4px; cursor: ns-resize; }
-    &--s { bottom: 0; left: 0; right: 0; height: 4px; cursor: ns-resize; }
-    &--e { right: 0; top: 0; bottom: 0; width: 4px; cursor: ew-resize; }
-    &--w { left: 0; top: 0; bottom: 0; width: 4px; cursor: ew-resize; }
-    &--se { bottom: 0; right: 0; width: 10px; height: 10px; cursor: nwse-resize; }
+    &--n { top: 0; left: 0; right: 0; height: rem(6); cursor: ns-resize; }
+    &--s { bottom: 0; left: 0; right: 0; height: rem(6); cursor: ns-resize; }
+    &--e { right: 0; top: 0; bottom: 0; width: rem(6); cursor: ew-resize; }
+    &--w { left: 0; top: 0; bottom: 0; width: rem(6); cursor: ew-resize; }
+    
+    &--nw { top: 0; left: 0; width: rem(10); height: rem(10); cursor: nwse-resize; }
+    &--ne { top: 0; right: 0; width: rem(10); height: rem(10); cursor: nesw-resize; }
+    &--sw { bottom: 0; left: 0; width: rem(10); height: rem(10); cursor: nesw-resize; }
+    &--se { bottom: 0; right: 0; width: rem(15); height: rem(15); cursor: nwse-resize; 
+            background: linear-gradient(135deg, transparent 50%, var(--ui-border) 50%, var(--ui-border) 60%, transparent 60%, transparent 70%, var(--ui-border) 70%); }
   }
 }

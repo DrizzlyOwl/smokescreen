@@ -1,9 +1,11 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .playbooks {
   display: flex; 
   flex-direction: column; 
   gap: rem(20);
+  @include technical-typography;
 
   &__intro {
     font-size: 0.8rem; 
@@ -37,7 +39,7 @@
 
   &__card-desc {
     font-size: 0.8rem; 
-    opacity: 0.7; 
+    opacity: 0.9; 
     margin-top: rem(6); 
     line-height: 1.4;
   }
@@ -51,4 +53,35 @@
     border-left: rem(2) solid var(--terminal-amber); 
     padding-left: rem(8);
   }
+}
+
+.playbook-content {
+    @include technical-typography;
+    
+    &__name {
+        color: var(--terminal-green);
+        border-bottom: rem(2) solid var(--terminal-green);
+        padding-bottom: rem(10);
+        margin-bottom: rem(20);
+        font-size: 1.5rem;
+    }
+
+    &__status {
+        color: var(--terminal-amber);
+        font-weight: bold;
+        letter-spacing: rem(2);
+        margin-bottom: rem(10);
+    }
+
+    &__runbook-text {
+        p {
+            margin-bottom: rem(12);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            margin-top: rem(24);
+            border-bottom: rem(1) solid color-mix(in srgb, var(--terminal-amber), transparent 80%);
+        }
+    }
 }

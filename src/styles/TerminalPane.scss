@@ -46,6 +46,11 @@
       opacity: 0.9;
     }
 
+    &--error {
+      color: var(--terminal-red);
+      font-weight: bold;
+    }
+
     &--system {
       color: var(--terminal-amber);
       font-style: italic;
@@ -68,7 +73,6 @@
 
     .block-input-wrapper {
       font-size: rem(14);
-      text-transform: uppercase;
     }
   }
 
@@ -87,7 +91,6 @@
     color: var(--ui-text);
     font-family: inherit;
     font-size: rem(14);
-    text-transform: uppercase;
 
     &::placeholder {
       opacity: 0.2;

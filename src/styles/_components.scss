@@ -3,7 +3,7 @@
 .ai-badge {
   font-size: var(--text-l4); 
   background: var(--terminal-green); 
-  color: #000; 
+  color: var(--status-text); 
   padding: rem(2) rem(8); 
   font-weight: bold;
   animation: flicker 2s infinite;
@@ -28,10 +28,14 @@
   &:disabled {
     cursor: not-allowed;
     opacity: 0.4;
+    filter: grayscale(1);
+    border-color: var(--ui-border) !important;
+    color: var(--ui-text-dim) !important;
+    background: transparent !important;
   }
 
   &:focus-visible {
-    box-shadow: 0 0 0 rem(2) #fff, 0 0 0 rem(4) var(--terminal-green);
+    box-shadow: 0 0 0 rem(2) var(--terminal-bg), 0 0 0 rem(4) var(--terminal-green);
   }
 
   /* Sizes */
@@ -50,13 +54,13 @@
     opacity: 0.8;
 
     &:hover:not(:disabled) {
-      background: rgba(0, 0, 0, 0.05);
+      background: color-mix(in srgb, var(--ui-bg), transparent 80%);
       opacity: 1;
     }
 
     &:active:not(:disabled), &.button--active {
-      background: rgba(0, 0, 0, 0.1);
-      border-color: rgba(0, 0, 0, 0.1);
+      background: color-mix(in srgb, var(--ui-bg), transparent 60%);
+      border-color: var(--ui-border);
       opacity: 1;
     }
   }
@@ -65,18 +69,14 @@
     background: transparent;
     border: rem(2) solid var(--terminal-green);
     color: var(--terminal-green);
-    text-shadow: 0 0 rem(5) var(--terminal-green);
 
     &:hover:not(:disabled) {
       background: color-mix(in srgb, var(--terminal-green), transparent 90%);
-      box-shadow: 0 0 rem(10) var(--terminal-green);
     }
 
     &:active:not(:disabled), &.button--active {
       background: var(--terminal-green);
       color: var(--terminal-bg);
-      text-shadow: none;
-      box-shadow: 0 0 rem(15) var(--terminal-green);
     }
   }
 
@@ -84,11 +84,9 @@
     background: color-mix(in srgb, var(--terminal-green), transparent 90%);
     border: rem(4) solid var(--terminal-green);
     color: var(--terminal-green);
-    box-shadow: 0 0 rem(15) var(--terminal-green);
 
     &:hover:not(:disabled) {
       background: color-mix(in srgb, var(--terminal-green), transparent 80%);
-      box-shadow: 0 0 rem(20) var(--terminal-green);
       transform: translateY(rem(-1));
     }
 
@@ -103,18 +101,14 @@
     background: transparent;
     border: rem(2) solid var(--terminal-red);
     color: var(--terminal-red);
-    text-shadow: 0 0 rem(5) var(--terminal-red);
 
     &:hover:not(:disabled) {
       background: color-mix(in srgb, var(--terminal-red), transparent 90%);
-      box-shadow: 0 0 rem(10) var(--terminal-red);
     }
 
     &:active:not(:disabled), &.button--active {
       background: var(--terminal-red);
-      color: #fff;
-      text-shadow: none;
-      box-shadow: 0 0 rem(15) var(--terminal-red);
+      color: var(--status-text);
     }
   }
 }
@@ -217,7 +211,7 @@
     bottom: 125%;
     left: 50%;
     transform: translateX(-50%) translateY(rem(10));
-    background: rgba(0, 0, 0, 0.9);
+    background: var(--ui-bg-alt);
     color: var(--terminal-green);
     border: rem(1) solid var(--terminal-green);
     padding: rem(8) rem(12);
@@ -228,7 +222,6 @@
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease;
-    box-shadow: 0 rem(4) rem(15) rgba(0, 0, 0, 0.5);
     font-family: 'IBM Plex Mono', monospace;
     text-transform: none;
     letter-spacing: 0;

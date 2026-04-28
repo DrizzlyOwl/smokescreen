@@ -1,45 +1,61 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .motd {
-  background: rgba(var(--terminal-green), 0.05);
+  background: color-mix(in srgb, var(--terminal-green), transparent 95%);
   border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 70%);
   padding: rem(15);
   margin-bottom: rem(30);
   font-family: var(--font-mono);
   max-width: rem(800);
-  animation: flicker 0.15s infinite alternate;
-
-  .eco-mode & {
-    animation: none;
-  }
+  position: relative;
+  overflow: hidden;
 
   &__header {
-    font-size: rem(12);
-    color: var(--terminal-green);
+    font-size: rem(10);
     font-weight: bold;
+    color: var(--terminal-green);
     margin-bottom: rem(10);
-    border-bottom: rem(1) dashed color-mix(in srgb, var(--terminal-green), transparent 80%);
-    padding-bottom: rem(5);
+    letter-spacing: rem(1);
+    opacity: 0.8;
   }
 
   &__content {
-    font-size: rem(13);
-    color: #fff;
+    color: var(--ui-text);
+    font-size: rem(14);
     line-height: 1.4;
-    font-style: italic;
     margin-bottom: rem(10);
+    font-style: italic;
+    
+    &::before, &::after {
+        color: var(--terminal-green);
+        opacity: 0.5;
+    }
   }
 
   &__footer {
-    font-size: rem(10);
-    color: var(--terminal-green);
-    opacity: 0.5;
-    text-align: center;
-    letter-spacing: rem(1);
+    font-size: rem(9);
+    color: var(--terminal-amber);
+    opacity: 0.6;
+    letter-spacing: rem(0.5);
+    text-align: right;
+  }
+
+  /* Glitch effect on MOTD */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(transparent, rgba(24, 255, 98, 0.02), transparent);
+    animation: scan 3s linear infinite;
+    pointer-events: none;
   }
 }
 
-@keyframes flicker {
-  0% { opacity: 0.97; }
-  100% { opacity: 1; }
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100%); }
 }

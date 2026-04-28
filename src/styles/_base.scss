@@ -3,7 +3,7 @@
 
 // Initial cursor setup for green theme (default)
 html {
-  font-size: 18px;
+  font-size: 16px;
   @include apply-theme-cursors('#18ff62');
 }
 
@@ -43,35 +43,24 @@ body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-color);
-  font-family: 'IBM Plex Mono', monospace;
+  background: 
+    radial-gradient(circle at center, color-mix(in srgb, var(--glow-color), transparent 85%) 0%, rgba(0, 0, 0, 0.95) 85%),
+    var(--terminal-bg);
+  @include technical-typography;
   color: var(--terminal-green);
   overflow: hidden;
   font-size: var(--text-l4);
   line-height: 1.5;
-}
-
-.crt-container {
-  position: relative;
   width: 100vw;
   height: 100vh;
-  background: 
-    radial-gradient(circle at center, color-mix(in srgb, var(--glow-color), transparent 85%) 0%, rgba(0, 0, 0, 0.95) 85%),
-    var(--terminal-bg);
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  // Global CRT Filter
   @include crt-flicker;
   @include scanlines;
   filter: contrast(1.2) brightness(1.1);
 
-  &.glitch {
-    animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
-  }
-
   // Eco Mode: Disable expensive effects
-  .eco-mode & {
+  &.eco-mode {
     animation: none !important;
     filter: none !important;
     background: var(--terminal-bg) !important;
@@ -82,15 +71,15 @@ body {
   }
 }
 
+h1, h2, h3, h4, h5, h6 {
+  @include technical-typography;
+  margin: 0;
+}
+
 .terminal-content {
   z-index: 3;
   width: 90%;
   max-width: rem(1100);
-  text-shadow: 0 0 var(--glow-spread) var(--glow-color);
-
-  .eco-mode & {
-    text-shadow: none !important;
-  }
 }
 
 .terminal-header {

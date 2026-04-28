@@ -1,17 +1,15 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .technical-pane {
   height: 100%;
   background: var(--ui-bg);
   padding: rem(20);
   box-sizing: border-box;
-  font-family: 'IBM Plex Mono', monospace;
-  color: var(--ui-text);
-  line-height: 1.5;
+  @include technical-typography;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  font-size: rem(14);
 
   &__header {
     margin-bottom: rem(20);
@@ -43,12 +41,31 @@
 
   &__footer {
     margin-top: rem(40);
-    text-align: center;
-    opacity: 0.4;
-    font-size: 0.75rem;
-    border-top: rem(1) solid var(--ui-border);
+    border-top: rem(1) dashed var(--ui-border);
     padding-top: rem(20);
     flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: rem(20);
+    opacity: 0.6;
+    font-size: rem(10);
     text-transform: uppercase;
+    font-weight: bold;
+
+    &-col {
+        display: flex;
+        flex-direction: column;
+        gap: rem(2);
+        flex: 1;
+    }
+
+    &-label {
+        color: var(--terminal-amber);
+        opacity: 0.8;
+    }
+
+    &-value {
+        color: var(--ui-text);
+    }
   }
 }

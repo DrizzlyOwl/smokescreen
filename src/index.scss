@@ -1,1 +1,6 @@
 /* Reset and base styles are handled in terminal.scss */
+
+.is-paused * {
+  animation-play-state: paused !important;
+  transition-delay: 999999s !important; // Effectively freeze transitions
+}

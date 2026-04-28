@@ -6,14 +6,14 @@
   z-index: 100;
   width: 100%;
   background: rgba(0, 0, 0, 0.9);
-  border: 1px solid var(--terminal-green);
-  padding: 8px 20px;
+  border: rem(1) solid var(--terminal-green);
+  padding: rem(8) rem(20);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+  box-shadow: 0 0 rem(20) color-mix(in srgb, var(--terminal-green), transparent 80%);
   overflow: hidden;
   pointer-events: none;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font-mono);
   box-sizing: border-box;
 
   &__scanline {
@@ -21,91 +21,105 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 2px;
-    background: rgba(0, 255, 65, 0.1);
+    height: rem(2);
+    background: color-mix(in srgb, var(--terminal-green), transparent 90%);
     animation: mission-scan 4s linear infinite;
   }
 
   &__container {
     display: grid;
-    grid-template-columns: 180px 1fr 120px;
+    grid-template-columns: rem(180) 1fr rem(120);
     align-items: center;
-    gap: 15px;
+    gap: rem(15);
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+        gap: rem(5);
+        text-align: center;
+    }
   }
 
   &__label {
     color: var(--terminal-green);
-    font-size: 0.7rem;
+    font-size: rem(11);
     font-weight: bold;
     opacity: 0.8;
   }
 
   &__title {
     color: #fff;
-    font-size: 0.9rem;
-    letter-spacing: 1px;
+    font-size: rem(14);
+    letter-spacing: rem(1);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: bold;
   }
 
   &__status-indicator {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+
+    @media (max-width: 600px) {
+        align-items: center;
+    }
   }
 
   &__status-text {
-    font-size: 0.6rem;
-    margin-bottom: 4px;
+    font-size: rem(10);
+    margin-bottom: rem(4);
+    font-weight: bold;
   }
 
   &__progress-bar {
     width: 100%;
-    height: 4px;
+    height: rem(4);
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
+    border-radius: rem(2);
   }
 
   &__progress-fill {
     height: 100%;
     width: 100%;
     background: var(--terminal-green);
+    box-shadow: 0 0 rem(5) var(--terminal-green);
   }
 
   // Status Modifiers
   &--pending {
-    border-color: #888;
-    .mission-hud__progress-fill { background: #888; }
-    .mission-hud__status-text { color: #888; }
+    border-color: var(--ui-text-dim);
+    .mission-hud__progress-fill { background: var(--ui-text-dim); box-shadow: none; }
+    .mission-hud__status-text { color: var(--ui-text-dim); }
   }
 
   &--active {
-    border-color: var(--terminal-green);
-    .mission-hud__progress-fill { background: var(--terminal-green); }
-    .mission-hud__status-text { color: var(--terminal-green); }
+    border-color: var(--status-nominal);
+    .mission-hud__progress-fill { background: var(--status-nominal); }
+    .mission-hud__status-text { color: var(--status-nominal); }
   }
 
   &--warning {
-    border-color: #ffaa00;
-    background: rgba(255, 170, 0, 0.1);
+    border-color: var(--status-p1);
+    background: color-mix(in srgb, var(--status-p1), transparent 90%);
     animation: mission-warning-flash 0.5s step-end infinite;
     
     .mission-hud__progress-fill { 
-        background: #ffaa00;
+        background: var(--status-p1);
         animation: mission-progress-flash 0.5s step-end infinite;
     }
-    .mission-hud__status-text { color: #ffaa00; }
-    .mission-hud__title { color: #ffaa00; }
+    .mission-hud__status-text { color: var(--status-p1); }
+    .mission-hud__title { color: var(--status-p1); }
   }
 
   &--complete {
-    border-color: #00aaff;
+    border-color: var(--terminal-cobalt);
     .mission-hud__progress-fill { 
-        background: #00aaff; 
+        background: var(--terminal-cobalt); 
         width: 100%;
+        box-shadow: 0 0 rem(5) var(--terminal-cobalt);
     }
-    .mission-hud__status-text { color: #00aaff; }
+    .mission-hud__status-text { color: var(--terminal-cobalt); }
   }
 }
 
@@ -115,11 +129,11 @@
 }
 
 @keyframes mission-warning-flash {
-  0%, 100% { border-color: #ffaa00; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); }
-  50% { border-color: #ff0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.6); }
+  0%, 100% { border-color: var(--status-p1); box-shadow: 0 0 rem(20) color-mix(in srgb, var(--status-p1), transparent 60%); }
+  50% { border-color: var(--status-p0); box-shadow: 0 0 rem(30) color-mix(in srgb, var(--status-p0), transparent 40%); }
 }
 
 @keyframes mission-progress-flash {
-  0%, 100% { background: #ffaa00; }
-  50% { background: #ff0000; }
+  0%, 100% { background: var(--status-p1); }
+  50% { background: var(--status-p0); }
 }

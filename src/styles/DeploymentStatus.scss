@@ -47,20 +47,29 @@
     padding: rem(10);
     border-radius: rem(4);
     border: rem(1) solid var(--ui-border);
+    margin-top: auto;
   }
 
   &__logs-title {
     color: var(--ui-text-dim);
     margin-bottom: rem(5);
-    font-size: rem(14);
+    font-size: rem(11);
     font-weight: bold;
     text-transform: uppercase;
+    letter-spacing: rem(1);
+    border-bottom: rem(1) solid rgba(255, 255, 255, 0.05);
+    padding-bottom: rem(2);
   }
 
   &__logs-content {
-    height: rem(80);
+    height: rem(100);
     overflow-y: auto;
-    font-size: rem(14);
+    font-size: rem(12);
+    font-family: var(--font-mono);
+
+    /* Tighter scrollbar */
+    &::-webkit-scrollbar { width: rem(4); }
+    &::-webkit-scrollbar-thumb { background: var(--ui-border); border-radius: rem(2); }
   }
 
   &__log-entry {

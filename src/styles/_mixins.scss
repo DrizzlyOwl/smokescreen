@@ -1,4 +1,5 @@
 @use 'sass:string';
+@use 'sass:map';
 @use 'utils' as *;
 
 // Helper to replace # with %23 for data URIs
@@ -54,11 +55,72 @@ $breakpoints: (
 );
 
 @mixin respond-to($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    @media (max-width: map-get($breakpoints, $breakpoint)) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (max-width: map.get($breakpoints, $breakpoint)) {
       @content;
     }
   } @else {
     @warn "Invalid breakpoint: #{$breakpoint}.";
   }
 }
+
+@mixin technical-typography {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: rem(14);
+  line-height: 1.6;
+  color: var(--ui-text);
+
+  h1, h2, h3 {
+    color: var(--terminal-amber);
+    margin-top: rem(24);
+    margin-bottom: rem(12);
+    text-transform: uppercase;
+    letter-spacing: rem(1);
+    font-weight: 900;
+    border-bottom: rem(1) solid color-mix(in srgb, var(--terminal-amber), transparent 85%);
+    padding-bottom: rem(4);
+  }
+
+  h1 { font-size: var(--text-l1); }
+  h2 { font-size: var(--text-l2); }
+  h3 { font-size: var(--text-l3); }
+
+  p {
+    margin-bottom: rem(12);
+  }
+
+  b, strong {
+    color: var(--terminal-green);
+    font-weight: bold;
+  }
+
+  code {
+    background: color-mix(in srgb, var(--terminal-green), transparent 90%);
+    color: var(--terminal-green);
+    padding: rem(1) rem(4);
+    border-radius: rem(2);
+    font-family: inherit;
+    font-size: 0.95em;
+  }
+
+  ul, ol {
+    margin-bottom: rem(15);
+    padding-left: rem(20);
+
+    li {
+      margin-bottom: rem(6);
+
+      &::marker {
+        color: var(--terminal-amber);
+        font-weight: bold;
+      }
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: rem(1) dashed var(--ui-border);
+    margin: rem(20) 0;
+  }
+}
+

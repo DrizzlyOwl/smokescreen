@@ -1,9 +1,11 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .how-to {
   display: flex; 
   flex-direction: column; 
   gap: rem(30);
+  @include technical-typography;
 
   &__intro-section {
     margin-bottom: rem(20);
@@ -19,21 +21,10 @@
     margin-bottom: 0;
   }
 
-  &__header {
-    font-size: 1.2rem;
-    color: var(--terminal-green);
-    margin-bottom: rem(10);
-    letter-spacing: rem(1);
-  }
-
   &__text {
     font-size: rem(14);
     line-height: 1.6;
     margin-bottom: rem(10);
-
-    b {
-      color: var(--terminal-green);
-    }
   }
 
   &__highlight-amber {

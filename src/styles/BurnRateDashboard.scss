@@ -26,6 +26,25 @@
     font-size: 1.75rem; 
     font-weight: bold;
     color: var(--ui-text);
+    margin-bottom: rem(4);
+  }
+
+  &__secondary {
+    font-size: 0.75rem;
+    font-weight: bold;
+    background: var(--ui-bg-alt);
+    display: inline-block;
+    padding: rem(2) rem(8);
+    border: rem(1) solid var(--ui-border);
+    border-radius: rem(2);
+  }
+
+  &__secondary-label {
+    color: var(--ui-text-dim);
+  }
+
+  &__secondary-value {
+    color: var(--status-p0);
   }
 
   &__graph {
