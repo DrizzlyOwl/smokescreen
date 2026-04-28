@@ -1,7 +1,7 @@
 import type { Severity, Stack } from '../data/incidents';
 
 export type AppState = 'SPLASH' | 'BOOT' | 'READY' | 'SHUTDOWN';
-export type Theme = 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai' | 'cyberpunk' | 'high-contrast';
+export type Theme = 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai' | 'cyberpunk' | 'high-contrast' | 'protanopia' | 'deuteranopia' | 'tritanopia';
 
 export interface ChatMessage {
   id: string;
@@ -51,16 +51,16 @@ export interface TerminalContextType {
   setOperatorName: (name: string) => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  uplinkId: string;
-  setUplinkId: (id: string) => void;
+  terminalId: string;
+  setTerminalId: (id: string) => void;
   isDebugMode: boolean;
   setIsDebugMode: (enabled: boolean) => void;
   isEcoMode: boolean;
   setIsEcoMode: (on: boolean) => void;
   isAudioOn: boolean;
   setIsAudioOn: (on: boolean) => void;
-  regenerateUplinkId: () => void;
-  }
+  regenerateTerminalId: () => void;
+}
 
 
 export interface IncidentContextType {

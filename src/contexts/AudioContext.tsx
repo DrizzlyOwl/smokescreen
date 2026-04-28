@@ -13,7 +13,7 @@ interface PoolNode {
   inUse: boolean;
 }
 
-export function AudioProvider({ children, isLoggedIn, severity }: { children: React.ReactNode, isLoggedIn: boolean, severity: Severity }) {
+export function AudioProvider({ children, isLoggedIn, severity, isPaused }: { children: React.ReactNode, isLoggedIn: boolean, severity: Severity, isPaused: boolean }) {
   const isAudioOn = useAudioStore(state => state.isAudioOn);
   const setIsAudioOn = useAudioStore(state => state.setIsAudioOn);
   
@@ -203,20 +203,20 @@ export function AudioProvider({ children, isLoggedIn, severity }: { children: Re
 
   useEffect(() => {
     if (audioCtx.current && masterGain.current) {
-        if (isAudioOn) {
+        if (isAudioOn && !isPaused) {
             audioCtx.current.resume();
             masterGain.current.gain.setTargetAtTime(1, audioCtx.current.currentTime, 0.1);
         } else {
             masterGain.current.gain.setTargetAtTime(0, audioCtx.current.currentTime, 0.1);
             const timer = setTimeout(() => {
-                if (audioCtx.current?.state === 'running' && !isAudioOn) {
+                if (audioCtx.current?.state === 'running' && (!isAudioOn || isPaused)) {
                     audioCtx.current.suspend();
                 }
             }, 200);
             return () => clearTimeout(timer);
         }
     }
-  }, [isAudioOn]);
+  }, [isAudioOn, isPaused]);
 
   // Ambient Hum & Fan Logic
   useEffect(() => {

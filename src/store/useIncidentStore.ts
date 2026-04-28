@@ -1,11 +1,16 @@
 import { create } from 'zustand';
-import { generateIncidentReport, generateAIIncidentReport, type Severity, type Stack } from '../data/incidents';
+import { generateIncidentReport, generateAIIncidentReport, type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { getInitialStateFromUrl } from '../hooks/useUrlSync';
 import type { Objective } from '../contexts/types';
 
 export interface TerminalLine {
   text: string;
   type: 'command' | 'output' | 'error' | 'system';
+}
+
+export interface CommandResult {
+  isValid: boolean;
+  message?: string;
 }
 
 const initialState = getInitialStateFromUrl();
@@ -55,13 +60,20 @@ interface IncidentState {
   incrementMitigationCount: () => void;
   isDeclared: boolean;
   setIsDeclared: (val: boolean) => void;
+  isDeployStabilized: boolean;
+  setIsDeployStabilized: (val: boolean) => void;
   isResolving: boolean;
   setIsResolving: (val: boolean) => void;
+  isPaused: boolean;
+  setIsPaused: (val: boolean) => void;
   onboardingStep: number;
   setOnboardingStep: (step: number) => void;
   activeBeacons: string[];
   addBeacon: (id: string) => void;
   removeBeacon: (id: string) => void;
+  serviceHealth: Record<string, 'UP' | 'DN'>;
+  updateServiceNode: (name: string, status: 'UP' | 'DN') => void;
+  healNodes: (type: 'k8s' | 'db' | 'bgp' | 'mesh' | 'vault') => void;
 
   // Actions
   declareIncident: (playAlert: (s: Severity) => void) => Promise<void>;
@@ -155,8 +167,12 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   incrementMitigationCount: () => set((state) => ({ mitigationCount: state.mitigationCount + 1 })),
   isDeclared: false,
   setIsDeclared: (isDeclared) => set({ isDeclared }),
+  isDeployStabilized: true,
+  setIsDeployStabilized: (isDeployStabilized) => set({ isDeployStabilized }),
   isResolving: false,
   setIsResolving: (isResolving) => set({ isResolving }),
+  isPaused: false,
+  setIsPaused: (isPaused) => set({ isPaused }),
   onboardingStep: localStorage.getItem('smokescreen_onboarded') === 'true' ? -1 : 0,
   setOnboardingStep: (onboardingStep) => {
     if (onboardingStep === -1) {
@@ -172,6 +188,34 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   removeBeacon: (id) => set((state) => ({ 
     activeBeacons: state.activeBeacons.filter(b => b !== id) 
   })),
+
+  serviceHealth: {},
+  updateServiceNode: (name, status) => set((state) => ({
+    serviceHealth: { ...state.serviceHealth, [name]: status }
+  })),
+
+  healNodes: (type) => set((state) => {
+    const next = { ...state.serviceHealth };
+    Object.keys(next).forEach(key => {
+        const k = key.toLowerCase();
+        if (type === 'k8s' && (k.includes('eks') || k.includes('gke') || k.includes('aks') || k.includes('k8s') || k.includes('cluster') || k.includes('fargate') || k.includes('lambda'))) {
+            next[key] = 'UP';
+        }
+        if (type === 'db' && (k.includes('rds') || k.includes('spanner') || k.includes('sql') || k.includes('database') || k.includes('redis') || k.includes('kafka') || k.includes('storage'))) {
+            next[key] = 'UP';
+        }
+        if (type === 'bgp' && (k.includes('gateway') || k.includes('transit') || k.includes('directconnect') || k.includes('peer') || k.includes('dns') || k.includes('route'))) {
+            next[key] = 'UP';
+        }
+        if (type === 'mesh' && (k.includes('mesh') || k.includes('ingress') || k.includes('proxy') || k.includes('consul'))) {
+            next[key] = 'UP';
+        }
+        if (type === 'vault' && (k.includes('vault') || k.includes('secret') || k.includes('iam') || k.includes('policy'))) {
+            next[key] = 'UP';
+        }
+    });
+    return { serviceHealth: next };
+  }),
 
   tickSlowBurn: (playAlert, declare) => {
     const { isSlowBurn, severity, slowBurnCountdown } = get();
@@ -194,10 +238,27 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   },
 
   declareIncident: async (playAlert) => {
-    const { severity } = get();
+    const { severity, stack } = get();
     if (severity === 'NOMINAL') return;
     
-    set((state) => ({ status: 'BREACH DETECTED', isSlowBurn: state.isSlowBurn, isDeclared: true }));
+    // Pick 2-4 random nodes to fail
+    const systems = stackJargon[stack]?.systems || commonJargon.systems;
+    const shuffled = [...systems].sort(() => 0.5 - Math.random());
+    const count = Math.floor(Math.random() * 3) + 2; // 2 to 4
+    const failedNodes = shuffled.slice(0, count);
+    
+    const initialHealth: Record<string, 'UP' | 'DN'> = {};
+    systems.forEach(s => {
+        initialHealth[s.toUpperCase()] = failedNodes.includes(s) ? 'DN' : 'UP';
+    });
+
+    set((state) => ({ 
+        status: 'BREACH DETECTED', 
+        isSlowBurn: state.isSlowBurn, 
+        isDeclared: true, 
+        isDeployStabilized: false,
+        serviceHealth: initialHealth
+    }));
     playAlert(severity);
     await get().generateStrategy();
   },
@@ -233,10 +294,12 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     gameMode: 'SANDBOX',
     selectedPlaybookId: null,
     activeBeacons: [],
+    serviceHealth: {},
     activeApproval: null,
     activeOverride: null,
     activeObjective: null,
     isResolving: false,
+    isDeployStabilized: true,
     mitigationCount: 0,
     lastScoreEarned: 0
   }),

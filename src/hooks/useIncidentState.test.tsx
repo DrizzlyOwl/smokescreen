@@ -80,7 +80,7 @@ describe('useIncidentState', () => {
   it('initializes with default values', () => {
     renderHook(() => useIncidentState());
     
-    expect(useTerminalStore.getState().appState).toBe('SPLASH');
+    expect(useTerminalStore.getState().appState).toBe('BOOT');
     expect(useTerminalStore.getState().operatorName).toBe('');
     expect(useIncidentStore.getState().severity).toBe('NOMINAL');
   });
@@ -188,16 +188,16 @@ describe('useIncidentState', () => {
     randomSpy.mockRestore();
   });
 
-  it('sets operator name and shifts app state to BOOT', () => {
+  it('sets operator name and shifts app state to READY', () => {
     const { result } = renderHook(() => useIncidentState());
     
     act(() => {
       result.current.setOperatorName('ASH');
-      result.current.setAppState('BOOT');
+      result.current.setAppState('READY');
     });
     
     expect(result.current.operatorName).toBe('ASH');
-    expect(result.current.appState).toBe('BOOT');
+    expect(result.current.appState).toBe('READY');
   });
 
   it('resolves theatre correctly after mitigation', () => {
@@ -272,10 +272,12 @@ describe('useIncidentState', () => {
         isAudioOn: true,
         panes: { 
           chat: true, logs: false, map: false, deploy: false, burn: false, 
-          howTo: false, settings: false, metrics: false, playbooks: false, 
+          howTo: false, settings: false, playbooks: false,
+ 
           incidentPlaybook: false, readout: false, terminal: false, debug: false 
         }
       });
+      useIncidentStore.setState({ isDeployStabilized: true });
     });
 
     const state = useIncidentStore.getState();

@@ -12,9 +12,9 @@ interface TerminalStore {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   
-  uplinkId: string;
-  setUplinkId: (id: string) => void;
-  regenerateUplinkId: () => void;
+  terminalId: string;
+  setTerminalId: (id: string) => void;
+  regenerateTerminalId: () => void;
   
   isDebugMode: boolean;
   setIsDebugMode: (val: boolean) => void;
@@ -24,12 +24,13 @@ interface TerminalStore {
 
   commandHistory: string[];
   addCommandToHistory: (cmd: string) => void;
+  handleLogout: () => void;
 }
 
 const urlState = getInitialStateFromUrl();
 
 export const useTerminalStore = create<TerminalStore>((set) => ({
-  appState: 'SPLASH',
+  appState: 'BOOT',
   setAppState: (appState) => set({ appState }),
   
   operatorName: localStorage.getItem('operator_name') || '',
@@ -45,10 +46,10 @@ export const useTerminalStore = create<TerminalStore>((set) => ({
     set({ theme });
   },
   
-  uplinkId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-  setUplinkId: (uplinkId) => set({ uplinkId }),
-  regenerateUplinkId: () => set({ 
-    uplinkId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}` 
+  terminalId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+  setTerminalId: (terminalId) => set({ terminalId }),
+  regenerateTerminalId: () => set({ 
+    terminalId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}` 
   }),
   
   isDebugMode: urlState.isDebugMode ?? (localStorage.getItem('debug_mode') === 'true'),
@@ -72,4 +73,9 @@ export const useTerminalStore = create<TerminalStore>((set) => ({
         ? state.commandHistory 
         : [...state.commandHistory, cmd].slice(-50) // Keep last 50 commands
   })),
+
+  handleLogout: () => {
+    localStorage.removeItem('operator_name');
+    set({ appState: 'SHUTDOWN', operatorName: '' });
+  },
 }));
