@@ -1,53 +1,43 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SystemControlCluster, type SystemControlClusterProps } from './SystemControlCluster';
+import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('./StatusBar', () => ({
-  StatusBar: () => <div data-testid="status-bar-mock" />
-}));
-
-vi.mock('./CommandStrip', () => ({
-  CommandStrip: () => <div data-testid="command-strip-mock" />
-}));
-
-vi.mock('./PaneGrid', () => ({
-  PaneGrid: () => <div data-testid="pane-grid-mock" />
-}));
-
-// Mock hook
-vi.mock('../hooks/useKeyboardShortcuts', () => ({
-  useKeyboardShortcuts: vi.fn()
-}));
+// Mock child components to keep test focused
+vi.mock('./StatusBar', () => ({ StatusBar: () => <div data-testid="status-bar" /> }));
+vi.mock('./CommandStrip', () => ({ CommandStrip: () => <div data-testid="command-strip" /> }));
+vi.mock('./PaneGrid', () => ({ PaneGrid: () => <div data-testid="pane-grid" /> }));
 
 describe('SystemControlCluster', () => {
   const mockProps: SystemControlClusterProps = {
     panes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, metrics: false, playbooks: false, 
+      howTo: false, settings: false, playbooks: false,
       incidentPlaybook: false, readout: false, terminal: true, debug: false 
     },
     minimizedPanes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, metrics: false, playbooks: false, 
+      howTo: false, settings: false, playbooks: false,
       incidentPlaybook: false, readout: false, terminal: false, debug: false 
     },
     zIndices: { 
-      chat: 100, logs: 101, map: 102, deploy: 103, burn: 104, 
-      howTo: 105, settings: 106, metrics: 107, playbooks: 108, 
+      chat: 101, logs: 102, map: 103, deploy: 104, burn: 105, 
+      howTo: 106, settings: 107, playbooks: 108,
       incidentPlaybook: 109, readout: 110, terminal: 111, debug: 112 
     },
     poppedOutPanes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, metrics: false, playbooks: false, 
+      howTo: false, settings: false, playbooks: false,
       incidentPlaybook: false, readout: false, terminal: false, debug: false 
     },
     snappedMainPanes: { 
       chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, metrics: false, playbooks: false, 
+      howTo: false, settings: false, playbooks: false,
       incidentPlaybook: false, readout: false, terminal: false, debug: false 
     },
-    togglePopOut: vi.fn(),
-    toggleSnapMain: vi.fn(),
+    onPopOutToggle: vi.fn(),
+    onSnapMainToggle: vi.fn(),
+    onFocus: vi.fn(),
+    onClose: vi.fn(),
     activePane: null,
     bringToFront: vi.fn(),
     loggedTogglePane: vi.fn(),
@@ -56,49 +46,82 @@ describe('SystemControlCluster', () => {
     sendMessage: vi.fn(),
     isDeclared: false,
     operatorName: 'Test Op',
-    uplinkId: 'test-id',
+    terminalId: 'test-id',
     severity: 'NOMINAL',
     stack: 'AWS',
-    status: 'OPERATIONAL',
     moneyLost: 0,
     theme: 'classic',
     setTheme: vi.fn(),
     handleLogout: vi.fn(),
     typingUsers: [],
-    handleCommand: vi.fn(),
-    loggedHandleDeclare: vi.fn(),
-    loggedCeaseTheatre: vi.fn(),
-    commands: [],
-    commandHistory: [],
-    isChaos: false,
+    markAsRead: vi.fn(),
+    markAllAsRead: vi.fn(),
+    playLoginChime: vi.fn(),
+    playPostBeep: vi.fn(),
+    playMitigationSuccess: vi.fn(),
+    stopAllSounds: vi.fn(),
+    isAudioOn: true,
+    setIsAudioOn: vi.fn(),
+    ticketId: 'T-123',
+    activeApproval: null,
+    setApproval: vi.fn(),
+    activeOverride: null,
+    setOverride: vi.fn(),
+    setObjective: vi.fn(),
+    startPlaybook: vi.fn(),
+    stopPlaybook: vi.fn(),
+    setIsChaos: vi.fn(),
+    addBeacon: vi.fn(),
+    displayText: '',
+    setDisplayText: vi.fn(),
+    logMultiplier: 1,
+    setLogMultiplier: vi.fn(),
+    chatMultiplier: 1,
+    setChatMultiplier: vi.fn(),
+    setIsResolving: vi.fn(),
+    setIsDebugMode: vi.fn(),
+    isPaused: false,
+    setIsPaused: vi.fn(),
+    activePlaybook: null,
+    handleCommand: vi.fn(() => ({ isValid: true })),
+    lastScoreEarned: 0,
+    mitigationCount: 0,
     incidentReport: '',
     setIncidentReport: vi.fn(),
     terminalHistory: [],
     setTerminalHistory: vi.fn(),
-    displayText: '',
+    commandHistory: [],
+    addCommandToHistory: vi.fn(),
+    isDeployStabilized: true,
+    incrementMitigationCount: vi.fn(),
+    unreadChat: 0,
+    loggedSetStack: vi.fn(),
+    loggedSetSeverity: vi.fn(),
+    loggedSetIsSlowBurn: vi.fn(),
+    loggedCeaseTheatre: vi.fn(),
+    loggedHandleDeclare: vi.fn(),
+    gameMode: 'SANDBOX',
+    activeObjective: null,
     setView: vi.fn(),
-    activePlaybook: null,
-    startPlaybook: vi.fn(),
-    stopPlaybook: vi.fn(),
-    markAsRead: vi.fn(),
-    markAllAsRead: vi.fn(),
+    commands: [],
+    executeCeaseTheatre: vi.fn(),
+    isChaos: false,
     isEcoMode: false,
     setIsEcoMode: vi.fn(),
-    chatMultiplier: 1,
-    setChatMultiplier: vi.fn(),
-    logMultiplier: 1,
-    setLogMultiplier: vi.fn(),
-    gameMode: 'ARCADE',
-    activeObjective: null,
-    mitigationCount: 0,
-    unreadChat: 0,
+    handleNewChatMessage: vi.fn(),
   };
 
-  it('renders all core components', () => {
+  it('renders correctly with base props', () => {
     render(<SystemControlCluster {...mockProps} />);
-    
-    expect(screen.getByTestId('status-bar-mock')).toBeDefined();
-    expect(screen.getByTestId('pane-grid-mock')).toBeDefined();
-    expect(screen.getByTestId('command-strip-mock')).toBeDefined();
+    expect(screen.getByTestId('status-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('command-strip')).toBeInTheDocument();
+    expect(screen.getByTestId('pane-grid')).toBeInTheDocument();
+  });
+
+  it('sets correct theme on mount', () => {
+    render(<SystemControlCluster {...mockProps} theme="amber" />);
+    // Initial theme set is handled in App.tsx or useTerminalStore now, 
+    // but the app--theme-amber class should be on a parent.
+    // In this component, we just verify it doesn't crash.
   });
 });

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { DeployIcon } from './Icons';
 import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { Pane } from './Pane';
+import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/DeploymentStatus.scss';
 
 interface PodStatus {
@@ -44,6 +45,10 @@ export const DeploymentStatus = ({
     isSnappedMain?: boolean,
     onSnapMainToggle?: () => void
 }) => {
+  const isDeployStabilized = useIncidentStore(state => state.isDeployStabilized);
+  const isPaused = useIncidentStore(state => state.isPaused);
+  const effectiveSeverity = isDeployStabilized ? 'NOMINAL' : severity;
+
   const workloadNames = useMemo(() => {
     const systems = stackJargon[stack]?.systems || commonJargon.systems;
     return systems.map((name, index) => ({
@@ -56,23 +61,23 @@ export const DeploymentStatus = ({
     name: item.id,
     status: 'Running',
     restarts: 0,
-    age: severity === 'NOMINAL' ? '12d' : '1s',
+    age: effectiveSeverity === 'NOMINAL' ? '12d' : '1s',
     cpu: '12m',
     memory: '128Mi'
   })));
 
   // Sync state during render when workloadNames or severity changes
   const [prevWorkloadNames, setPrevWorkloadNames] = useState(workloadNames);
-  const [prevSeverity, setPrevSeverity] = useState(severity);
+  const [prevSeverity, setPrevSeverity] = useState(effectiveSeverity);
 
-  if (workloadNames !== prevWorkloadNames || severity !== prevSeverity) {
+  if (workloadNames !== prevWorkloadNames || effectiveSeverity !== prevSeverity) {
     setPrevWorkloadNames(workloadNames);
-    setPrevSeverity(severity);
+    setPrevSeverity(effectiveSeverity);
     setPods(workloadNames.map(item => ({
         name: item.id,
         status: 'Running',
         restarts: 0,
-        age: severity === 'NOMINAL' ? '12d' : '1s',
+        age: effectiveSeverity === 'NOMINAL' ? '12d' : '1s',
         cpu: '12m',
         memory: '128Mi'
     })));
@@ -91,25 +96,26 @@ export const DeploymentStatus = ({
     if (pods.length === 0) return;
 
     const updatePods = () => {
+      if (isPaused) return;
       setPods(prev => prev.map(pod => {
         // Base CPU/Mem simulation
         let cpuVal, memVal;
         
-        if (severity === 'NOMINAL') {
+        if (effectiveSeverity === 'NOMINAL') {
           cpuVal = Math.floor(Math.random() * 50) + 10;
           memVal = Math.floor(Math.random() * 100) + 128;
           return { ...pod, status: 'Running', restarts: 0, cpu: `${cpuVal}m`, memory: `${memVal}Mi` };
         }
         
-        const chance = severity === 'P0' ? 0.6 : severity === 'P1' ? 0.2 : 0.05;
+        const chance = effectiveSeverity === 'P0' ? 0.6 : effectiveSeverity === 'P1' ? 0.2 : 0.05;
         
         // Severity-based resource scaling
-        const multiplier = severity === 'P0' ? 15 : severity === 'P1' ? 5 : 2;
+        const multiplier = effectiveSeverity === 'P0' ? 15 : effectiveSeverity === 'P1' ? 5 : 2;
         cpuVal = Math.floor((Math.random() * 100 + 50) * multiplier);
         memVal = Math.floor((Math.random() * 200 + 200) * (multiplier / 2));
 
         if (Math.random() < chance) {
-          const statuses: PodStatus['status'][] = severity === 'P0' 
+          const statuses: PodStatus['status'][] = effectiveSeverity === 'P0' 
             ? ['CrashLoopBackOff', 'Error', 'Terminating'] 
             : ['CrashLoopBackOff', 'ImagePullBackOff', 'Pending'];
           const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
@@ -117,7 +123,7 @@ export const DeploymentStatus = ({
             ...pod, 
             status: newStatus, 
             restarts: pod.restarts + (newStatus === 'CrashLoopBackOff' ? 1 : 0),
-            age: severity === 'P0' ? '1s' : '2m',
+            age: effectiveSeverity === 'P0' ? '1s' : '2m',
             cpu: newStatus === 'Running' ? `${cpuVal}m` : '0m',
             memory: newStatus === 'Running' ? `${memVal}Mi` : '0Mi'
           };
@@ -134,11 +140,12 @@ export const DeploymentStatus = ({
     updatePods();
     const interval = setInterval(updatePods, 3000);
     return () => clearInterval(interval);
-  }, [severity, pods.length]);
+  }, [effectiveSeverity, pods.length, isPaused]);
 
   useEffect(() => {
     const addLog = () => {
-      if (severity === 'NOMINAL') {
+      if (isPaused) return;
+      if (effectiveSeverity === 'NOMINAL') {
         setTfLog([]);
         return;
       }
@@ -163,21 +170,21 @@ export const DeploymentStatus = ({
         `Error: Provider produced inconsistent final plan`
       ];
 
-      const pool = severity === 'P0' ? [...p0Logs, ...generalLogs] : generalLogs;
+      const pool = effectiveSeverity === 'P0' ? [...p0Logs, ...generalLogs] : generalLogs;
       setTfLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${pool[Math.floor(Math.random() * pool.length)]}`].slice(-10));
     };
 
     addLog();
-    const interval = setInterval(addLog, severity === 'P0' ? 1000 : 2500);
+    const interval = setInterval(addLog, effectiveSeverity === 'P0' ? 1000 : 2500);
     return () => clearInterval(interval);
-  }, [severity]);
+  }, [effectiveSeverity, isPaused]);
 
   return (
     <Pane
       id="deploy"
       title={`${stack}_WORKLOAD_STATUS`}
       icon={<DeployIcon />}
-      iconColor={severity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
+      iconColor={effectiveSeverity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
       initialPos={initialPos}
       initialSize={initialSize}
       zIndex={zIndex}
@@ -185,7 +192,7 @@ export const DeploymentStatus = ({
       isActive={isActive}
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
-      severityColor={severity === 'P0' ? 'var(--terminal-red)' : undefined}
+      severityColor={effectiveSeverity === 'P0' ? 'var(--terminal-red)' : undefined}
       onClose={onClose}
       isPoppedOut={isPoppedOut}
       onPopOutToggle={onPopOutToggle}

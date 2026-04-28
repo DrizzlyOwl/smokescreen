@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { Pane } from './Pane';
 import { ActivityIcon } from './Icons';
+import type { Command } from '../hooks/useCommandRegistry';
+import type { TerminalLine } from '../hooks/useIncidentState';
 import '../styles/TerminalPane.scss';
 
 interface TerminalPaneProps {
@@ -12,10 +14,10 @@ interface TerminalPaneProps {
   isMinimized: boolean;
   onMinimizeToggle: () => void;
   onCommand: (cmd: string) => boolean;
-  terminalHistory: import('../hooks/useIncidentState').TerminalLine[];
-  setTerminalHistory: React.Dispatch<React.SetStateAction<import('../hooks/useIncidentState').TerminalLine[]>>;
+  terminalHistory: TerminalLine[];
+  setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
   commandHistory: string[];
-  commands: import('../hooks/useCommandRegistry').Command[];
+  commands: Command[];
   operatorName: string;
   initialPos?: { x: number, y: number };
   initialSize?: { width: number, height: number };

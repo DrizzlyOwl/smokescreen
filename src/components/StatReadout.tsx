@@ -7,6 +7,7 @@ interface StatReadoutProps {
   color?: string;
   className?: string;
   style?: React.CSSProperties;
+  trend?: 'up' | 'down' | 'neutral';
 }
 
 export const StatReadout = ({ 
@@ -14,10 +15,11 @@ export const StatReadout = ({
   value, 
   color,
   className = '', 
-  style = {} 
+  style = {},
+  trend
 }: StatReadoutProps) => {
   return (
-    <div className={`stat-readout ${className}`} style={style}>
+    <div className={`stat-readout ${className} ${trend ? `stat-readout--trend-${trend}` : ''}`} style={style}>
       <span className="stat-readout__label">{label}:</span>{' '}
       <span 
         className="stat-readout__value" 

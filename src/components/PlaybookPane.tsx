@@ -1,7 +1,6 @@
-import React from 'react';
 import { TechnicalPane } from './TechnicalPane';
-import { PlaybookIcon } from './Icons';
 import { Button } from './Button';
+import { PlaybookIcon } from './Icons';
 import { PLAYBOOKS } from '../data/playbooks';
 import type { Playbook } from '../data/playbooks/types';
 import '../styles/PlaybookPane.scss';
@@ -13,40 +12,28 @@ interface PlaybookPaneProps {
   onClose: () => void;
   isMinimized: boolean;
   onMinimizeToggle: () => void;
-  activePlaybook: Playbook | null;
-  startPlaybook: (playbook: Playbook) => void;
-  stopPlaybook: () => void;
+  onSelectPlaybook: (playbook: Playbook) => void;
   initialPos?: { x: number, y: number };
   initialSize?: { width: number, height: number };
-  isPoppedOut?: boolean;
-  onPopOutToggle?: () => void;
-  isSnappedMain?: boolean;
-  onSnapMainToggle?: () => void;
 }
 
-export const PlaybookPane: React.FC<PlaybookPaneProps> = ({
+export const PlaybookPane = ({
   zIndex,
   onFocus,
   isActive,
   onClose,
   isMinimized,
   onMinimizeToggle,
-  activePlaybook,
-  startPlaybook,
-  stopPlaybook,
+  onSelectPlaybook,
   initialPos,
-  initialSize = { width: 450, height: 550 },
-  isPoppedOut,
-  onPopOutToggle,
-  isSnappedMain,
-  onSnapMainToggle
-}) => {
+  initialSize = { width: 450, height: 650 }
+}: PlaybookPaneProps) => {
   return (
     <TechnicalPane
       id="playbooks"
-      title="SCENARIO_DECK"
-      paneTitle="INCIDENT: SIMULATOR"
-      classification="RESTRICTED_ACCESS"
+      title="SCENARIO_DATABASE_v6.1"
+      paneTitle="SCENARIO_DECK"
+      classification="RESTRICTED // OPS_USE_ONLY"
       icon={<PlaybookIcon />}
       zIndex={zIndex}
       onFocus={onFocus}
@@ -56,52 +43,30 @@ export const PlaybookPane: React.FC<PlaybookPaneProps> = ({
       onClose={onClose}
       initialPos={initialPos}
       initialSize={initialSize}
-      isPoppedOut={isPoppedOut}
-      onPopOutToggle={onPopOutToggle}
-      isSnappedMain={isSnappedMain}
-      onSnapMainToggle={onSnapMainToggle}
-      footerText={
-        <>
-          ENGINE: SMOKESCREEN_PLAYBOOK_v5.0
-          <br />
-          RESTRICTION: SRE_LEVEL_4_OR_HIGHER
-        </>
-      }
+      metadata={{
+        version: 'v6.0.4',
+        source: 'SRE_DECK',
+        authority: 'OPERATOR_SELECT'
+      }}
     >
       <div className="playbooks">
-        <section>
-          <p className="playbooks__intro">
-            Select a pre-scripted scenario to launch an automated incident. Each playbook coordinates specific chat messages, technical logs, and severity escalations.
-          </p>
-        </section>
+        <p className="playbooks__intro">
+          Select a simulation scenario to initialize. All events are contained within the local virtual environment.
+        </p>
 
         <div className="playbooks__list">
           {Object.values(PLAYBOOKS).map((playbook) => (
             <div key={playbook.id} className="playbooks__card">
-              <div>
-                <div className="playbooks__card-title">
-                  {playbook.name.toUpperCase()}
-                </div>
-                <div className="playbooks__card-desc">
-                  {playbook.description}
-                </div>
-                <div className="playbooks__card-scenario">
-                  {playbook.id === 'dns-meltdown' && "SCENARIO: Global traffic failure, BGP routing errors, and DNS resolution timeouts."}
-                  {playbook.id === 'db-deadlock' && "SCENARIO: Database locking, connection pool exhaustion, and OOM (Out of Memory) crashes."}
-                  {playbook.id === 'bgp-blackhole' && "SCENARIO: Network connectivity loss, Tier-1 peering failures, and global flatline metrics."}
-                  {playbook.id === 'kernel-panic-cascade' && "SCENARIO: Low-level system crashes, Kubernetes node drops, and fleet-wide failure."}
-                  {playbook.id === 'cloud-security-breach' && "SCENARIO: Unauthorized API access alerts, credential leakage logs, and emergency region isolation."}
-                </div>
-              </div>
-              
+              <div className="playbooks__card-title">{playbook.name}</div>
+              <div className="playbooks__card-desc">{playbook.description}</div>
+              <div className="playbooks__card-scenario">THREAT_LEVEL: {playbook.id.includes('l1') ? 'P3' : playbook.id.includes('l2') ? 'P3' : playbook.id.includes('l3') ? 'P1' : 'P0'}</div>
               <Button 
-                active={activePlaybook?.id === playbook.id} 
-                onClick={() => activePlaybook?.id === playbook.id ? stopPlaybook() : startPlaybook(playbook)} 
+                onClick={() => onSelectPlaybook(playbook)}
+                variant="primary"
                 size="small"
                 fullWidth
-                variant={activePlaybook?.id === playbook.id ? 'primary' : 'terminal'}
               >
-                {activePlaybook?.id === playbook.id ? 'TERMINATE_SCENARIO' : 'LAUNCH_SCENARIO'}
+                INITIALIZE_SCENARIO
               </Button>
             </div>
           ))}

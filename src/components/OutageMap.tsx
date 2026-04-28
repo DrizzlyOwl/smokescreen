@@ -34,9 +34,10 @@ export const OutageMap = ({
     onClose, 
     isMinimized, 
     onMinimizeToggle,
-    initialPos = { x: window.innerWidth - 650, y: 40 },
-    initialSize = { width: 600, height: 400 },
+    initialPos = { x: 50, y: 50 },
+    initialSize = { width: 900, height: 500 },
     isPoppedOut,
+
     onPopOutToggle,
     isSnappedMain,
     onSnapMainToggle
@@ -292,22 +293,20 @@ export const OutageMap = ({
                     )}
                 </svg>
 
-                <svg 
-                    viewBox="0 0 1000 500" 
-                    preserveAspectRatio="xMidYMid slice"
-                    className="outage-map__svg"
-                >
-                    {/* North America */}
-                    <path d="M120,80 L280,80 L320,150 L280,220 L200,240 L120,200 L80,150 Z" />
-                    {/* South America */}
-                    <path d="M250,260 L350,260 L380,350 L320,450 L260,450 L220,350 Z" />
-                    {/* Europe & Africa */}
-                    <path d="M450,80 L580,80 L620,150 L580,220 L550,240 L580,350 L520,450 L450,450 L420,350 L450,240 L420,150 Z" />
-                    {/* Asia */}
-                    <path d="M600,80 L850,80 L920,150 L880,280 L750,320 L620,280 L600,150 Z" />
-                    {/* Australia */}
-                    <path d="M800,350 L900,350 L920,420 L880,450 L820,450 Z" />
-                </svg>
+                <pre className="outage-map__ascii">
+{`
+      _..-''--'.._                                     _..-''--'.._
+    .'            '.                                 .'            '.
+   /   AMERICAS     \\        _..-''--'.._           /    ASIA      \\
+  |                  |      .'            '.        |      &         |
+  |      (WEST)      |     /    EMEA        \\       |   PACIFIC      |
+  |                  |    |                 |       |                |
+   \\                /     |     (CENTER)    |        \\              /
+    '.            .'       \\               /          '.          .'
+      '--..__..--'          '.           .'             '--..__..--'
+                              '--..__..--'
+`}
+                </pre>
 
                 {nodes.map(node => {
                     const pos = getPos(node.lat, node.lng);

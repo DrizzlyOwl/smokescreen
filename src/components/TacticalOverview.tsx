@@ -4,6 +4,7 @@ import { ActivityIcon, DeployIcon } from './Icons';
 import { MissionHUD } from './MissionHUD';
 import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { useSystemMetrics } from '../hooks/useSystemMetrics';
+import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/TacticalOverview.scss';
 
 interface TacticalOverviewProps {
@@ -19,6 +20,9 @@ export const TacticalOverview = ({
   isDeclared,
   objective
 }: TacticalOverviewProps) => {
+  const addTerminalLine = useIncidentStore(state => state.addTerminalLine);
+  const serviceHealth = useIncidentStore(state => state.serviceHealth);
+
   const metrics = useSystemMetrics(severity);
   const coreCount = React.useMemo(() => Math.min(navigator.hardwareConcurrency || 8, 4), []); // Cap at 4 for space
   
@@ -70,20 +74,43 @@ export const TacticalOverview = ({
   const services = useMemo(() => {
     const systems = stackJargon[stack]?.systems || commonJargon.systems;
     return systems.map(name => {
-      const nameHash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const threshold = severity === 'P0' ? 0.6 : severity === 'P1' ? 0.3 : 0.05;
-      const isUp = (nameHash % 100) / 100 > threshold;
+      const status = serviceHealth[name.toUpperCase()] || 'UP';
       
       const baseLatency = severity === 'P0' ? 400 : severity === 'P1' ? 150 : 20;
-      const jitter = nameHash % (severity === 'P0' ? 600 : 80);
+      const jitter = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % (severity === 'P0' ? 600 : 80);
       
       return {
         name: name.toUpperCase(),
-        status: isUp ? 'UP' : 'DN',
-        latency: `${baseLatency + jitter}ms`
+        status,
+        latency: status === 'DN' ? 'TIMED_OUT' : `${baseLatency + jitter}ms`
       };
     });
-  }, [severity, stack]);
+  }, [severity, stack, serviceHealth]);
+
+  const handleNodeClick = (svc: { name: string, status: string }) => {
+    if (svc.status === 'UP') {
+        addTerminalLine({ text: `PROBE_SUCCESS: ${svc.name} IS STABLE. NO ACTION REQUIRED.`, type: 'system' });
+        return;
+    }
+
+    const n = svc.name.toLowerCase();
+    let hint = 'MANUAL_OVERRIDE';
+    
+    if (n.includes('eks') || n.includes('gke') || n.includes('aks') || n.includes('k8s') || n.includes('cluster') || n.includes('fargate') || n.includes('lambda')) {
+        hint = 'k8s restart';
+    } else if (n.includes('rds') || n.includes('spanner') || n.includes('sql') || n.includes('database') || n.includes('redis') || n.includes('kafka') || n.includes('storage')) {
+        hint = 'db kill';
+    } else if (n.includes('gateway') || n.includes('transit') || n.includes('directconnect') || n.includes('peer') || n.includes('dns') || n.includes('route')) {
+        hint = 'bgp reset';
+    } else if (n.includes('mesh') || n.includes('ingress') || n.includes('proxy') || n.includes('consul')) {
+        hint = 'mesh restart';
+    } else if (n.includes('vault') || n.includes('secret') || n.includes('iam') || n.includes('policy')) {
+        hint = 'vault seal';
+    }
+
+    addTerminalLine({ text: `TECHNICAL_SITREP: ${svc.name} IS UNSTABLE.`, type: 'error' });
+    addTerminalLine({ text: `REMEDIATION_HINT: EXECUTE "${hint}" TO STABILIZE.`, type: 'system' });
+  };
 
   return (
     <div className={`tactical-overview tactical-overview--${severity.toLowerCase()}`}>
@@ -133,7 +160,11 @@ export const TacticalOverview = ({
           </div>
           <div className="tactical-overview__service-grid">
             {services.map(svc => (
-              <div key={svc.name} className={`tactical-overview__service-node tactical-overview__service-node--${svc.status.toLowerCase()}`}>
+              <div 
+                key={svc.name} 
+                className={`tactical-overview__service-node tactical-overview__service-node--${svc.status.toLowerCase()}`}
+                onClick={() => handleNodeClick(svc)}
+              >
                 <div className="tactical-overview__service-name">{svc.name}</div>
                 <div className="tactical-overview__service-status">[{svc.status}]</div>
                 <div className="tactical-overview__service-latency">{svc.latency}</div>

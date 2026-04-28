@@ -1,56 +1,64 @@
 import React, { Suspense, lazy } from 'react';
 import { Button } from './Button';
-import type { TerminalLine } from '../hooks/useIncidentState';
+import type { TerminalLine } from '../store/useIncidentStore';
 import type { ChatMessage } from '../contexts/types';
-import type { PaneId, PanesState, MinimizedState, ZIndicesState } from '../hooks/useWindowManager';
-import { TacticalOverview } from './TacticalOverview';
+import type { PaneId, PanesState } from '../hooks/useWindowManager';
+import type { Severity, Stack } from '../data/incidents';
+import type { Theme } from '../contexts/types';
 import { useIncidentStore } from '../store/useIncidentStore';
-import { useTerminalStore } from '../store/useTerminalStore';
+import { TacticalOverview } from './TacticalOverview';
 
 // Lazy load panes
 const WarRoom = lazy(() => import('./WarRoom').then(m => ({ default: m.WarRoom })));
-const HowToPane = lazy(() => import('./HowToPane').then(m => ({ default: m.HowToPane })));
-const SettingsPane = lazy(() => import('./SettingsPane').then(m => ({ default: m.SettingsPane })));
-const LatencyPane = lazy(() => import('./LatencyPane').then(m => ({ default: m.LatencyPane })));
-const PlaybookPane = lazy(() => import('./PlaybookPane').then(m => ({ default: m.PlaybookPane })));
-const TerminalPane = lazy(() => import('./TerminalPane').then(m => ({ default: m.TerminalPane })));
 const OutageMap = lazy(() => import('./OutageMap').then(m => ({ default: m.OutageMap })));
 const SystemLog = lazy(() => import('./SystemLog').then(m => ({ default: m.SystemLog })));
 const BurnRateDashboard = lazy(() => import('./BurnRateDashboard').then(m => ({ default: m.BurnRateDashboard })));
 const DeploymentStatus = lazy(() => import('./DeploymentStatus').then(m => ({ default: m.DeploymentStatus })));
-const DebugConsole = lazy(() => import('./DebugConsole').then(m => ({ default: m.DebugConsole })));
-const ReadoutBox = lazy(() => import('./ReadoutBox').then(m => ({ default: m.ReadoutBox })));
+const SettingsPane = lazy(() => import('./SettingsPane').then(m => ({ default: m.SettingsPane })));
+const PlaybookPane = lazy(() => import('./PlaybookPane').then(m => ({ default: m.PlaybookPane })));
 const IncidentPlaybookPane = lazy(() => import('./IncidentPlaybookPane').then(m => ({ default: m.IncidentPlaybookPane })));
+const ReadoutBox = lazy(() => import('./ReadoutBox').then(m => ({ default: m.ReadoutBox })));
+const DebugConsole = lazy(() => import('./DebugConsole').then(m => ({ default: m.DebugConsole })));
+const HowToPane = lazy(() => import('./HowToPane').then(m => ({ default: m.HowToPane })));
+const TerminalPane = lazy(() => import('./TerminalPane').then(m => ({ default: m.TerminalPane })));
 
 interface PaneGridProps {
   panes: PanesState;
-  minimizedPanes: MinimizedState;
-  zIndices: ZIndicesState;
+  minimizedPanes: Record<PaneId, boolean>;
+  zIndices: Record<PaneId, number>;
   poppedOutPanes: Record<PaneId, boolean>;
   snappedMainPanes: Record<PaneId, boolean>;
-  togglePopOut: (id: PaneId) => void;
-  toggleSnapMain: (id: PaneId) => void;
   activePane: PaneId | null;
-  bringToFront: (id: PaneId) => void;
-  loggedTogglePane: (id: PaneId) => void;
-  toggleMinimize: (id: PaneId) => void;
-  messages: ChatMessage[];
-  sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
-  typingUsers: string[];
-  handleCommand: (cmd: string) => boolean;
-  commands: import('../hooks/useCommandRegistry').Command[];
-  commandHistory: string[];
+  severity: Severity;
+  stack: Stack;
+  isDeclared: boolean;
+  incidentReport: string;
+  setIncidentReport: (report: string) => void;
   terminalHistory: TerminalLine[];
+  onCommand: (cmd: string) => boolean;
   setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
+  commandHistory: string[];
+  commands: any[];
+  operatorName: string;
+  onFocus: (id: PaneId) => void;
+  onClose: (id: PaneId) => void;
+  toggleMinimize: (id: PaneId) => void;
+  onPopOutToggle: (id: PaneId) => void;
+  onSnapMainToggle: (id: PaneId) => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  messages: ChatMessage[];
+  sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bio?: string) => void;
+  typingUsers: string[];
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  activePlaybook: import('../data/playbooks/types').Playbook | null;
-  startPlaybook: (p: import('../data/playbooks/types').Playbook) => void;
-  stopPlaybook: () => void;
-  logMultiplier: number;
-  setLogMultiplier: (multiplier: number) => void;
+  onSelectPlaybook: (playbook: any) => void;
+  activePlaybook: any;
   activeObjective: import('../contexts/types').Objective | null;
+  displayText: string;
+  setDisplayText: (text: string) => void;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  logMultiplier: number;
 }
 
 export const PaneGrid: React.FC<PaneGridProps> = ({
@@ -59,95 +67,90 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
   zIndices,
   poppedOutPanes,
   snappedMainPanes,
-  togglePopOut,
-  toggleSnapMain,
   activePane,
-  bringToFront,
-  loggedTogglePane,
+  severity,
+  stack,
+  isDeclared,
+  incidentReport,
+  setIncidentReport,
+  terminalHistory,
+  onCommand,
+  setTerminalHistory,
+  commandHistory,
+  commands,
+  operatorName,
+  onFocus,
+  onClose,
   toggleMinimize,
+  onPopOutToggle,
+  onSnapMainToggle,
+  theme,
+  setTheme,
   messages,
   sendMessage,
   typingUsers,
-  handleCommand,
-  commands,
-  commandHistory,
-  terminalHistory,
-  setTerminalHistory,
-  scrollRef,
   markAsRead,
   markAllAsRead,
+  onSelectPlaybook,
   activePlaybook,
-  startPlaybook,
-  stopPlaybook,
-  logMultiplier,
-  setLogMultiplier,
-  activeObjective
+  activeObjective,
+  displayText,
+  scrollRef,
+  logMultiplier
 }) => {
-  const severity = useIncidentStore(state => state.severity);
-  const stack = useIncidentStore(state => state.stack);
-  const isDeclared = useIncidentStore(state => state.isDeclared);
-  const incidentReport = useIncidentStore(state => state.incidentReport);
-  const setIncidentReport = useIncidentStore(state => state.setIncidentReport);
-  const displayText = useIncidentStore(state => state.displayText);
-  const setView = useIncidentStore(state => state.setView);
-  const moneyLost = useIncidentStore(state => state.moneyLost);
-  const chatMultiplier = useIncidentStore(state => state.chatMultiplier);
-  const setChatMultiplier = useIncidentStore(state => state.setChatMultiplier);
-
-  const theme = useTerminalStore(state => state.theme);
-  const setTheme = useTerminalStore(state => state.setTheme);
-  const operatorName = useTerminalStore(state => state.operatorName);
-  const uplinkId = useTerminalStore(state => state.uplinkId);
-
   const renderPane = (id: PaneId) => {
-    if (!panes[id]) return null;
-
-    const isPopped = poppedOutPanes[id];
-    const isSnapped = snappedMainPanes[id];
     const commonProps = {
-      id,
-      zIndex: isPopped ? zIndices[id] : 1,
+      zIndex: zIndices[id],
+      onFocus: () => onFocus(id),
       isActive: activePane === id,
-      isPoppedOut: isPopped,
-      onPopOutToggle: () => togglePopOut(id),
-      isSnappedMain: isSnapped,
-      onSnapMainToggle: () => toggleSnapMain(id),
-      onFocus: () => bringToFront(id),
-      onClose: () => loggedTogglePane(id),
+      onClose: () => onClose(id),
       isMinimized: minimizedPanes[id],
-      onMinimizeToggle: () => toggleMinimize(id)
+      onMinimizeToggle: () => toggleMinimize(id),
+      isPoppedOut: poppedOutPanes[id],
+      onPopOutToggle: () => onPopOutToggle(id),
+      isSnappedMain: snappedMainPanes[id],
+      onSnapMainToggle: () => onSnapMainToggle(id),
     };
 
     switch (id) {
-      case 'chat':
-        return <WarRoom 
-          {...commonProps}
-          messages={messages} 
-          typingUsers={typingUsers}
-          sendMessage={sendMessage}
-          isDeclared={isDeclared}
-          operatorName={operatorName}
-          markAsRead={markAsRead}
-          markAllAsRead={markAllAsRead}
-          initialPos={{ x: 400, y: 50 }}
-        />;
       case 'terminal':
         return <TerminalPane 
-          {...commonProps}
+          {...commonProps} 
           terminalHistory={terminalHistory}
+          onCommand={onCommand}
           setTerminalHistory={setTerminalHistory}
           commandHistory={commandHistory}
           commands={commands}
           operatorName={operatorName}
-          onCommand={handleCommand}
-          initialPos={{ x: 750, y: 100 }}
+        />;
+      case 'chat':
+        return <WarRoom 
+          {...commonProps}
+          messages={messages}
+          sendMessage={sendMessage}
+          typingUsers={typingUsers}
+          markAsRead={markAsRead}
+          markAllAsRead={markAllAsRead}
+          isDeclared={isDeclared}
+          operatorName={operatorName}
         />;
       case 'logs':
         return <SystemLog 
           {...commonProps}
+          severity={severity}
+          logMultiplier={logMultiplier}
+          terminalId={useIncidentStore.getState().ticketId}
+        />;
+      case 'map':
+        return <OutageMap 
+          {...commonProps}
           severity={severity} 
-          uplinkId={uplinkId} 
-          initialPos={{ x: 400, y: 80 }}
+        />;
+      case 'burn':
+        return <BurnRateDashboard 
+          {...commonProps}
+          severity={severity} 
+          moneyLost={useIncidentStore.getState().moneyLost}
         />;
       case 'deploy':
         return <DeploymentStatus 
@@ -156,53 +159,21 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           stack={stack}
           initialPos={{ x: 1020, y: 200 }}
         />;
-      case 'metrics':
-        return <LatencyPane 
-          {...commonProps}
-          initialPos={{ x: 870, y: 500 }}
-        />;
       case 'settings':
         return <SettingsPane 
           {...commonProps}
           currentTheme={theme} 
           setTheme={setTheme} 
-          initialPos={{ x: 600, y: 150 }}
-        />;
-      case 'map':
-        return <OutageMap 
-          {...commonProps}
-          severity={severity} 
-          initialPos={{ x: 870, y: 50 }}
-        />;
-      case 'burn':
-        return <BurnRateDashboard 
-          {...commonProps}
-          severity={severity} 
-          moneyLost={moneyLost} 
-          initialPos={{ x: 1250, y: 460 }}
         />;
       case 'playbooks':
         return <PlaybookPane 
           {...commonProps}
-          activePlaybook={activePlaybook}
-          startPlaybook={startPlaybook}
-          stopPlaybook={stopPlaybook}
-          initialPos={{ x: 1480, y: 50 }}
+          onSelectPlaybook={onSelectPlaybook}
         />;
       case 'incidentPlaybook':
         return <IncidentPlaybookPane 
           {...commonProps}
           activePlaybook={activePlaybook}
-          initialPos={{ x: 1480, y: 50 }}
-        />;
-      case 'debug':
-        return <DebugConsole 
-          {...commonProps}
-          initialPos={{ x: 50, y: 600 }}
-          chatMultiplier={chatMultiplier}
-          setChatMultiplier={setChatMultiplier}
-          logMultiplier={logMultiplier}
-          setLogMultiplier={setLogMultiplier}
         />;
       case 'howTo':
         return <HowToPane 
@@ -216,6 +187,11 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           title="INCIDENT_PLAYBOOK_GENERATED"
           label="AUTOMATED_RESPONSE_STRATEGY"
           initialPos={{ x: 600, y: 150 }}
+          metadata={{
+            version: 'AI-v1.5-FLASH',
+            source: 'GEMINI_CORE',
+            authority: 'AUTONOMOUS_AGENT'
+          }}
           headerRight={
             <div className="readout-box__header-actions">
               <Button onClick={() => setIncidentReport('')} size="x-small" variant="ghost">[ CLEAR_READOUT ]</Button>
@@ -223,86 +199,70 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
             </div>
           }
           contentRef={scrollRef}
-          footer={displayText === incidentReport && (
-               <div className="readout-box__footer-container">
+        >
+          <div style={{ position: 'relative' }}>
+            {displayText}
+            {displayText === incidentReport && (
                  <div className="readout-box__workflow">
                    <div className="readout-box__workflow-header">{'>>>'} REQUIRED_RESOLUTION_WORKFLOW {'<<<'}</div>
                    <div className="readout-box__workflow-step">[1] EXECUTE MITIGATION: Route traffic via Outage Map [F3] OR authorize system overrides.</div>
-                   <div className="readout-box__workflow-step">[2] VERIFY STABILITY: Ensure Threat Level drops to NOMINAL.</div>
-                   <div className="readout-box__workflow-step">[3] INITIATE STAND-DOWN: Trigger 'resolve' via command line or global control strip.</div>
+                   <div className="readout-box__workflow-step">[2] STABILIZE: Resolve crashing pod loops via K8s Status [F2].</div>
+                   <div className="readout-box__workflow-step">[3] RESOLUTION: Once status board is GREEN, type 'resolve' in terminal.</div>
                  </div>
-                 <div className="readout-box__footer-actions">
-                   <Button onClick={() => {
-                     navigator.clipboard.writeText(incidentReport);
-                     const original = incidentReport;
-                     setIncidentReport('>>> CLIPBOARD_SYNC_COMPLETE <<<');
-                     setTimeout(() => setIncidentReport(original), 1500);
-                   }} active size="x-small">
-                     [ COPY_PLAYBOOK ]
-                   </Button>
-                   <Button onClick={() => setView('TICKET')} size="x-small">
-                     [ VIEW_RESTRICTED_TICKET ]
-                   </Button>
-                 </div>
-               </div>
-           )}        >
-          {displayText}
+            )}
+          </div>
         </ReadoutBox>;
+      case 'debug':
+        return <DebugConsole {...commonProps} />;
       default:
         return null;
     }
   };
 
-  const paneIds: PaneId[] = ['chat', 'logs', 'map', 'deploy', 'burn', 'howTo', 'settings', 'metrics', 'playbooks', 'incidentPlaybook', 'readout', 'terminal', 'debug'];
+  const paneIds: PaneId[] = ['chat', 'logs', 'map', 'deploy', 'burn', 'howTo', 'settings', 'playbooks', 'incidentPlaybook', 'readout', 'terminal', 'debug'];
   const tiledPanes = paneIds.filter(id => panes[id] && !poppedOutPanes[id]);
   const mainSnappedPanes = tiledPanes.filter(id => snappedMainPanes[id]);
   const rightTiledPanes = tiledPanes.filter(id => !snappedMainPanes[id]);
   const floatingPanes = paneIds.filter(id => panes[id] && poppedOutPanes[id]);
 
   return (
-    <>
-      <div className="tiled-layout">
-        <div className="tiled-grid">
-          <div className="tiled-grid__main">
-            {mainSnappedPanes.length === 0 ? (
-              <TacticalOverview 
-                severity={severity}
-                stack={stack}
-                isDeclared={isDeclared}
-                objective={activeObjective}
-              />
-            ) : (
-              <Suspense fallback={null}>
-                {mainSnappedPanes.map(id => (
+    <div className="cluster-content-wrapper">
+        <div className="cluster-layout__main">
+            <TacticalOverview 
+              severity={severity}
+              stack={stack}
+              isDeclared={isDeclared}
+              objective={activeObjective}
+            />
+            <div className="cluster-layout__snapped-layer">
+                <Suspense fallback={null}>
+                    {mainSnappedPanes.map(id => (
+                        <React.Fragment key={id}>
+                            {renderPane(id)}
+                        </React.Fragment>
+                    ))}
+                </Suspense>
+            </div>
+        </div>
+        <div className="cluster-layout__right">
+            <Suspense fallback={null}>
+                {rightTiledPanes.map(id => (
                     <React.Fragment key={id}>
                         {renderPane(id)}
                     </React.Fragment>
                 ))}
-              </Suspense>
-            )}
-          </div>
-          
-          <div className="tiled-grid__panes">
-            <Suspense fallback={null}>
-              {rightTiledPanes.map(id => (
-                  <React.Fragment key={id}>
-                      {renderPane(id)}
-                  </React.Fragment>
-              ))}
             </Suspense>
-          </div>
         </div>
-      </div>
 
-      <div className="floating-panes">
-        <Suspense fallback={null}>
-            {floatingPanes.map(id => (
-                <React.Fragment key={id}>
-                    {renderPane(id)}
-                </React.Fragment>
-            ))}
-        </Suspense>
-      </div>
-    </>
+        <div className="floating-panes">
+            <Suspense fallback={null}>
+                {floatingPanes.map(id => (
+                    <React.Fragment key={id}>
+                        {renderPane(id)}
+                    </React.Fragment>
+                ))}
+            </Suspense>
+        </div>
+    </div>
   );
 };

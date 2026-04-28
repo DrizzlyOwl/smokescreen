@@ -4,9 +4,10 @@ import { CommandStrip } from './CommandStrip';
 import { PaneGrid } from './PaneGrid';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import type { Severity, Stack } from '../data/incidents';
-import type { TerminalLine } from '../hooks/useIncidentState';
-import type { ChatMessage, Theme } from '../contexts/types';
 import type { PaneId, PanesState, MinimizedState, ZIndicesState } from '../hooks/useWindowManager';
+import type { TerminalLine, CommandResult } from '../hooks/useIncidentState';
+import type { ChatMessage } from '../contexts/types';
+import type { Command } from '../hooks/useCommandRegistry';
 import '../styles/SystemControlCluster.scss';
 
 export interface SystemControlClusterProps {
@@ -15,60 +16,92 @@ export interface SystemControlClusterProps {
   zIndices: ZIndicesState;
   poppedOutPanes: Record<PaneId, boolean>;
   snappedMainPanes: Record<PaneId, boolean>;
-  togglePopOut: (id: PaneId) => void;
-  toggleSnapMain: (id: PaneId) => void;
   activePane: PaneId | null;
-  bringToFront: (id: PaneId) => void;
-  loggedTogglePane: (id: PaneId) => void;
-  toggleMinimize: (id: PaneId) => void;
-  messages: ChatMessage[];
-  sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
-  isDeclared: boolean;
-  operatorName: string;
-  uplinkId: string;
   severity: Severity;
   stack: Stack;
-  status: string;
-  moneyLost: number;
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  handleLogout: () => void;
-  typingUsers: string[];
-  handleCommand: (cmd: string) => boolean;
-  loggedCeaseTheatre: () => void;
-  commands: import('../hooks/useCommandRegistry').Command[];
-  commandHistory: string[];
-  isChaos: boolean;
+  isDeclared: boolean;
   incidentReport: string;
-  setIncidentReport: (r: string) => void;
+  setIncidentReport: (report: string) => void;
   terminalHistory: TerminalLine[];
   setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
-  displayText: string;
-  setView: (v: 'HOME' | 'TICKET') => void;
-  activePlaybook: import('../data/playbooks/types').Playbook | null;
-  startPlaybook: (p: import('../data/playbooks/types').Playbook) => void;
-  stopPlaybook: () => void;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
+  commandHistory: string[];
+  addCommandToHistory: (cmd: string) => void;
+  theme: import('../contexts/types').Theme;
+  setTheme: (theme: import('../contexts/types').Theme) => void;
+  setView: (view: 'HOME' | 'TICKET') => void;
   isEcoMode: boolean;
   setIsEcoMode: (on: boolean) => void;
-  chatMultiplier: number;
-  setChatMultiplier: (multiplier: number) => void;
-  logMultiplier: number;
-  setLogMultiplier: (multiplier: number) => void;
+  loggedTogglePane: (id: PaneId) => void;
+  loggedSetStack: (s: Stack) => void;
+  loggedSetSeverity: (s: Severity) => void;
+  loggedSetIsSlowBurn: (on: boolean) => void;
+  loggedCeaseTheatre: () => void;
   loggedHandleDeclare: () => void;
   gameMode: import('../store/useIncidentStore').GameMode;
   activeObjective: import('../contexts/types').Objective | null;
   mitigationCount: number;
+  incrementMitigationCount: () => void;
   unreadChat: number;
+  isDeployStabilized: boolean;
   currentEventIndex?: number;
+  handleNewChatMessage: () => void;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  playLoginChime: () => void;
+  playPostBeep: () => void;
+  playMitigationSuccess: () => void;
+  stopAllSounds: () => void;
+  isAudioOn: boolean;
+  setIsAudioOn: (on: boolean) => void;
+  ticketId: string;
+  activeApproval: any;
+  setApproval: (approval: any) => void;
+  activeOverride: any;
+  setOverride: (override: any) => void;
+  setObjective: (obj: any) => void;
+  startPlaybook: (p?: any) => void;
+  stopPlaybook: () => void;
+  onFocus: (id: PaneId) => void;
+  onClose: (id: PaneId) => void;
+  toggleMinimize: (id: PaneId) => void;
+  onPopOutToggle: (id: PaneId) => void;
+  onSnapMainToggle: (id: PaneId) => void;
+  isChaos: boolean;
+  setIsChaos: (on: boolean) => void;
+  addBeacon: (id: string) => void;
+  displayText: string;
+  setDisplayText: (text: string) => void;
+  logMultiplier: number;
+  setLogMultiplier: (m: number) => void;
+  chatMultiplier: number;
+  setChatMultiplier: (m: number) => void;
+  setIsResolving: (on: boolean) => void;
+  setIsDebugMode: (on: boolean) => void;
+  isPaused: boolean;
+  setIsPaused: (on: boolean) => void;
+  operatorName: string;
+  activePlaybook: any;
+  handleCommand: (cmd: string) => CommandResult;
+  handleLogout: () => void;
+  moneyLost: number;
+  lastScoreEarned: number;
+  bringToFront: (id: PaneId) => void;
+  terminalId: string;
+  messages: ChatMessage[];
+  sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
+  typingUsers: string[];
+  commands: Command[];
+  executeCeaseTheatre: () => void;
 }
 
 export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   // Handle global keyboard shortcuts
-  useKeyboardShortcuts({ loggedTogglePane: props.loggedTogglePane });
+  useKeyboardShortcuts({ 
+    loggedTogglePane: props.loggedTogglePane,
+    isDeclared: props.isDeclared
+  });
 
   // Handle auto-scroll for readout
   React.useEffect(() => {
@@ -77,25 +110,41 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
     }
   }, [props.displayText]);
 
-  return (
-    <>
-      <StatusBar 
-        activeObjective={props.activeObjective}
-        playbookProgress={props.activePlaybook ? { 
-          current: props.currentEventIndex ?? 0, 
-          total: props.activePlaybook.events.length 
-        } : null}
-      />
-      
-      <PaneGrid 
-        {...props}
-        scrollRef={scrollRef}
-      />
+  const handleTerminalCommand = (cmd: string): boolean => {
+    const result = props.handleCommand(cmd);
+    return result.isValid;
+  };
 
+  return (
+    <div className="cluster-layout">
+      <StatusBar 
+        severity={props.severity}
+        stack={props.stack}
+        isDeclared={props.isDeclared}
+        isEcoMode={props.isEcoMode}
+        setIsEcoMode={props.setIsEcoMode}
+        gameMode={props.gameMode}
+        activeObjective={props.activeObjective}
+        playbookProgress={{ current: (props.currentEventIndex ?? -1) + 1, total: props.activePlaybook?.events.length || 0 }}
+      />
+      <PaneGrid
+        {...props}
+        messages={props.messages}
+        sendMessage={props.sendMessage}
+        typingUsers={props.typingUsers}
+        markAsRead={props.markAsRead}
+        markAllAsRead={props.markAllAsRead}
+        commands={props.commands}
+        onCommand={handleTerminalCommand}
+        onSelectPlaybook={props.startPlaybook}
+        activePlaybook={props.activePlaybook}
+        scrollRef={scrollRef}
+        severity={props.severity}
+        logMultiplier={props.logMultiplier}
+      />
       <CommandStrip 
         panes={props.panes}
         loggedTogglePane={props.loggedTogglePane}
-        handleLogout={props.handleLogout}
         severity={props.severity}
         isDeclared={props.isDeclared}
         onDeclare={props.loggedHandleDeclare}
@@ -103,7 +152,8 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
         mitigationCount={props.mitigationCount}
         unreadChat={props.unreadChat}
         gameMode={props.gameMode}
+        handleLogout={props.handleLogout}
       />
-    </>
+    </div>
   );
 };

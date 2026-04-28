@@ -1,107 +1,112 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BatteryIcon } from './Icons';
+import React, { useState, useEffect } from 'react';
+import { BatteryIcon, NetworkIcon } from './Icons';
 import { useClientStats } from '../hooks/useClientStats';
-import { useIncidentStore } from '../store/useIncidentStore';
-import { useTerminalStore } from '../store/useTerminalStore';
+import { useIncidentStore, type GameMode } from '../store/useIncidentStore';
+import type { Severity, Stack } from '../data/incidents';
+import type { Objective } from '../contexts/types';
+import '../styles/SystemControlCluster.scss';
 
 interface StatusBarProps {
-  activeObjective?: import('../contexts/types').Objective | null;
-  playbookProgress?: { current: number, total: number } | null;
+  severity: Severity;
+  stack: Stack;
+  isDeclared: boolean;
+  isEcoMode: boolean;
+  setIsEcoMode: (on: boolean) => void;
+  gameMode: GameMode;
+  activeObjective: Objective | null;
+  playbookProgress?: { current: number, total: number };
 }
 
-export const StatusBar: React.FC<StatusBarProps> = ({ activeObjective, playbookProgress }) => {
-  const severity = useIncidentStore(state => state.severity);
-  const stack = useIncidentStore(state => state.stack);
-  const gameMode = useIncidentStore(state => state.gameMode);
-  const status = useIncidentStore(state => state.status);
-  const isChaos = useIncidentStore(state => state.isChaos);
-  
-  const isEcoMode = useTerminalStore(state => state.isEcoMode);
-  const setIsEcoMode = useTerminalStore(state => state.setIsEcoMode);
-
-  const [fps, setFps] = useState(60);
-  const frameCount = useRef(0);
-  const lastTime = useRef(0);
+export const StatusBar: React.FC<StatusBarProps> = ({ 
+  severity, 
+  stack, 
+  isDeclared, 
+  isEcoMode, 
+  setIsEcoMode,
+  gameMode,
+  activeObjective,
+  playbookProgress
+}) => {
+  const { fps, batteryLevel, isCharging, connectionType, downlink } = useClientStats();
+  const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const isDeployStabilized = useIncidentStore(state => state.isDeployStabilized);
+  const isPaused = useIncidentStore(state => state.isPaused);
+  const setIsPaused = useIncidentStore(state => state.setIsPaused);
 
   useEffect(() => {
-    lastTime.current = performance.now();
-    let frameId: number;
-    const calculateFps = (time: number) => {
-      frameCount.current++;
-      if (time >= lastTime.current + 1000) {
-        setFps(Math.round((frameCount.current * 1000) / (time - lastTime.current)));
-        lastTime.current = time;
-        frameCount.current = 0;
-      }
-      frameId = requestAnimationFrame(calculateFps);
-    };
-    frameId = requestAnimationFrame(calculateFps);
-    return () => cancelAnimationFrame(frameId);
+    const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  const { batteryLevel, isCharging } = useClientStats();
-
-  useEffect(() => {
-    if (batteryLevel !== null && batteryLevel < 20 && !isCharging && !isEcoMode) {
-      setIsEcoMode(true);
-    }
-  }, [batteryLevel, isCharging, isEcoMode, setIsEcoMode]);
-
   const getBatteryLevel = (): 'critical' | 'low' | 'medium' | 'high' | 'plugged' => {
-    if (isCharging || batteryLevel === null) return 'plugged';
-    if (batteryLevel < 20) return 'critical';
-    if (batteryLevel < 40) return 'low';
-    if (batteryLevel < 60) return 'medium';
-    return 'high';
+    if (isCharging) return 'plugged';
+    if (batteryLevel === null) return 'high';
+    if (batteryLevel > 80) return 'high';
+    if (batteryLevel > 30) return 'medium';
+    if (batteryLevel > 10) return 'low';
+    return 'critical';
   };
 
   return (
-    <div className="status-bar">
-        <div className={`status-line status-line--${severity.toLowerCase()}`}>
+    <div className={`status-bar status-bar--${severity.toLowerCase()} ${isDeclared ? 'status-bar--declared' : ''}`}>
+        <div className="status-line">
             <div className="status-line__left">
-                <span className="status-line__os-ver">SRE_OS v5.0 //</span>
-                <span>SYS_STATUS: {status}</span>
-                {isChaos && <span className="unstable-tag">!! UNSTABLE !!</span>}
+                <span className="status-line__os-ver">SMOKESCREEN_OS v6.0.4</span>
                 <span className="separator">|</span>
-                <span>MODE:{gameMode}</span>
-                {activeObjective && (
-                  <>
-                    <span className="separator">|</span>
-                    <span className={`active-objective active-objective--${activeObjective.status}`}>
-                      OBJ: {activeObjective.title}
-                    </span>
-                  </>
+                <span className="status-line__status">{severity} // {stack}</span>
+                {!isDeployStabilized && isDeclared && (
+                    <span className="unstable-tag">UNSTABLE</span>
                 )}
             </div>
+
             <div className="status-line__center">
-                {playbookProgress && (
-                  <div className="playbook-progress">
-                    <span className="playbook-progress__label">PLAYBOOK_EVENTS:</span>
-                    <div className="playbook-progress__bar">
-                      {Array.from({ length: playbookProgress.total }).map((_, i) => (
-                        <div 
-                          key={i} 
-                          className={`playbook-progress__segment ${i < playbookProgress.current ? 'active' : ''}`} 
-                        />
-                      ))}
+                {activeObjective && (
+                    <div className={`active-objective active-objective--${activeObjective.status}`}>
+                        <span className="active-objective__label">OBJ:</span>
+                        <span className="active-objective__title">{activeObjective.title}</span>
                     </div>
-                    <span className="playbook-progress__count">{playbookProgress.current}/{playbookProgress.total}</span>
-                  </div>
+                )}
+                {gameMode === 'ARCADE' && playbookProgress && playbookProgress.total > 0 && (
+                    <div className="playbook-progress">
+                        <span className="playbook-progress__label">PROGRESS:</span>
+                        <div className="playbook-progress__bar">
+                            {Array.from({ length: playbookProgress.total }).map((_, i) => (
+                                <div 
+                                    key={i} 
+                                    className={`playbook-progress__segment ${i < playbookProgress.current ? 'playbook-progress__segment--filled' : ''}`} 
+                                />
+                            ))}
+                        </div>
+                        <span className="playbook-progress__count">{playbookProgress.current}/{playbookProgress.total}</span>
+                    </div>
                 )}
             </div>
+
             <div className="status-line__right">
-                <span>STACK:{stack}</span>
+                <div 
+                    className={`status-line__pause ${isPaused ? 'paused' : ''}`}
+                    onClick={() => setIsPaused(!isPaused)}
+                    title={isPaused ? "Resume Simulation" : "Pause Simulation"}
+                >
+                    {isPaused ? '[RESUME]' : '[PAUSE]'}
+                </div>
                 <span className="separator">|</span>
-                <span className="status-line__fps">FPS:{fps}</span>
+                <div className="status-line__network">
+                    <NetworkIcon connectionType={connectionType} downlink={downlink} />
+                </div>
+                <span className="separator">|</span>
+                <span className="status-line__fps">{fps} FPS</span>
                 <span className="separator">|</span>
                 <div 
-                    className={`status-line__battery ${isEcoMode ? 'eco-active' : ''}`}
-                    onClick={() => setIsEcoMode(!isEcoMode)}
-                    title="Toggle Eco Mode"
+                   className="status-line__battery" 
+                   onClick={() => setIsEcoMode(!isEcoMode)}
+                   title="Toggle Eco Mode"
                 >
                     <BatteryIcon level={getBatteryLevel()} />
-                    {batteryLevel}%
+                    {batteryLevel !== null ? `${batteryLevel}%` : 'AC'}
                 </div>
+                <span className="separator">|</span>
+                <span className="status-line__time">{time}</span>
             </div>
         </div>
     </div>

@@ -8,7 +8,11 @@ interface ReadoutBoxProps {
   label?: string;
   children: React.ReactNode;
   headerRight?: React.ReactNode;
-  footer?: React.ReactNode;
+  metadata?: {
+    version?: string;
+    source?: string;
+    authority?: string;
+  };
   className?: string;
   style?: React.CSSProperties;
   contentRef?: React.RefObject<HTMLDivElement | null>;
@@ -32,7 +36,7 @@ export const ReadoutBox = ({
   label, 
   children, 
   headerRight, 
-  footer,
+  metadata,
   className = '', 
   style = {},
   contentRef,
@@ -77,11 +81,20 @@ export const ReadoutBox = ({
         <div className="readout-box__content" ref={contentRef}>
           {children}
         </div>
-        {footer && (
-          <div className="readout-box__footer">
-            {footer}
+        <footer className="technical-pane__footer">
+          <div className="technical-pane__footer-col">
+            <span className="technical-pane__footer-label">DOC_VER</span>
+            <span className="technical-pane__footer-value">{metadata?.version || '2026.04.17'}</span>
           </div>
-        )}
+          <div className="technical-pane__footer-col">
+            <span className="technical-pane__footer-label">SOURCE</span>
+            <span className="technical-pane__footer-value">{metadata?.source || 'SYSTEM_CORE'}</span>
+          </div>
+          <div className="technical-pane__footer-col">
+            <span className="technical-pane__footer-label">AUTHORITY</span>
+            <span className="technical-pane__footer-value">{metadata?.authority || 'SRE_COMMAND'}</span>
+          </div>
+        </footer>
       </div>
     </Pane>
   );

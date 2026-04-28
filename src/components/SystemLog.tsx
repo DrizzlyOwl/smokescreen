@@ -10,6 +10,8 @@ import '../styles/SystemLog.scss';
 
 export const SystemLog = ({ 
     severity, 
+    logMultiplier,
+    terminalId,
     zIndex, 
     onFocus, 
     isActive, 
@@ -24,10 +26,11 @@ export const SystemLog = ({
     onSnapMainToggle
 }: { 
     severity: Severity, 
+    logMultiplier: number,
+    terminalId: string, 
     zIndex: number, 
     onFocus: () => void, 
     isActive: boolean, 
-    uplinkId: string, 
     onClose: () => void,
     isMinimized: boolean,
     onMinimizeToggle: () => void,
@@ -40,7 +43,7 @@ export const SystemLog = ({
 }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const { send } = useSync();
-    const logMultiplier = useIncidentStore(state => state.logMultiplier);
+    const isPaused = useIncidentStore(state => state.isPaused);
     const workerRef = useRef<Worker | null>(null);
 
     useEffect(() => {
@@ -49,6 +52,7 @@ export const SystemLog = ({
             
             workerRef.current.onmessage = (e) => {
                 if (e.data.type === 'LOG') {
+                    if (isPaused) return;
                     const { log: newLog, spike } = e.data;
                     setLogs(prev => [...prev, newLog].slice(-200));
                     send({ type: 'LOG_MESSAGE', log: newLog });
@@ -73,7 +77,7 @@ export const SystemLog = ({
         return () => {
             window.removeEventListener('INJECT_LOG', handleInjectLog);
         };
-    }, [severity, send, logMultiplier]);
+    }, [severity, send, logMultiplier, isPaused, terminalId]);
 
     useEffect(() => {
         return () => {

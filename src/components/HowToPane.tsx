@@ -50,13 +50,11 @@ export const HowToPane = ({
       onClose={onClose}
       initialPos={initialPos || { x: 150, y: 50 }}
       initialSize={initialSize || { width: 650, height: 750 }}
-      footerText={
-        <>
-          SRE_DIVISION_TACTICAL_THEATRE_UNIT
-          <br />
-          UNAUTHORIZED REPRODUCTION IS A TERMINABLE OFFENCE
-        </>
-      }
+      metadata={{
+        version: 'v6.0.4-ARCADE',
+        source: 'SRE_TACTICAL_DIV',
+        authority: 'TERMINABLE_OFFENCE'
+      }}
     >
       <section className="how-to__intro-section">
         <p className="how-to__intro-text">
@@ -66,7 +64,7 @@ export const HowToPane = ({
 
       <div className="how-to">
         <section className="how-to__section">
-          <h2 className="how-to__header">01. THE CORE LOOP (HOW TO PLAY)</h2>
+          <h2>01. THE CORE LOOP (HOW TO PLAY)</h2>
           <p className="how-to__text">
             SMOKESCREEN is driven by the terminal. The core gameplay loop consists of three distinct phases:
           </p>
@@ -78,7 +76,7 @@ export const HowToPane = ({
         </section>
 
         <section className="how-to__section">
-          <h2 className="how-to__header">02. TERMINAL COMMANDS & USAGE</h2>
+          <h2>02. TERMINAL COMMANDS & USAGE</h2>
           <p className="how-to__text">
             The <b>SYSTEM_TERMINAL_CORE</b> (press <b className="how-to__highlight-amber">[F1]</b> to focus) is your primary interaction point. To execute a command, type it and press <b>[ENTER]</b>. Essential commands include:
           </p>
@@ -86,13 +84,13 @@ export const HowToPane = ({
             <li><b className="how-to__highlight-amber">declare</b> / <b className="how-to__highlight-green">resolve</b>: Starts or ends the active incident.</li>
             <li><b className="how-to__highlight-amber">aws</b> / <b className="how-to__highlight-amber">gcp</b> / <b className="how-to__highlight-amber">azure</b>: Switches the target infrastructure stack.</li>
             <li><b className="how-to__highlight-amber">p3</b> / <b className="how-to__highlight-amber">p1</b> / <b className="how-to__highlight-amber">p0</b>: Manually changes the incident severity.</li>
-            <li><b className="how-to__highlight-amber">warroom</b> / <b className="how-to__highlight-amber">logs</b> / <b className="how-to__highlight-amber">metrics</b>: Opens the specified panes.</li>
+            <li><b className="how-to__highlight-amber">warroom</b> / <b className="how-to__highlight-amber">logs</b>: Opens the specified panes.</li>
             <li><b className="how-to__highlight-amber">help</b>: Displays a complete list of all available terminal commands.</li>
           </ul>
         </section>
 
         <section className="how-to__section">
-          <h2 className="how-to__header">03. INTERACTIVE MITIGATION PUZZLES</h2>
+          <h2>03. INTERACTIVE MITIGATION PUZZLES</h2>
           <p className="how-to__text">
             During an active incident, you must solve puzzles to mitigate the threat. Failure to act or making mistakes incurs immediate financial penalties:
           </p>
@@ -104,7 +102,7 @@ export const HowToPane = ({
         </section>
 
         <section className="how-to__section">
-          <h2 className="how-to__header">04. THE WAR ROOM & OBSERVABILITY</h2>
+          <h2>04. THE WAR ROOM & OBSERVABILITY</h2>
           <p className="how-to__text">
             Survival requires monitoring multiple data streams and managing communications in the <b>War Room</b>.
           </p>
@@ -116,7 +114,7 @@ export const HowToPane = ({
         </section>
 
         <section className="how-to__section">
-          <h2 className="how-to__header">05. SYSTEM MECHANICS</h2>
+          <h2>05. SYSTEM MECHANICS</h2>
           <p className="how-to__text">
             The SMOKESCREEN environment utilizes <b>Deep URL Synchronization</b>—your exact app state, theme, severity, and active panes are serialized in the URL for instant sharing and persistence.
           </p>

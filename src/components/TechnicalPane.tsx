@@ -22,7 +22,11 @@ interface TechnicalPaneProps {
   onPopOutToggle?: () => void;
   isSnappedMain?: boolean;
   onSnapMainToggle?: () => void;
-  footerText?: React.ReactNode;
+  metadata?: {
+    version?: string;
+    source?: string;
+    authority?: string;
+  };
   children: React.ReactNode;
 }
 
@@ -45,7 +49,7 @@ export const TechnicalPane = ({
   onPopOutToggle,
   isSnappedMain = false,
   onSnapMainToggle,
-  footerText,
+  metadata,
   children,
 }: TechnicalPaneProps) => {
   const themeColor = iconColor || 'var(--terminal-green)';
@@ -84,11 +88,20 @@ export const TechnicalPane = ({
 
         <div className="technical-pane__content">{children}</div>
 
-        {footerText && (
-          <footer className="technical-pane__footer">
-            {footerText}
-          </footer>
-        )}
+        <footer className="technical-pane__footer">
+          <div className="technical-pane__footer-col">
+            <span className="technical-pane__footer-label">DOC_VER</span>
+            <span className="technical-pane__footer-value">{metadata?.version || '2026.04.17'}</span>
+          </div>
+          <div className="technical-pane__footer-col">
+            <span className="technical-pane__footer-label">SOURCE</span>
+            <span className="technical-pane__footer-value">{metadata?.source || 'SYSTEM_CORE'}</span>
+          </div>
+          <div className="technical-pane__footer-col">
+            <span className="technical-pane__footer-label">AUTHORITY</span>
+            <span className="technical-pane__footer-value">{metadata?.authority || 'SRE_COMMAND'}</span>
+          </div>
+        </footer>
       </div>
     </Pane>
   );

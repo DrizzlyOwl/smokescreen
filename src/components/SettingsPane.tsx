@@ -76,7 +76,7 @@ export const SettingsPane = ({
         setStatus('ERROR');
         const message = error instanceof Error ? error.message : '';
         setErrorMessage(message.includes('API_KEY_INVALID') 
-            ? 'INVALID_UPLINK_KEY' 
+            ? 'INVALID_API_KEY' 
             : 'HANDSHAKE_FAILURE');
         setTimeout(() => setStatus('IDLE'), 4000);
     }
@@ -101,17 +101,15 @@ export const SettingsPane = ({
       onPopOutToggle={onPopOutToggle}
       isSnappedMain={isSnappedMain}
       onSnapMainToggle={onSnapMainToggle}
-      footerText={
-        <>
-          KERNEL: REACT_19_PROD
-          <br />
-          BUILD: SMOKESCREEN_v5.0.0
-        </>
-      }
+      metadata={{
+        version: 'v1.0.0-PROD',
+        source: 'KERNEL_CONFIG',
+        authority: 'SYSTEM_ADMIN'
+      }}
     >
       <div className="settings">
         <section className="settings__section">
-          <h2 className="settings__header">01. GEMINI_UPLINK_KEY</h2>
+          <h2 className="settings__header">01. GEMINI_API_KEY</h2>
           <p className="settings__description">
             Optional: Provide an AI key to generate hyper-realistic, context-aware technical incident reports tailored to your specific environment.
           </p>
@@ -204,6 +202,32 @@ export const SettingsPane = ({
                 CONTRAST
             </Button>
           </div>
+          <div className="settings__theme-grid" style={{ marginTop: '10px' }}>
+            <Button 
+                onClick={() => setTheme('protanopia')} 
+                active={currentTheme === 'protanopia'}
+                size="x-small"
+                style={{ color: '#0072B2', borderColor: '#0072B2' }}
+            >
+                PROTAN
+            </Button>
+            <Button 
+                onClick={() => setTheme('deuteranopia')} 
+                active={currentTheme === 'deuteranopia'}
+                size="x-small"
+                style={{ color: '#357ebd', borderColor: '#357ebd' }}
+            >
+                DEUTER
+            </Button>
+            <Button 
+                onClick={() => setTheme('tritanopia')} 
+                active={currentTheme === 'tritanopia'}
+                size="x-small"
+                style={{ color: '#1f78b4', borderColor: '#1f78b4' }}
+            >
+                TRITAN
+            </Button>
+          </div>
         </section>
 
         <section className="settings__section">
@@ -262,7 +286,7 @@ export const SettingsPane = ({
         )}
         {status === 'ERROR' && (
           <span className="settings__status settings__status--error">
-            UPLINK_REJECTED
+            KEY_REJECTED
           </span>
         )}
       </div>

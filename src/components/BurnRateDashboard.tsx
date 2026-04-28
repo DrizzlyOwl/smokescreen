@@ -3,6 +3,7 @@ import { BurnIcon } from './Icons';
 import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
 import { getBurnRate } from '../utils/telemetry';
+import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/BurnRateDashboard.scss';
 
 const TICKER_ITEMS = [
@@ -16,6 +17,8 @@ const TICKER_ITEMS = [
     'COFFEE_CONSUMPTION: 4.2L/hr'
 ];
 
+const BASE_SPEND = 1240.12; // Hourly baseline
+
 export const BurnRateDashboard = ({ 
     severity, 
     zIndex, 
@@ -26,7 +29,7 @@ export const BurnRateDashboard = ({
     isMinimized, 
     onMinimizeToggle,
     initialPos = { x: 100, y: 400 },
-    initialSize = { width: 400, height: 250 },
+    initialSize = { width: 400, height: 280 }, // Slightly taller for secondary stat
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
@@ -47,6 +50,7 @@ export const BurnRateDashboard = ({
     isSnappedMain?: boolean,
     onSnapMainToggle?: () => void
 }) => {
+    const isPaused = useIncidentStore(state => state.isPaused);
     const [tickerIndex, setTickerIndex] = useState(0);
     const [history, setHistory] = useState<number[]>(Array(30).fill(0));
     const [opCostId] = useState(() => Math.random().toString(36).substring(7).toUpperCase());
@@ -65,15 +69,15 @@ export const BurnRateDashboard = ({
 
     useEffect(() => {
         const interval = setInterval(() => {
+            if (isPaused) return;
             setTickerIndex(prev => (prev + 1) % TICKER_ITEMS.length);
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isPaused]);
 
     useEffect(() => {
-        if (severity === 'NOMINAL') return;
-
         const interval = setInterval(() => {
+            if (isPaused) return;
             // Get base burn rate for current severity
             const baseRate = getBurnRate(severity);
             
@@ -85,8 +89,11 @@ export const BurnRateDashboard = ({
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [severity]);
+    }, [severity, isPaused]);
 
+    const latestRate = history[history.length - 1];
+    const currentHourlySpend = BASE_SPEND + (latestRate * 3600);
+    
     const isP0 = severity === 'P0';
     const isP1 = severity === 'P1';
     const burnColor = isP0 ? 'var(--status-p0)' : isP1 ? 'var(--status-p3)' : 'var(--status-nominal)';
@@ -113,12 +120,16 @@ export const BurnRateDashboard = ({
         >
             <div className="burn-dashboard">
                 <div className="burn-dashboard__display">
-                    <div className="burn-dashboard__label">ESTIMATED_INCIDENT_LOSS</div>
+                    <div className="burn-dashboard__label">CURRENT_CLOUD_SPEND_RATE</div>
                     <div className="burn-dashboard__value" style={{ 
                         color: burnColor, 
                         textShadow: severity === 'NOMINAL' ? 'none' : `0 0 10px ${burnColor}44`
                     }}>
-                        £{moneyLost.toFixed(2)}
+                        £{currentHourlySpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
+                    </div>
+                    <div className="burn-dashboard__secondary">
+                        <span className="burn-dashboard__secondary-label">CUMULATIVE_INCIDENT_LOSS: </span>
+                        <span className="burn-dashboard__secondary-value">£{moneyLost.toFixed(2)}</span>
                     </div>
                 </div>
 

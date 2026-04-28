@@ -33,7 +33,7 @@ interface HardwareIntelligence {
     timezone: string;
 }
 
-export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }: { operatorName: string, uplinkId: string, onComplete: () => void, playPostBeep: () => void }) => {
+export const BootScreen = ({ terminalId, onComplete, playPostBeep }: { terminalId: string, onComplete: () => void, playPostBeep: () => void }) => {
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const [memoryKB, setMemoryKB] = useState(0);
@@ -128,19 +128,18 @@ export const BootScreen = ({ operatorName, uplinkId, onComplete, playPostBeep }:
         ...initialLogs,
         'LOADING CLOUD JARGON MODULES... [DONE]',
         'CONNECTING TO CENTRAL SECURE NODE... [OK]',
-        `SIGNALLING_ROOM_ID: ${uplinkId}... [ACTIVE]`,
+        `SESSION_ID: ${terminalId}... [ACTIVE]`,
         'MOUNTING /VAR/LOG/KERN.LOG... [OK]',
-        'ESTABLISHING WAR ROOM UPLINK... [CONNECTED]',
+        'ESTABLISHING WAR ROOM CONNECTION... [CONNECTED]',
         '',
         'WELCOME TO SMOKESCREEN OS v5.0',
-        `USER: ${operatorName.toUpperCase()}`,
         `REGION: ${hardware.timezone.toUpperCase()}`,
         'STATUS: NOMINAL',
         '',
         'SYSTEM READY.',
         'SYSTEM_POST_BEEP'
     ];
-  }, [operatorName, uplinkId, easterEgg, hardware]);
+  }, [terminalId, easterEgg, hardware]);
 
   useEffect(() => {
     if (index >= logs.length || isMemoryChecking) return;

@@ -54,13 +54,11 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
       onPopOutToggle={onPopOutToggle}
       isSnappedMain={isSnappedMain}
       onSnapMainToggle={onSnapMainToggle}
-      footerText={
-        <>
-          DOC_VER: 2026.04.21
-          <br />
-          SOURCE: PLATFORM_OPS
-        </>
-      }
+      metadata={{
+        version: '2026.04.21',
+        source: 'PLATFORM_OPS',
+        authority: 'INTERNAL_ONLY'
+      }}
     >
       <div className="playbook-content">
         {activePlaybook ? (
@@ -69,11 +67,29 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
             <div className="playbook-content__steps">
               {activePlaybook.runbookText ? (
                 <div className="playbook-content__runbook-text">
-                  {activePlaybook.runbookText.split('\n').map((line, i) => (
-                    <p key={i} className={line.startsWith('#') ? 'playbook-content__header' : ''}>
-                      {line}
-                    </p>
-                  ))}
+                  {activePlaybook.runbookText.split('\n').map((line, i) => {
+                    if (line.startsWith('### ')) {
+                      return <h3 key={i}>{line.replace('### ', '')}</h3>;
+                    }
+                    if (line.startsWith('## ')) {
+                      return <h2 key={i}>{line.replace('## ', '')}</h2>;
+                    }
+                    if (line.startsWith('# ')) {
+                      return <h1 key={i}>{line.replace('# ', '')}</h1>;
+                    }
+                    
+                    // Basic bold and code replacement
+                    const formatted = line
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/`(.*?)`/g, '<code>$1</code>');
+                      
+                    return (
+                      <p 
+                        key={i} 
+                        dangerouslySetInnerHTML={{ __html: formatted }}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <p>No specific runbook steps defined for this scenario.</p>
@@ -83,7 +99,9 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
         ) : (
           <div className="playbook-content__empty">
             <p className="playbook-content__status">NO_ACTIVE_INCIDENT</p>
-            <p>Stand by for system alerts. Load a scenario from the **SCENARIO_DECK** to begin.</p>
+            <p dangerouslySetInnerHTML={{ 
+              __html: "Stand by for system alerts. Load a scenario from the <strong>SCENARIO_DECK</strong> to begin." 
+            }} />
           </div>
         )}
       </div>

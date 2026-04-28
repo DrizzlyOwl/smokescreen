@@ -1,70 +1,112 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Button } from './Button';
+import { StatReadout } from './StatReadout';
+import { TechnicalPane } from './TechnicalPane';
+import { ActivityIcon } from './Icons';
+import type { Severity, Stack } from '../data/incidents';
 import '../styles/AfterActionReport.scss';
 
 interface AfterActionReportProps {
-  score: number;
-  mitigations: number;
+  severity: Severity;
+  stack: Stack;
   moneyLost: number;
-  onAcknowledge: () => void;
+  mitigations: number;
+  mitigationScore?: number;
+  onClose: () => void;
 }
 
-export const AfterActionReport: React.FC<AfterActionReportProps> = ({ score, mitigations, moneyLost, onAcknowledge }) => {
-  const penalty = Math.floor(moneyLost / 100); // 1 credit per £100 lost
-  const finalScore = Math.max(0, score - penalty);
+export const AfterActionReport: React.FC<AfterActionReportProps> = ({
+  severity,
+  stack,
+  moneyLost,
+  mitigations,
+  mitigationScore = 0,
+  onClose
+}) => {
+  const [grade, setGrade] = useState('D');
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+    const score = mitigations * 100 + mitigationScore;
+    if (score > 1000) setGrade('S');
+    else if (score > 800) setGrade('A');
+    else if (score > 500) setGrade('B');
+    else if (score > 200) setGrade('C');
+    else setGrade('D');
+  }, [mitigations, mitigationScore]);
 
   return (
-    <div className="aar">
-      <div className="aar__overlay" />
-      <div className="aar__content">
-        <div className="aar__header">
-          <h1 className="aar__title">AFTER-ACTION REPORT</h1>
-          <div className="aar__subtitle">MISSION_STATUS: SUCCESSFUL</div>
-        </div>
+    <div className={`aar-overlay ${isVisible ? 'isVisible' : ''}`}>
+      <div className="aar-modal">
+        <TechnicalPane
+          id="settings"
+          title="AFTER_ACTION_REPORT"
+          paneTitle="INCIDENT_SUMMARY"
+          classification="CONFIDENTIAL"
+          icon={<ActivityIcon />}
+          zIndex={1000}
+          onFocus={() => {}}
+          isActive={true}
+          isMinimized={false}
+          onMinimizeToggle={() => {}}
+          onClose={onClose}
+          initialSize={{ width: 600, height: 500 }}
+          metadata={{
+             version: 'v6.0.4',
+             source: 'SIM_KERNEL',
+             authority: 'SRE_LEAD'
+          }}
+        >
+          <div className="aar">
+             <div className="aar__header">
+                <div className="aar__grade">
+                    <span className="aar__grade-label">FINAL_GRADE</span>
+                    <span className={`aar__grade-value aar__grade-value--${grade.toLowerCase()}`}>{grade}</span>
+                </div>
+                <div className="aar__summary">
+                    <div className="aar__summary-item">
+                        <span className="label">INCIDENT_SEVERITY:</span>
+                        <span className={`value value--${severity.toLowerCase()}`}>{severity}</span>
+                    </div>
+                    <div className="aar__summary-item">
+                        <span className="label">INFRA_STACK:</span>
+                        <span className="value">{stack}</span>
+                    </div>
+                </div>
+             </div>
 
-        <div className="aar__body">
-          <div className="aar__stat-row">
-            <span className="aar__stat-label">SYSTEM UPTIME PROTECTED:</span>
-            <span className="aar__stat-value">99.999%</span>
-          </div>
-          <div className="aar__stat-row">
-            <span className="aar__stat-label">MITIGATIONS EXECUTED:</span>
-            <span className="aar__stat-value">{mitigations}</span>
-          </div>
-          <div className="aar__stat-row">
-            <span className="aar__stat-label">FINANCIAL LOSS DETECTED:</span>
-            <span className="aar__stat-value aar__stat-value--danger">£{moneyLost.toFixed(2)}</span>
-          </div>
-          <div className="aar__stat-row">
-            <span className="aar__stat-label">MITIGATION RATING:</span>
-            <span className="aar__stat-value aar__stat-value--highlight">
-                {finalScore > 40 ? 'OUTSTANDING' : finalScore > 20 ? 'SATISFACTORY' : 'NEEDS IMPROVEMENT'}
-            </span>
-          </div>
-          
-          <div className="aar__divider" />
-          
-          <div className="aar__score-breakdown">
-            <div className="aar__stat-row">
-                <span className="aar__stat-label">BASE MITIGATION CREDITS:</span>
-                <span className="aar__stat-value">+{score}</span>
-            </div>
-            <div className="aar__stat-row">
-                <span className="aar__stat-label">OPEX IMPACT PENALTY:</span>
-                <span className="aar__stat-value aar__stat-value--danger">-{penalty}</span>
-            </div>
-          </div>
+             <div className="aar__stats">
+                <StatReadout 
+                    label="TOTAL_REVENUE_LOSS" 
+                    value={`$${moneyLost.toLocaleString()}`} 
+                    color="red"
+                />
+                <StatReadout 
+                    label="MITIGATION_ACTIONS" 
+                    value={mitigations.toString()} 
+                    color="green"
+                />
+                <StatReadout 
+                    label="EFFICIENCY_SCORE" 
+                    value={mitigationScore.toString()} 
+                    color="amber"
+                />
+             </div>
 
-          <div className="aar__score-section">
-            <div className="aar__score-label">NET CREDITS EARNED</div>
-            <div className="aar__score-value">+{finalScore}</div>
+             <div className="aar__content">
+                <p className="aar__text">
+                    The infrastructure incident has been successfully resolved. Final system state is <b>STABLE</b>. 
+                    All virtual resources have been decommissioned and revenue leak has been plugged.
+                </p>
+                <div className="aar__actions">
+                    <Button variant="primary" onClick={onClose} fullWidth>
+                        ACKNOWLEDGE_AND_CLOSE
+                    </Button>
+                </div>
+             </div>
           </div>
-        </div>
-
-        <div className="aar__footer">
-          <button className="aar__btn" onClick={onAcknowledge}>
-            [ ACKNOWLEDGE_AND_STAND_DOWN ]
-          </button>
-        </div>
+        </TechnicalPane>
       </div>
     </div>
   );
