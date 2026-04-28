@@ -129,4 +129,20 @@ describe('useCommandRegistry', () => {
     const result2 = handleCommand2('resolve');
     expect(result2.isValid).toBe(true);
   });
+
+  it('is case-insensitive for all commands and arguments', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    // Commands
+    expect(handleCommand('SHOW CHAT').isValid).toBe(true);
+    expect(handleCommand('p0').isValid).toBe(true);
+    expect(handleCommand('P1').isValid).toBe(true);
+    
+    // Category prefixes
+    expect(handleCommand('PANES SHOW LOGS').isValid).toBe(true);
+    
+    // Commands with arguments
+    expect(handleCommand('PLAYBOOK l1-routine-patch').isValid).toBe(true);
+    expect(mockActions.startPlaybook).toHaveBeenCalledWith('l1-routine-patch');
+  });
 });

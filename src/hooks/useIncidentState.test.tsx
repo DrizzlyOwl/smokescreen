@@ -157,34 +157,57 @@ describe('useIncidentState', () => {
     randomSpy.mockRestore();
   });
 
-  it('handles Executive Interruptions', () => {
-    renderHook(() => useIncidentState());
+  it('handles Executive Interruptions', async () => {
+    const { result } = renderHook(() => useIncidentState());
     
     act(() => {
       useIncidentStore.setState({ 
         severity: 'P0',
         isDeclared: true,
-        incidentReport: 'Test Report'
+        incidentReport: 'Test Report',
+        gameMode: 'ARCADE',
+        strikes: 5
       });
     });
 
     const randomSpy = vi.spyOn(Math, 'random');
-    // Threshold for Exec is threshold - 0.25 (0.4 - 0.25 = 0.15)
-    // We want to skip Approval (0.4) and Override (0.3)
-    randomSpy.mockReturnValue(0.2); 
+    randomSpy.mockReturnValue(0.1); 
     
+    // Trigger the interruption
     act(() => {
       vi.advanceTimersByTime(15000);
     });
 
-    const initialMoney = useIncidentStore.getState().moneyLost;
+    const store = useIncidentStore.getState();
+    expect(store.activeInterruption).not.toBeNull();
+    const initialMoney = store.moneyLost;
 
-    // Advance 30 seconds for timeout
+    // Advance timers in small chunks to ensure intervals and effects process
+    for (let i = 0; i < 70; i++) {
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
+    }
+
+    const midStore = useIncidentStore.getState();
+    expect(midStore.strikes).toBe(4);
+    expect(midStore.activeInterruption).toBeNull();
+
+    // Now test successful resolution
     act(() => {
-      vi.advanceTimersByTime(30000);
+        randomSpy.mockReturnValue(0.1);
+        vi.advanceTimersByTime(15000);
     });
 
-    expect(useIncidentStore.getState().moneyLost).toBeGreaterThan(initialMoney + 100000);
+    expect(useIncidentStore.getState().activeInterruption).not.toBeNull();
+    
+    act(() => {
+        result.current.handleCommand('sitrep');
+    });
+
+    expect(useIncidentStore.getState().activeInterruption).toBeNull();
+    expect(useIncidentStore.getState().mitigationScore).toBeGreaterThan(0);
+    
     randomSpy.mockRestore();
   });
 

@@ -29,7 +29,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 }) => {
   const { fps, batteryLevel, isCharging, connectionType, downlink } = useClientStats();
   const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const mitigationScore = useIncidentStore(state => state.mitigationScore);
   const isDeployStabilized = useIncidentStore(state => state.isDeployStabilized);
+  const strikes = useIncidentStore(state => state.strikes);
   const isPaused = useIncidentStore(state => state.isPaused);
   const setIsPaused = useIncidentStore(state => state.setIsPaused);
 
@@ -54,6 +56,16 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                 <span className="status-line__os-ver">SMOKESCREEN_OS v6.0.4</span>
                 <span className="separator">|</span>
                 <span className="status-line__status">{severity} // {stack}</span>
+                <span className="separator">|</span>
+                <span className="status-line__score">SCORE: {mitigationScore}</span>
+                {gameMode === 'ARCADE' && (
+                    <>
+                        <span className="separator">|</span>
+                        <span className="status-line__strikes" title="System Integrity Strikes">
+                            INTEGRITY: [{'█'.repeat(strikes)}{'░'.repeat(Math.max(0, 5 - strikes))}]
+                        </span>
+                    </>
+                )}
                 {!isDeployStabilized && isDeclared && (
                     <span className="unstable-tag">UNSTABLE</span>
                 )}

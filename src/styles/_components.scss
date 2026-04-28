@@ -167,8 +167,11 @@
     height: 1.2em;
     background-color: currentColor;
     margin-left: rem(2);
-    animation: blink-cursor 0.8s step-end infinite;
     vertical-align: middle;
+
+    &--blinking {
+      animation: blink-cursor 0.8s step-end infinite;
+    }
   }
 
   &__ghost {

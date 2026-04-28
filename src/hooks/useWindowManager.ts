@@ -124,7 +124,10 @@ export const useWindowManager = (initialPanes: PanesState) => {
 
   const togglePane = useCallback(
     (paneId: PaneId) => {
-      if (paneId === 'terminal') return;
+      if (paneId === 'terminal') {
+        bringToFront(paneId);
+        return;
+      }
       setPanes((prev) => {
         const nextState = !prev[paneId];
         if (nextState) {

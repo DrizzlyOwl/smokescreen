@@ -108,7 +108,7 @@ export const HowToPane = ({
           </p>
           <ul className="how-to__list">
             <li><b className="how-to__highlight-amber">Smart Unread System:</b> Messages require a 3-second "dwell" time (keeping them visible on screen) to be marked as read.</li>
-            <li><b className="how-to__highlight-amber">Executive Interruptions:</b> High-stakes stakeholders (VP Eng, CISO, CTO) will demand immediate SITREPs (Situation Reports). You must select the correct response in the chat quickly. Ignoring an executive for too long results in catastrophic financial loss.</li>
+            <li><b className="how-to__highlight-amber">Executive Interruptions:</b> High-stakes stakeholders (VP Eng, CISO, CTO) will demand immediate SITREPs (Situation Reports). You must execute the <b className="how-to__highlight-green">sitrep</b> command in the terminal quickly. Ignoring an executive for too long results in catastrophic financial loss.</li>
             <li><b className="how-to__highlight-amber">Operator Bios:</b> Click any operator's avatar in the War Room to view their technical specialization and role.</li>
           </ul>
         </section>

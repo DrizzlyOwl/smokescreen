@@ -56,7 +56,7 @@ export const TerminalPane = ({
     if (isActive && !isMinimized) {
       inputRef.current?.focus();
     }
-  }, [isActive, isMinimized]);
+  }, [isActive, isMinimized, zIndex]);
 
   // Reset history index when input changes manually (not via arrows)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,7 +169,10 @@ export const TerminalPane = ({
       isSnappedMain={isSnappedMain}
       onSnapMainToggle={onSnapMainToggle}
     >
-      <div className="terminal-pane">
+      <div 
+        className="terminal-pane" 
+        onClick={() => inputRef.current?.focus()}
+      >
         {terminalHistory.length === 0 ? (
           <div className="terminal-pane__output" style={{ display: 'flex' }}>
             <div className="terminal-pane__idle">AWAITING_COMMAND...</div>
@@ -197,7 +200,7 @@ export const TerminalPane = ({
           <div className={`block-input-wrapper ${isError ? 'block-input-wrapper--error' : ''}`} style={{ flex: 1 }}>
               <span className="block-input-wrapper__display">
                 {input}
-                <span className="block-input-wrapper__cursor" />
+                <span className={`block-input-wrapper__cursor ${isActive ? 'block-input-wrapper__cursor--blinking' : ''}`} />
                 {ghostText && <span className="block-input-wrapper__ghost">{ghostText}</span>}
               </span>
               <input

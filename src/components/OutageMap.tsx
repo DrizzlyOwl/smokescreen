@@ -160,10 +160,17 @@ export const OutageMap = ({
         if (targetNode) {
             playMitigationSuccess();
             incrementMitigationCount();
+            
             const nextNodes = nodes.map(n => 
                 n.id === dragStartNode.id ? { ...n, status: 'healthy' as const } : n
             );
             setNodes(nextNodes);
+
+            // Scoring: 10pts for restoring a region, 50pts for all back online
+            const allOnlineBefore = !nodes.some(n => n.status !== 'healthy');
+            const allOnlineAfter = !nextNodes.some(n => n.status !== 'healthy');
+            const bonus = (allOnlineAfter && !allOnlineBefore) ? 50 : 0;
+            useIncidentStore.getState().setMitigationScore(prev => prev + 10 + bonus);
 
             // Scale back priority as operator fixes issues
             const criticalCount = nextNodes.filter(n => n.status === 'critical').length;
@@ -224,10 +231,17 @@ export const OutageMap = ({
         if (targetNode) {
             playMitigationSuccess();
             incrementMitigationCount();
+            
             const nextNodes = nodes.map(n => 
                 n.id === dragStartNode.id ? { ...n, status: 'healthy' as const } : n
             );
             setNodes(nextNodes);
+
+            // Scoring: 10pts for restoring a region, 50pts for all back online
+            const allOnlineBefore = !nodes.some(n => n.status !== 'healthy');
+            const allOnlineAfter = !nextNodes.some(n => n.status !== 'healthy');
+            const bonus = (allOnlineAfter && !allOnlineBefore) ? 50 : 0;
+            useIncidentStore.getState().setMitigationScore(prev => prev + 10 + bonus);
 
             // Scale back priority as operator fixes issues
             const criticalCount = nextNodes.filter(n => n.status === 'critical').length;

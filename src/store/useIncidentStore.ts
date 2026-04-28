@@ -27,6 +27,13 @@ export interface TerminalOverrideState {
   message: string;
 }
 
+export interface ExecutiveInterruption {
+  id: string;
+  execName: string;
+  deadline: number;
+  penalty: number;
+}
+
 export type GameMode = 'ARCADE' | 'SANDBOX';
 
 interface IncidentState {
@@ -74,6 +81,11 @@ interface IncidentState {
   serviceHealth: Record<string, 'UP' | 'DN'>;
   updateServiceNode: (name: string, status: 'UP' | 'DN') => void;
   healNodes: (type: 'k8s' | 'db' | 'bgp' | 'mesh' | 'vault') => void;
+  strikes: number;
+  timeInP0: number;
+  setStrikes: (s: number | ((prev: number) => number)) => void;
+  setTimeInP0: (t: number | ((prev: number) => number)) => void;
+  deductStrike: () => void;
 
   // Actions
   declareIncident: (playAlert: (s: Severity) => void) => Promise<void>;
@@ -103,6 +115,8 @@ interface IncidentState {
   setApproval: (approval: ApprovalState | null) => void;
   activeOverride: TerminalOverrideState | null;
   setOverride: (override: TerminalOverrideState | null) => void;
+  activeInterruption: ExecutiveInterruption | null;
+  setInterruption: (interruption: ExecutiveInterruption | null) => void;
 
   // Mission HUD
   activeObjective: Objective | null;
@@ -181,6 +195,18 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     set({ onboardingStep });
   },
 
+  strikes: 5,
+  timeInP0: 0,
+  setStrikes: (updater) => set((state) => ({ 
+    strikes: typeof updater === 'function' ? updater(state.strikes) : updater 
+  })),
+  setTimeInP0: (updater) => set((state) => ({ 
+    timeInP0: typeof updater === 'function' ? updater(state.timeInP0) : updater 
+  })),
+  deductStrike: () => set((state) => ({ 
+    strikes: state.gameMode === 'SANDBOX' ? state.strikes : Math.max(0, state.strikes - 1) 
+  })),
+
   activeBeacons: [],
   addBeacon: (id) => set((state) => ({ 
     activeBeacons: state.activeBeacons.includes(id) ? state.activeBeacons : [...state.activeBeacons, id] 
@@ -196,24 +222,41 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
 
   healNodes: (type) => set((state) => {
     const next = { ...state.serviceHealth };
+    let healedCount = 0;
     Object.keys(next).forEach(key => {
         const k = key.toLowerCase();
+        const wasDown = next[key] === 'DN';
+        let matched = false;
+
         if (type === 'k8s' && (k.includes('eks') || k.includes('gke') || k.includes('aks') || k.includes('k8s') || k.includes('cluster') || k.includes('fargate') || k.includes('lambda'))) {
-            next[key] = 'UP';
+            matched = true;
         }
         if (type === 'db' && (k.includes('rds') || k.includes('spanner') || k.includes('sql') || k.includes('database') || k.includes('redis') || k.includes('kafka') || k.includes('storage'))) {
-            next[key] = 'UP';
+            matched = true;
         }
         if (type === 'bgp' && (k.includes('gateway') || k.includes('transit') || k.includes('directconnect') || k.includes('peer') || k.includes('dns') || k.includes('route'))) {
-            next[key] = 'UP';
+            matched = true;
         }
         if (type === 'mesh' && (k.includes('mesh') || k.includes('ingress') || k.includes('proxy') || k.includes('consul'))) {
-            next[key] = 'UP';
+            matched = true;
         }
         if (type === 'vault' && (k.includes('vault') || k.includes('secret') || k.includes('iam') || k.includes('policy'))) {
+            matched = true;
+        }
+
+        if (matched && wasDown) {
             next[key] = 'UP';
+            healedCount++;
         }
     });
+
+    const anyStillDown = Object.values(next).some(s => s === 'DN');
+    const bonus = (!anyStillDown && Object.values(state.serviceHealth).some(s => s === 'DN')) ? 50 : 0;
+    
+    if (healedCount > 0) {
+        state.setMitigationScore(prev => prev + (healedCount * 10) + bonus);
+    }
+
     return { serviceHealth: next };
   }),
 
@@ -297,7 +340,10 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     serviceHealth: {},
     activeApproval: null,
     activeOverride: null,
+    activeInterruption: null,
     activeObjective: null,
+    strikes: 5,
+    timeInP0: 0,
     isResolving: false,
     isDeployStabilized: true,
     mitigationCount: 0,
@@ -332,6 +378,8 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   setApproval: (activeApproval) => set({ activeApproval }),
   activeOverride: null,
   setOverride: (activeOverride) => set({ activeOverride }),
+  activeInterruption: null,
+  setInterruption: (activeInterruption) => set({ activeInterruption }),
 
   // Mission HUD
   activeObjective: null,

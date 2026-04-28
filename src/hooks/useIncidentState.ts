@@ -10,6 +10,7 @@ import { useIncidentChat } from './useIncidentChat';
 import { useCommandRegistry } from './useCommandRegistry';
 import { useUrlSync } from './useUrlSync';
 import type { Severity, Stack } from '../data/incidents';
+import { getRandomExecutive } from '../utils/team';
 
 export type { TerminalLine, CommandResult };
 
@@ -110,11 +111,41 @@ export const useIncidentState = () => {
     getMitigationCount: () => useIncidentStore.getState().mitigationCount,
     getIsDeclared: () => useIncidentStore.getState().isDeclared,
     setTheme: terminalStore.setTheme,
-    handleLogout: terminalStore.handleLogout,
+    handleLogout: () => {
+        incidentStore.setMitigationScore(0);
+        terminalStore.handleLogout();
+    },
     setView: incidentStore.setView,
-    startPlaybook: (id: string) => { log('PLAYBOOK', `Start ${id}`); },
+    startPlaybook: (id: string) => { 
+        log('PLAYBOOK', `Start ${id}`);
+        const playbook = Object.values(PLAYBOOKS).find(p => p.id.toLowerCase() === id.toLowerCase());
+        if (playbook) {
+            startPlaybook(playbook);
+        }
+    },
     triggerApproval: (type) => incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Auth required' }),
     generateStrategy: incidentStore.generateStrategy,
+    clearInterruption: () => {
+        const state = useIncidentStore.getState();
+        if (state.activeInterruption) {
+            incidentStore.setInterruption(null);
+            incidentStore.setMitigationScore(prev => prev + 50);
+        }
+    },
+    handlePhraseApprove: (phrase: string) => {
+        const state = useIncidentStore.getState();
+        if (state.activeApproval?.type === 'phrase' && phrase.toLowerCase() === state.activeApproval.phrase.toLowerCase()) {
+            incidentStore.setApproval(null);
+            incidentStore.incrementMitigationCount();
+            incidentStore.setMitigationScore(prev => prev + 50);
+            return { isValid: true, message: 'AUTHORIZATION_SUCCESSFUL... [OK]' };
+        }
+        if (state.activeApproval?.type === 'phrase') {
+            incidentStore.deductStrike();
+            return { isValid: false, message: 'ERROR: INVALID_AUTHORIZATION_PHRASE | STRIKE_DEDUCTED' };
+        }
+        return { isValid: false, message: 'ERROR: NO_ACTIVE_AUTHORIZATION_REQUIRED' };
+    },
     copyPlaybook: () => {},
   });
 
@@ -148,7 +179,8 @@ export const useIncidentState = () => {
         } else {
             const penalty = 50000 + Math.floor(Math.random() * 25000);
             incidentStore.setMoneyLost(prev => prev + penalty);
-            const errorMsg = `ERROR: INVALID_OVERRIDE_CODE. PENALTY: £${penalty.toLocaleString()}`;
+            incidentStore.deductStrike();
+            const errorMsg = `ERROR: INVALID_OVERRIDE_CODE. PENALTY: £${penalty.toLocaleString()} | STRIKE_DEDUCTED`;
             if (state.onboardingStep === -1) incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: errorMsg, type: 'error' }]);
             return { isValid: false, message: errorMsg };
         }
@@ -277,16 +309,76 @@ export const useIncidentState = () => {
                 code: Math.random().toString(36).substring(2, 8).toUpperCase(),
                 message: 'CRITICAL SYSTEM OVERRIDE REQUIRED'
             });
-        } else if (roll < threshold - 0.15) {
-            // Money penalty for Executive Interruption
+        } else if (roll < threshold - 0.15 && !incidentStore.activeInterruption) {
+            // Trigger Executive Interruption
+            const exec = getRandomExecutive();
+            const duration = 60 + Math.floor(Math.random() * 31); // 60-90s
             const penalty = 150000 + Math.floor(Math.random() * 50000);
-            incidentStore.setMoneyLost(prev => prev + penalty);
-            incidentStore.setTerminalHistory(prev => [...prev, { text: `ALERT: EXECUTIVE INTERRUPTION TIMEOUT - £${penalty.toLocaleString()} PENALTY`, type: 'error' }]);
+            
+            incidentStore.setInterruption({
+                id: Math.random().toString(36).substring(2, 9),
+                execName: exec.name,
+                deadline: Date.now() + (duration * 1000),
+                penalty
+            });
+
+            const userTag = `@${terminalStore.operatorName.split(' ')[0].toLowerCase()}`;
+            sendMessage(`${userTag} I need a SITREP immediately! The board is asking questions.`, exec.name, undefined, false, exec.role.toUpperCase());
         }
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [incidentStore.isDeclared, incidentStore.isPaused, incidentStore.severity, incidentStore.activeApproval, incidentStore.setApproval, incidentStore.setOverride, incidentStore.setMoneyLost, incidentStore]);
+  }, [incidentStore.isDeclared, incidentStore.isPaused, incidentStore.severity, incidentStore.activeApproval, incidentStore.activeInterruption, terminalStore.operatorName, sendMessage, incidentStore]);
+
+  // Interruption Countdown Handler
+  useEffect(() => {
+    if (!incidentStore.activeInterruption || incidentStore.isPaused) return;
+
+    const checkInterval = setInterval(() => {
+        const now = Date.now();
+        if (now >= incidentStore.activeInterruption!.deadline) {
+            const { penalty, execName } = incidentStore.activeInterruption!;
+            incidentStore.setMoneyLost(prev => prev + penalty);
+            incidentStore.deductStrike();
+            incidentStore.addTerminalLine({ 
+                text: `ALERT: EXECUTIVE INTERRUPTION TIMEOUT (${execName}) - £${penalty.toLocaleString()} PENALTY | STRIKE_DEDUCTED`, 
+                type: 'error' 
+            });
+            incidentStore.setInterruption(null);
+        }
+    }, 1000);
+
+    return () => clearInterval(checkInterval);
+  }, [incidentStore.activeInterruption, incidentStore.isPaused, incidentStore]);
+
+  // P0 Sustained Outage Tracking (3 mins = 180s)
+  useEffect(() => {
+    if (incidentStore.severity !== 'P0' || !incidentStore.isDeclared || incidentStore.isPaused) {
+        if (incidentStore.timeInP0 !== 0) incidentStore.setTimeInP0(0);
+        return;
+    }
+
+    const interval = setInterval(() => {
+        incidentStore.setTimeInP0(prev => {
+            const next = prev + 1;
+            if (next >= 180) {
+                incidentStore.deductStrike();
+                incidentStore.addTerminalLine({ text: 'CRITICAL: SUSTAINED P0 OUTAGE PENALTY. STRIKE DEDUCTED.', type: 'error' });
+                return 0;
+            }
+            return next;
+        });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [incidentStore.severity, incidentStore.isDeclared, incidentStore.isPaused, incidentStore]);
+
+  // Game Over Transition
+  useEffect(() => {
+    if (incidentStore.strikes <= 0 && incidentStore.gameMode === 'ARCADE' && terminalStore.appState !== 'TERMINATED') {
+        terminalStore.setAppState('TERMINATED');
+    }
+  }, [incidentStore.strikes, incidentStore.gameMode, terminalStore.appState, terminalStore.setAppState]);
 
   return {
     ...terminalStore,

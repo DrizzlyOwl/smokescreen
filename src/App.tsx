@@ -4,6 +4,7 @@ import { ProviderOrchestrator } from './components/ProviderOrchestrator';
 import { SecureGateway } from './components/SecureGateway';
 import { BootScreen } from './components/BootScreen';
 import { ShutdownScreen } from './components/ShutdownScreen';
+import { TerminationScreen } from './components/TerminationScreen';
 import { SystemControlCluster } from './components/SystemControlCluster';
 import { ApprovalModal } from './components/ApprovalModal';
 import { AfterActionReport } from './components/AfterActionReport';
@@ -37,6 +38,10 @@ function AppContent() {
     />;
   }
 
+  if (state.appState === 'TERMINATED') {
+    return <TerminationScreen />;
+  }
+
   const handleLogout = () => {
     state.playLogoutChime();
     state.setAppState('SHUTDOWN');
@@ -50,9 +55,10 @@ function AppContent() {
           approval={state.activeApproval} 
           onResolve={() => state.setApproval(null)} 
           onFail={(reason) => {
+            state.deductStrike();
             state.setTerminalHistory(prev => [
               ...prev, 
-              { text: `CRITICAL_ERROR: ${reason}. MANUAL_OVERRIDE_FAILED.`, type: 'error' }
+              { text: `CRITICAL_ERROR: ${reason}. MANUAL_OVERRIDE_FAILED | STRIKE_DEDUCTED`, type: 'error' }
             ]);
           }}
         />

@@ -48,6 +48,8 @@ export interface CommandActions {
   incrementMitigationCount: () => void;
   isDeclared: boolean;
   generateStrategy: () => Promise<void>;
+  clearInterruption: () => void;
+  handlePhraseApprove: (phrase: string) => CommandResult;
   // For freshness in tests
   getMitigationCount?: () => number;
   getIsDeclared?: () => boolean;
@@ -60,6 +62,12 @@ export const useCommandRegistry = (actions: CommandActions) => {
     const originalInput = input.trim();
     let cmd = originalInput.toLowerCase();
     if (!cmd) return { isValid: false };
+
+    // Modal Phrase Puzzle Handling
+    if (cmd.startsWith('authorize ')) {
+        const phrase = originalInput.slice(10).trim();
+        return actions.handlePhraseApprove(phrase);
+    }
 
     // Check if command starts with a category (e.g. "panes show logs")
     const categories: Command['category'][] = ['PANES', 'THREAT', 'STACK', 'SYSTEM', 'ACTION'];

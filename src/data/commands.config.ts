@@ -351,6 +351,7 @@ export const getCommands = (actions: CommandActions): Command[] => [
       action: () => {
         actions.generateStrategy();
         actions.openPane('readout');
+        actions.clearInterruption();
       },
       description: 'Run automated diagnostics and generate response strategy',
       category: 'ACTION',

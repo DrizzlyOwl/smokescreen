@@ -1,6 +1,6 @@
 import type { Severity, Stack } from '../data/incidents';
 
-export type AppState = 'SPLASH' | 'BOOT' | 'READY' | 'SHUTDOWN';
+export type AppState = 'SPLASH' | 'BOOT' | 'READY' | 'SHUTDOWN' | 'TERMINATED';
 export type Theme = 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai' | 'cyberpunk' | 'high-contrast' | 'protanopia' | 'deuteranopia' | 'tritanopia';
 
 export interface ChatMessage {
