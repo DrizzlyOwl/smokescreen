@@ -37,7 +37,6 @@ export const OutageMap = ({
     initialPos = { x: 50, y: 50 },
     initialSize = { width: 900, height: 500 },
     isPoppedOut,
-
     onPopOutToggle,
     isSnappedMain,
     onSnapMainToggle
@@ -112,9 +111,11 @@ export const OutageMap = ({
     }, [severity]);
 
     const getPos = useCallback((lat: number, lng: number) => {
-        const x = ((lng + 180) / 360) * 100;
-        const y = ((90 - lat) / 180) * 100;
-        return { x: `${x}%`, y: `${y}%`, xRaw: x, yRaw: y };
+        // Mapping for BlankMap-World.svg (2754 x 1398)
+        // Standard Equirectangular projection
+        const x = ((lng + 180) / 360) * 2754;
+        const y = ((90 - lat) / 180) * 1398;
+        return { x: `${(x / 2754) * 100}%`, y: `${(y / 1398) * 100}%`, xRaw: (x / 2754) * 100, yRaw: (y / 1398) * 100 };
     }, []);
 
     const handleMouseDown = (e: React.MouseEvent, node: IncidentNode) => {
@@ -154,7 +155,7 @@ export const OutageMap = ({
             const pos = getPos(node.lat, node.lng);
             const dx = Math.abs(x - pos.xRaw);
             const dy = Math.abs(y - pos.yRaw);
-            return dx < 5 && dy < 5; // 5% tolerance
+            return dx < 3 && dy < 3; // 3% tolerance (tighter for high-res map)
         });
 
         if (targetNode) {
@@ -225,7 +226,7 @@ export const OutageMap = ({
             const pos = getPos(node.lat, node.lng);
             const dx = Math.abs(x - pos.xRaw);
             const dy = Math.abs(y - pos.yRaw);
-            return dx < 7 && dy < 7; // Higher tolerance for touch
+            return dx < 5 && dy < 5; // Higher tolerance for touch
         });
 
         if (targetNode) {
@@ -291,81 +292,76 @@ export const OutageMap = ({
                 onTouchEnd={handleTouchEnd}
                 style={{ cursor: dragStartNode ? 'crosshair' : 'default' }}
             >
-                <svg 
-                    viewBox="0 0 100 100" 
-                    preserveAspectRatio="none"
-                    className="outage-map__overlay-svg"
-                >
-                    {dragStartNode && (
-                        <line 
-                            x1={`${getPos(dragStartNode.lat, dragStartNode.lng).xRaw}`} 
-                            y1={`${getPos(dragStartNode.lat, dragStartNode.lng).yRaw}`} 
-                            x2={`${mousePos.x}`} 
-                            y2={`${mousePos.y}`} 
-                            className="outage-map__drag-line"
-                        />
-                    )}
-                </svg>
-
-                <pre className="outage-map__ascii">
-{`
-      _..-''--'.._                                     _..-''--'.._
-    .'            '.                                 .'            '.
-   /   AMERICAS     \\        _..-''--'.._           /    ASIA      \\
-  |                  |      .'            '.        |      &         |
-  |      (WEST)      |     /    EMEA        \\       |   PACIFIC      |
-  |                  |    |                 |       |                |
-   \\                /     |     (CENTER)    |        \\              /
-    '.            .'       \\               /          '.          .'
-      '--..__..--'          '.           .'             '--..__..--'
-                              '--..__..--'
-`}
-                </pre>
-
-                {nodes.map(node => {
-                    const pos = getPos(node.lat, node.lng);
-                    const color = node.status === 'healthy' ? 'var(--status-nominal)' : 
-                                 node.status === 'warning' ? 'var(--status-p3)' : 'var(--status-p0)';
+                <div className="outage-map__container">
+                    <img 
+                        src="/BlankMap-World.svg" 
+                        alt="World Map" 
+                        className="outage-map__world-img" 
+                    />
                     
-                    return (
-                        <div 
-                            key={node.id} 
-                            className={`outage-map__node ${node.status !== 'healthy' ? 'outage-map__node--interactive' : ''}`}
-                            style={{
-                                left: pos.x,
-                                top: pos.y,
-                            }}
-                            onMouseDown={(e) => handleMouseDown(e, node)}
-                            onTouchStart={(e) => handleTouchStart(e, node)}
-                        >
-                            {node.status !== 'healthy' && !isEcoMode && (
-                                <div 
-                                    className="outage-map__node-pulse" 
-                                    style={{ background: color }} 
-                                />
-                            )}
-                            
-                            <div 
-                                className="outage-map__node-dot"
-                                style={{
-                                    background: color,
-                                    boxShadow: isEcoMode ? 'none' : `0 0 10px ${color}`,
-                                }} 
-                                title={node.label} 
+                    <svg 
+                        viewBox="0 0 100 100" 
+                        preserveAspectRatio="none"
+                        className="outage-map__overlay-svg"
+                    >
+                        {dragStartNode && (
+                            <line 
+                                x1={`${getPos(dragStartNode.lat, dragStartNode.lng).xRaw}`} 
+                                y1={`${getPos(dragStartNode.lat, dragStartNode.lng).yRaw}`} 
+                                x2={`${mousePos.x}`} 
+                                y2={`${mousePos.y}`} 
+                                className="outage-map__drag-line"
                             />
-                            
+                        )}
+                    </svg>
+
+                    {nodes.map(node => {
+                        const pos = getPos(node.lat, node.lng);
+...
+...
+                        const color = node.status === 'healthy' ? 'var(--status-nominal)' : 
+                                     node.status === 'warning' ? 'var(--status-p3)' : 'var(--status-p0)';
+                        
+                        return (
                             <div 
-                                className="outage-map__node-label" 
+                                key={node.id} 
+                                className={`outage-map__node ${node.status !== 'healthy' ? 'outage-map__node--interactive' : ''}`}
                                 style={{
-                                    color: node.status === 'healthy' ? 'var(--ui-text-dim)' : color,
-                                    fontWeight: node.status === 'healthy' ? 'normal' : 'bold',
+                                    left: pos.x,
+                                    top: pos.y,
                                 }}
+                                onMouseDown={(e) => handleMouseDown(e, node)}
+                                onTouchStart={(e) => handleTouchStart(e, node)}
                             >
-                                {node.label}
+                                {node.status !== 'healthy' && !isEcoMode && (
+                                    <div 
+                                        className="outage-map__node-pulse" 
+                                        style={{ background: color }} 
+                                    />
+                                )}
+                                
+                                <div 
+                                    className="outage-map__node-dot"
+                                    style={{
+                                        background: color,
+                                        boxShadow: isEcoMode ? 'none' : `0 0 10px ${color}`,
+                                    }} 
+                                    title={node.label} 
+                                />
+                                
+                                <div 
+                                    className="outage-map__node-label" 
+                                    style={{
+                                        color: node.status === 'healthy' ? 'var(--ui-text-dim)' : color,
+                                        fontWeight: node.status === 'healthy' ? 'normal' : 'bold',
+                                    }}
+                                >
+                                    {node.label}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
 
                 <div className="outage-map__legend">
                     <div className="outage-map__legend-item">
