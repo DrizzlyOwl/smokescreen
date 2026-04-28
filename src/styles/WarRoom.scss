@@ -23,8 +23,8 @@
     animation: slide-down 0.3s ease-out;
 
     &-action {
-        background: rgba(0, 0, 0, 0.1);
-        border: rem(1) solid rgba(0, 0, 0, 0.2);
+        background: color-mix(in srgb, var(--ui-bg), transparent 90%);
+        border: rem(1) solid color-mix(in srgb, var(--ui-bg), transparent 80%);
         color: inherit;
         font-family: inherit;
         font-size: rem(11);
@@ -38,7 +38,7 @@
         text-transform: uppercase;
 
         &:hover {
-            background: rgba(0, 0, 0, 0.2);
+            background: color-mix(in srgb, var(--ui-bg), transparent 80%);
         }
     }
   }
@@ -82,7 +82,7 @@
 
     &--unread {
         border-left-color: var(--terminal-red);
-        background: rgba(255, 59, 59, 0.05);
+        background: color-mix(in srgb, var(--terminal-red), transparent 95%);
         
         .war-room__message-header-unread {
             display: inline-block;
@@ -121,7 +121,7 @@
       transition: transform 0.2s;
       
       &--bot {
-        box-shadow: 0 0 rem(10) rgba(224, 30, 90, 0.3);
+        box-shadow: 0 0 rem(10) color-mix(in srgb, var(--terminal-amber), transparent 70%);
       }
 
       &:hover:not(&--bot) {
@@ -166,8 +166,8 @@
           font-size: rem(9);
           text-transform: uppercase;
           color: var(--ui-text-dim);
-          background: rgba(255, 255, 255, 0.05);
-          border: rem(1) solid rgba(255, 255, 255, 0.1);
+          background: color-mix(in srgb, var(--ui-bg), transparent 50%);
+          border: rem(1) solid var(--ui-border);
           padding: rem(1) rem(4);
           border-radius: rem(2);
           font-family: var(--font-mono);
@@ -182,7 +182,7 @@
           &:hover {
             color: var(--terminal-green);
             border-color: var(--terminal-green);
-            background: rgba(var(--terminal-green), 0.1);
+            background: color-mix(in srgb, var(--terminal-green), transparent 90%);
           }
         }
 
@@ -214,20 +214,24 @@
     }
 
     &-tag {
-      background: rgba(224, 30, 90, 0.1);
-      color: #e01e5a;
+      background: color-mix(in srgb, var(--terminal-amber), transparent 90%);
+      color: var(--terminal-amber);
       padding: 0 rem(4);
       border-radius: rem(3);
       font-weight: bold;
       cursor: pointer;
-      &:hover { background: rgba(224, 30, 90, 0.2); }
+
+      &:hover {
+        background: color-mix(in srgb, var(--terminal-amber), transparent 80%);
+      }
     }
+
   } // End of &__message
 
   &__bio-bubble {
       margin-top: rem(12);
       margin-bottom: rem(12);
-      background: #05070a;
+      background: var(--ui-bg-alt);
       border: rem(1) solid color-mix(in srgb, var(--terminal-green), transparent 60%);
       border-left: rem(4) solid var(--terminal-green);
       padding: 0;

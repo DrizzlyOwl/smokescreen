@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import type { Stack } from '../data/incidents';
 
 export interface Persona {
     name: string;
@@ -6,6 +7,7 @@ export interface Persona {
     focus: string;
     bio: string;
     isBot: boolean;
+    stacks?: Stack[];
 }
 
 const humanTemplates = [
@@ -43,8 +45,14 @@ const humanTemplates = [
 const botTemplates = [
     { name: 'PagerDuty', role: 'ALERT_ORCHESTRATOR', focus: 'Incident lifecycle', bio: 'Automated incident lifecycle management.', isBot: true },
     { name: 'OpsGenie', role: 'INCIDENT_ROUTING', focus: 'Team alerting', bio: 'Intelligent team alerting and escalation.', isBot: true },
-    { name: 'CloudWatch', role: 'AWS_MONITOR', focus: 'Cloud metrics', bio: 'Real-time AWS infrastructure metrics.', isBot: true },
-    { name: 'Azure Monitor', role: 'AZURE_OPS', focus: 'Infrastructure health', bio: 'Full-stack observability for Azure resources.', isBot: true },
+    { name: 'CloudWatch', role: 'AWS_MONITOR', focus: 'Cloud metrics', bio: 'Real-time AWS infrastructure metrics.', isBot: true, stacks: ['AWS', 'SERVERLESS'] as Stack[] },
+    { name: 'Azure Monitor', role: 'AZURE_OPS', focus: 'Infrastructure health', bio: 'Full-stack observability for Azure resources.', isBot: true, stacks: ['AZURE'] as Stack[] },
+    { name: 'Stackdriver', role: 'GCP_MONITOR', focus: 'GCP observability', bio: 'Google Cloud operations suite monitoring.', isBot: true, stacks: ['GCP'] as Stack[] },
+    { name: 'Logplex', role: 'HEROKU_ROUTER', focus: 'Log routing', bio: 'Heroku system and app log router.', isBot: true, stacks: ['HEROKU'] as Stack[] },
+    { name: 'vCenter', role: 'VM_MONITOR', focus: 'Hypervisor health', bio: 'Centralized management for VMware environments.', isBot: true, stacks: ['VMWARE'] as Stack[] },
+    { name: 'SCVMM', role: 'VIRTUAL_MACHINE_MGR', focus: 'Hyper-V management', bio: 'System Center Virtual Machine Manager.', isBot: true, stacks: ['HYPER-V'] as Stack[] },
+    { name: 'Nagios', role: 'NAGIOS_MONITOR', focus: 'On-prem health', bio: 'Infrastructure monitoring for on-premise systems.', isBot: true, stacks: ['ON-PREM'] as Stack[] },
+    { name: 'Cloudflare Logs', role: 'CF_OBSERVABILITY', focus: 'Edge logs', bio: 'Real-time logging for Cloudflare edge events.', isBot: true, stacks: ['CLOUDFLARE'] as Stack[] },
     { name: 'DataDog', role: 'OBSERVABILITY', focus: 'Performance tracing', bio: 'High-fidelity performance tracing and logs.', isBot: true },
     { name: 'Grafana', role: 'VISUALIZATION', focus: 'Dashboard triggers', bio: 'Metric visualization and dashboard triggers.', isBot: true },
     { name: 'Prometheus', role: 'METRIC_DB', focus: 'Threshold alerts', bio: 'Time-series database for threshold alerts.', isBot: true },
@@ -112,6 +120,33 @@ export const getBioByRole = (role: string): string => {
     };
 
     return fallbacks[r] || fallbacks['STAFF'];
+};
+
+/**
+ * Get a stack-appropriate bot if the provided one doesn't match.
+ * Falls back to generic or the provided bot if no better match found.
+ */
+export const getStackBot = (stack: Stack, currentBotName: string): { name: string, bio: string } => {
+    const currentBot = BOT_FLEET.find(b => b.name === currentBotName);
+    
+    // If bot is already stack-appropriate or generic, keep it
+    if (currentBot && (!currentBot.stacks || currentBot.stacks.includes(stack))) {
+        return { name: currentBot.name, bio: currentBot.bio };
+    }
+
+    // Try to find a bot that matches the stack
+    const betterBot = BOT_FLEET.find(b => b.stacks?.includes(stack));
+    if (betterBot) {
+        return { name: betterBot.name, bio: betterBot.bio };
+    }
+
+    // Fallback to a generic bot
+    const genericBot = BOT_FLEET.find(b => !b.stacks);
+    if (genericBot) {
+        return { name: genericBot.name, bio: genericBot.bio };
+    }
+
+    return { name: currentBotName, bio: currentBot?.bio || 'SYSTEM_BOT' };
 };
 
 /**

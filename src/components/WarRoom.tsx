@@ -172,7 +172,7 @@ export const WarRoom = ({
     onFocus: () => void, 
     isActive: boolean, 
     onClose: () => void,
-    sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void,
+    sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bio?: string) => void,
     isDeclared: boolean,
     operatorName: string,
     markAsRead: (id: string) => void,
@@ -244,7 +244,7 @@ export const WarRoom = ({
   return (
     <Pane
       id="chat"
-      title={`CENTRAL_SRE_INCIDENT_RESPONSE_UPLINK ${unreadCount > 0 ? `(${unreadCount}_UNREAD)` : ''}`}
+      title={`CENTRAL_SRE_INCIDENT_RESPONSE_CHANNEL ${unreadCount > 0 ? `(${unreadCount}_UNREAD)` : ''}`}
       icon={<ChatIcon />}
       initialPos={initialPos}
       initialSize={initialSize}

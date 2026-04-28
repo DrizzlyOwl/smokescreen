@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { generateBitmapAvatar } from '../utils/avatarGenerator';
 import { useSync } from './useSync';
 import { type Severity, type Stack } from '../data/incidents';
+import { useIncidentStore } from '../store/useIncidentStore';
 
 import { formatTime, getRandomItem } from '../utils/telemetry';
 
@@ -343,7 +344,7 @@ export const useIncidentChat = (
     severity: Severity,
     stack: Stack,
     operatorName: string,
-    uplinkId: string,
+    terminalId: string,
     onNewMessage: (isTag: boolean) => void,
     playPing?: () => void,
     playTagPing?: () => void,
@@ -352,6 +353,7 @@ export const useIncidentChat = (
     chatMultiplier: number = 1,
     log?: (action: string, data?: unknown) => void
 ) => {
+    const isPaused = useIncidentStore(state => state.isPaused);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const lastSeverity = useRef<Severity>(severity);
@@ -426,7 +428,10 @@ export const useIncidentChat = (
 
                 setMessages(prev => [...prev, incomingMsg].slice(-100));
                 
-                const isTag = data.message.text.includes('@');
+                const operatorTag = `@${operatorName.split(' ')[0].toLowerCase()}`;
+                const text = data.message.text.toLowerCase();
+                const isTag = text.includes('@operator') || text.includes(operatorTag);
+                
                 if (isTag) {
                     playTagPing?.();
                 } else {
@@ -445,7 +450,7 @@ export const useIncidentChat = (
             }
         });
         return unsubscribe;
-    }, [subscribe, onNewMessage, playPing, playTagPing, isFocused, getAvatarForUser]);
+    }, [subscribe, onNewMessage, playPing, playTagPing, isFocused, getAvatarForUser, operatorName]);
 
     const sendMessage = useCallback((text: string, user: string, id?: string, isBot: boolean = false, bioOverride?: string) => {
         const { name, bio: defaultBio } = processUserAndBio(user, isBot);
@@ -520,7 +525,11 @@ export const useIncidentChat = (
         if (userRaw === 'Tech_Staff') {
             try {
                 const { ALL_PERSONAS } = await import('../utils/team');
-                const persona = ALL_PERSONAS[Math.floor(Math.random() * ALL_PERSONAS.length)];
+                // Filter personas to ensure bots match the current stack
+                const availablePersonas = ALL_PERSONAS.filter(p => 
+                    !p.isBot || !p.stacks || p.stacks.includes(stack)
+                );
+                const persona = availablePersonas[Math.floor(Math.random() * availablePersonas.length)];
                 userRaw = persona.name;
                 isBot = persona.isBot;
                 bioOverride = persona.role;
@@ -550,14 +559,18 @@ export const useIncidentChat = (
         if (isBot) {
             const botFriendlyPool = pool.filter(msg => 
                 !msg.includes('?') && 
-                !msg.includes('!!') && 
+                !msg.includes('!') && // No exclamations for bots
                 !msg.includes('I ') && 
                 !msg.toLowerCase().includes('who ') &&
-                !msg.toLowerCase().includes('need ')
+                !msg.toLowerCase().includes('need ') &&
+                !msg.toLowerCase().includes('user') && // No user-facing issues
+                !msg.toLowerCase().includes('complain')
             );
             if (botFriendlyPool.length > 0) {
                 text = getRandomItem(botFriendlyPool);
             }
+            // Ensure no exclamations slip through
+            text = text.replace(/!/g, '.');
         }
         
         lastMessageText.current = text;
@@ -574,7 +587,7 @@ export const useIncidentChat = (
     }, [stack, operatorName, getAvatarForUser, processUserAndBio]);
 
     useEffect(() => {
-        if (!isActive) return;
+        if (!isActive || isPaused) return;
 
         const baseDelay = severity === 'P0' ? 3000 : severity === 'P1' ? 6000 : severity === 'P3' ? 12000 : 20000;
         const delay = baseDelay * chatMultiplier;
@@ -594,7 +607,7 @@ export const useIncidentChat = (
         return () => {
             clearInterval(interval);
         };
-    }, [severity, uplinkId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send, chatMultiplier, log]);
+    }, [severity, terminalId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send, chatMultiplier, log, isPaused]);
 
     return { messages, sendMessage, typingUsers, markAsRead, markAllAsRead };
 };
