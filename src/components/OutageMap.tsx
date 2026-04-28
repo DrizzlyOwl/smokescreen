@@ -317,8 +317,6 @@ export const OutageMap = ({
 
                     {nodes.map(node => {
                         const pos = getPos(node.lat, node.lng);
-...
-...
                         const color = node.status === 'healthy' ? 'var(--status-nominal)' : 
                                      node.status === 'warning' ? 'var(--status-p3)' : 'var(--status-p0)';
                         

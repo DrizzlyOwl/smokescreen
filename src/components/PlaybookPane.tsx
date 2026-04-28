@@ -50,16 +50,16 @@ export const PlaybookPane = ({
       }}
     >
       <div className="playbooks">
-        <p className="playbooks__intro">
+        <p className="text-lead text-dim">
           Select a simulation scenario to initialize. All events are contained within the local virtual environment.
         </p>
 
         <div className="playbooks__list">
           {Object.values(PLAYBOOKS).map((playbook) => (
             <div key={playbook.id} className="playbooks__card">
-              <div className="playbooks__card-title">{playbook.name}</div>
+              <h3>{playbook.name}</h3>
               <div className="playbooks__card-desc">{playbook.description}</div>
-              <div className="playbooks__card-scenario">THREAT_LEVEL: {playbook.id.includes('l1') ? 'P3' : playbook.id.includes('l2') ? 'P3' : playbook.id.includes('l3') ? 'P1' : 'P0'}</div>
+              <div className="playbooks__card-scenario">THREAT_LEVEL: <span className="text-amber">{playbook.id.includes('l1') ? 'P3' : playbook.id.includes('l2') ? 'P3' : playbook.id.includes('l3') ? 'P1' : 'P0'}</span></div>
               <Button 
                 onClick={() => onSelectPlaybook(playbook)}
                 variant="primary"

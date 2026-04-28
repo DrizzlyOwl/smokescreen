@@ -180,7 +180,6 @@ describe('useIncidentState', () => {
 
     const store = useIncidentStore.getState();
     expect(store.activeInterruption).not.toBeNull();
-    const initialMoney = store.moneyLost;
 
     // Advance timers in small chunks to ensure intervals and effects process
     for (let i = 0; i < 70; i++) {

@@ -62,11 +62,11 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
     >
       <div className="playbook-content">
         {activePlaybook ? (
-          <div className="playbook-content__active">
-            <h2 className="playbook-content__name">{activePlaybook.name}</h2>
+          <div>
+            <h1>{activePlaybook.name}</h1>
             <div className="playbook-content__steps">
               {activePlaybook.runbookText ? (
-                <div className="playbook-content__runbook-text">
+                <div>
                   {activePlaybook.runbookText.split('\n').map((line, i) => {
                     if (line.startsWith('### ')) {
                       return <h3 key={i}>{line.replace('### ', '')}</h3>;
@@ -98,10 +98,8 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
           </div>
         ) : (
           <div className="playbook-content__empty">
-            <p className="playbook-content__status">NO_ACTIVE_INCIDENT</p>
-            <p dangerouslySetInnerHTML={{ 
-              __html: "Stand by for system alerts. Load a scenario from the <strong>SCENARIO_DECK</strong> to begin." 
-            }} />
+            <h2 className="text-amber">NO_ACTIVE_INCIDENT</h2>
+            <p>Stand by for system alerts. Load a scenario from the <strong>SCENARIO_DECK</strong> to begin.</p>
           </div>
         )}
       </div>

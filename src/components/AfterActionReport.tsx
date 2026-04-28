@@ -37,8 +37,9 @@ export const AfterActionReport: React.FC<AfterActionReportProps> = ({
   }, [mitigations, mitigationScore]);
 
   return (
-    <div className={`aar-overlay ${isVisible ? 'isVisible' : ''}`}>
-      <div className="aar-modal">
+    <div className={`aar ${isVisible ? 'isVisible' : ''}`}>
+      <div className="aar__overlay" />
+      <div className="aar__content">
         <TechnicalPane
           id="settings"
           title="AFTER_ACTION_REPORT"
@@ -95,8 +96,8 @@ export const AfterActionReport: React.FC<AfterActionReportProps> = ({
              </div>
 
              <div className="aar__content">
-                <p className="aar__text">
-                    The infrastructure incident has been successfully resolved. Final system state is <b>STABLE</b>. 
+                <p className="text-dim">
+                    The infrastructure incident has been successfully resolved. Final system state is <b className="text-green">STABLE</b>. 
                     All virtual resources have been decommissioned and revenue leak has been plugged.
                 </p>
                 <div className="aar__actions">

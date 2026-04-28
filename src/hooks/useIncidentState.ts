@@ -11,6 +11,7 @@ import { useCommandRegistry } from './useCommandRegistry';
 import { useUrlSync } from './useUrlSync';
 import type { Severity, Stack } from '../data/incidents';
 import { getRandomExecutive } from '../utils/team';
+import { PLAYBOOKS } from '../data/playbooks';
 
 export type { TerminalLine, CommandResult };
 
@@ -134,7 +135,8 @@ export const useIncidentState = () => {
     },
     handlePhraseApprove: (phrase: string) => {
         const state = useIncidentStore.getState();
-        if (state.activeApproval?.type === 'phrase' && phrase.toLowerCase() === state.activeApproval.phrase.toLowerCase()) {
+        const active = state.activeApproval;
+        if (active?.type === 'phrase' && active.phrase && phrase.toLowerCase() === active.phrase.toLowerCase()) {
             incidentStore.setApproval(null);
             incidentStore.incrementMitigationCount();
             incidentStore.setMitigationScore(prev => prev + 50);

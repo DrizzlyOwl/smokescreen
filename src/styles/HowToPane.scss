@@ -6,38 +6,4 @@
   flex-direction: column; 
   gap: rem(30);
   @include technical-typography;
-
-  &__intro-section {
-    margin-bottom: rem(20);
-  }
-
-  &__intro-text {
-    color: var(--terminal-green);
-    font-size: 1.1rem;
-    line-height: 1.5;
-  }
-
-  &__section {
-    margin-bottom: 0;
-  }
-
-  &__text {
-    font-size: rem(14);
-    line-height: 1.6;
-    margin-bottom: rem(10);
-  }
-
-  &__highlight-amber {
-    color: var(--terminal-amber) !important;
-  }
-
-  &__highlight-red {
-    color: var(--terminal-red) !important;
-  }
-
-  &__list {
-    margin-top: rem(10); 
-    padding-left: rem(20);
-    line-height: 1.6;
-  }
 }

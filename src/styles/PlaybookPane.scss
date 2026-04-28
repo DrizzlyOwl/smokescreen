@@ -7,12 +7,6 @@
   gap: rem(20);
   @include technical-typography;
 
-  &__intro {
-    font-size: 0.8rem; 
-    opacity: 0.8; 
-    margin-bottom: rem(15);
-  }
-
   &__list {
     display: flex; 
     flex-direction: column; 
@@ -27,14 +21,13 @@
     flex-direction: column;
     gap: rem(12);
     background: rgba(255, 255, 255, 0.02);
-  }
 
-  &__card-title {
-    color: var(--terminal-green); 
-    font-weight: bold; 
-    font-size: 1rem; 
-    letter-spacing: rem(1);
-    text-transform: uppercase;
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
   }
 
   &__card-desc {
@@ -46,7 +39,7 @@
 
   &__card-scenario {
     font-size: 0.7rem; 
-    color: var(--terminal-amber); 
+    color: var(--ui-text-dim); 
     margin-top: rem(10); 
     opacity: 0.9; 
     font-style: italic; 

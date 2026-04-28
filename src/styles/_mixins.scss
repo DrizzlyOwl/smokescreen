@@ -122,5 +122,33 @@ $breakpoints: (
     border-top: rem(1) dashed var(--ui-border);
     margin: rem(20) 0;
   }
+
+  // Generic text utility classes
+  .text-amber { color: var(--terminal-amber) !important; }
+  .text-red { color: var(--terminal-red) !important; }
+  .text-green { color: var(--terminal-green) !important; }
+  .text-cobalt { color: var(--terminal-cobalt) !important; }
+  .text-dim { opacity: 0.8 !important; }
+  .text-bold { font-weight: bold !important; }
+  .text-lead {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: rem(20);
+    color: var(--terminal-green);
+  }
+
+  // Generic text utility classes
+  .text-amber { color: var(--terminal-amber) !important; }
+  .text-red { color: var(--terminal-red) !important; }
+  .text-green { color: var(--terminal-green) !important; }
+  .text-cobalt { color: var(--terminal-cobalt) !important; }
+  .text-dim { opacity: 0.8 !important; }
+  .text-bold { font-weight: bold !important; }
+  .text-lead {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: rem(20);
+    color: var(--terminal-green);
+  }
 }
 

@@ -109,8 +109,8 @@ export const SettingsPane = ({
     >
       <div className="settings">
         <section className="settings__section">
-          <h2 className="settings__header">01. GEMINI_API_KEY</h2>
-          <p className="settings__description">
+          <h2>01. GEMINI_API_KEY</h2>
+          <p className="text-dim">
             Optional: Provide an AI key to generate hyper-realistic, context-aware technical incident reports tailored to your specific environment.
           </p>
           <div className="settings__input-wrapper">
@@ -131,18 +131,18 @@ export const SettingsPane = ({
             </Button>
           </div>
           {status === 'ERROR' && (
-            <p className="settings__error-message">
+            <p className="text-red">
                 {'>'} ERROR: {errorMessage}
             </p>
           )}
-          <p className="settings__note">
+          <p className="text-dim" style={{ fontSize: '0.75rem' }}>
             Keys are cached in <b>LOCAL_STORAGE</b>. No data is transmitted to central system servers.
           </p>
         </section>
 
         <section className="settings__section">
-          <h2 className="settings__header">02. VISUAL_THEMES</h2>
-          <p className="settings__description">
+          <h2>02. VISUAL_THEMES</h2>
+          <p className="text-dim">
             Switch between classic hardware aesthetics to match your terminal emulator preference.
           </p>
           <div className="settings__theme-grid">
@@ -231,7 +231,7 @@ export const SettingsPane = ({
         </section>
 
         <section className="settings__section">
-          <h2 className="settings__header">03. SYSTEM_CONFIGURATION</h2>
+          <h2>03. SYSTEM_CONFIGURATION</h2>
           
           <label className="settings__option">
             <input
@@ -244,7 +244,7 @@ export const SettingsPane = ({
               <span className="settings__option-label">
                 ENABLE ECO MODE (LOW POWER)
               </span>
-              <span className="settings__option-desc">
+              <span className="text-dim" style={{ fontSize: '0.75rem', display: 'block' }}>
                 Disables expensive CSS filters like blurs, glows, and animations for better performance.
               </span>
             </div>
@@ -261,7 +261,7 @@ export const SettingsPane = ({
               <span className="settings__option-label">
                 ENABLE SYSTEM DEBUG LOGS
               </span>
-              <span className="settings__option-desc">
+              <span className="text-dim" style={{ fontSize: '0.75rem', display: 'block' }}>
                 Opens a dedicated console to track internal state transitions and telemetry events in real-time.
               </span>
             </div>

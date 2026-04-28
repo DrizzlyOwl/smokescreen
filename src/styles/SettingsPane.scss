@@ -1,141 +1,99 @@
 @use 'utils' as *;
+@use 'mixins' as *;
 
 .settings {
-  display: flex; 
-  flex-direction: column; 
-  gap: rem(20);
-  background: var(--ui-bg);
-  color: var(--ui-text);
+  @include technical-typography;
+  display: flex;
+  flex-direction: column;
+  gap: rem(30);
 
   &__section {
-    margin-bottom: rem(10);
-  }
-
-  &__header {
-    font-size: 1.2rem;
-    color: var(--status-nominal);
-    margin-bottom: rem(10);
-    letter-spacing: rem(1);
-  }
-
-  &__description {
-    font-size: 0.75rem; 
-    opacity: 0.8; 
-    margin-bottom: rem(10);
-  }
-
-  &__note {
-    font-size: 0.75rem; 
-    opacity: 0.5; 
-    margin-top: rem(8);
-
-    b {
-      color: var(--status-nominal);
-    }
+    display: flex;
+    flex-direction: column;
+    gap: rem(12);
   }
 
   &__input-wrapper {
-    position: relative;
     display: flex;
-    align-items: center;
+    gap: rem(10);
+    align-items: stretch;
   }
 
   &__input {
-    background: var(--ui-bg-alt);
+    flex: 1;
+    background: rgba(0, 0, 0, 0.4);
     border: rem(1) solid var(--ui-border);
-    color: var(--ui-text);
-    padding: rem(10) rem(60) rem(10) rem(10);
-    width: 100%;
+    color: var(--terminal-green);
     font-family: inherit;
-    font-size: 0.8rem;
-    outline: none;
+    font-size: rem(14);
+    padding: rem(8) rem(12);
     border-radius: rem(4);
-    box-sizing: border-box;
+    outline: none;
+    transition: all 0.2s ease;
 
-    &:disabled {
-      opacity: 0.5;
+    &:focus {
+      border-color: var(--terminal-green);
+      box-shadow: 0 0 rem(10) color-mix(in srgb, var(--terminal-green), transparent 80%);
     }
 
     &--error {
-      border-color: var(--status-p0);
-      color: var(--status-p0);
+      border-color: var(--terminal-red);
+      color: var(--terminal-red);
     }
   }
 
-  &__input-toggle {
-    position: absolute;
-    right: rem(8);
-    border: none !important;
-    background: transparent !important;
-  }
-
-  &__error-message {
-    color: var(--status-p0);
-    font-size: 0.75rem;
-    margin-top: rem(8);
-    font-weight: bold;
-  }
-
   &__theme-grid {
-    display: flex;
-    gap: rem(8);
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(rem(80), 1fr));
+    gap: rem(10);
   }
 
   &__option {
     display: flex;
-    align-items: center;
+    gap: rem(15);
+    align-items: flex-start;
     cursor: pointer;
-    gap: rem(10);
-    background: var(--ui-bg-alt);
-    padding: rem(8);
+    padding: rem(10);
     border-radius: rem(4);
-    border: rem(1) solid var(--ui-border);
-    margin-top: rem(10);
+    background: rgba(255, 255, 255, 0.02);
+    border: rem(1) solid transparent;
+    transition: all 0.2s ease;
 
-    &:first-of-type {
-        margin-top: 0;
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: color-mix(in srgb, var(--ui-border), transparent 80%);
     }
-  }
 
-  &__option-checkbox {
-    width: rem(16);
-    height: rem(16);
-    accent-color: var(--status-nominal);
-    flex-shrink: 0;
-  }
+    &-checkbox {
+      margin-top: rem(4);
+      cursor: pointer;
+      accent-color: var(--terminal-green);
+    }
 
-  &__option-label {
-    font-weight: bold;
-    font-size: 0.8rem;
-    color: var(--ui-text);
-    display: block;
-  }
-
-  &__option-desc {
-    font-size: 0.7rem;
-    color: var(--ui-text);
-    opacity: 0.6;
+    &-label {
+      display: block;
+      font-weight: bold;
+      font-size: rem(12);
+      color: var(--terminal-green);
+      margin-bottom: rem(2);
+    }
   }
 
   &__footer {
-    margin-top: rem(25);
+    margin-top: rem(30);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding-top: rem(20);
+    border-top: rem(1) solid color-mix(in srgb, var(--ui-border), transparent 80%);
   }
 
   &__status {
-    font-size: 0.75rem;
+    font-size: rem(10);
     font-weight: bold;
+    letter-spacing: rem(1);
 
-    &--saved {
-      color: var(--status-p3);
-      animation: flicker 0.5s infinite;
-    }
-
-    &--error {
-      color: var(--status-p0);
-    }
+    &--saved { color: var(--terminal-green); }
+    &--error { color: var(--terminal-red); }
   }
 }
