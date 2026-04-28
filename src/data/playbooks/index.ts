@@ -68,8 +68,8 @@ export const PLAYBOOKS: Record<string, Playbook> = {
             { offsetMs: 65000, type: 'OBJECTIVE', payload: { title: 'Authorize Kill Sequence', status: 'warning' } },
             { offsetMs: 80000, type: 'APPROVAL', payload: 'phrase' }, // Puzzle 1
             { offsetMs: 81000, type: 'WAIT', payload: null },
-            { offsetMs: 82000, type: 'BEACON', payload: 'metrics' },
             { offsetMs: 85000, type: 'CHAT', payload: { id: 'l3-3', user: getPersonByRole('DBA').name, bio: getPersonByRole('DBA').role, text: '@operator AUTHORIZE query kill sequence to break the deadlock.', isBot: false } },
+
             { offsetMs: 105000, type: 'OBJECTIVE', payload: { title: 'Prepare Pool Rebalance', status: 'warning' } },
             { offsetMs: 120000, type: 'APPROVAL', payload: 'hold' }, // Puzzle 2 (+40s from P1)
             { offsetMs: 121000, type: 'WAIT', payload: null },

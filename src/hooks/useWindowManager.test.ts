@@ -5,7 +5,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 describe('useWindowManager', () => {
   const initialPanes: PanesState = {
     chat: false, logs: false, terminal: true, map: false, deploy: false, 
-    burn: false, howTo: false, settings: false, metrics: false, playbooks: false, 
+    burn: false, howTo: false, settings: false, playbooks: false,
+ 
     incidentPlaybook: false, readout: false, debug: false
   };
 

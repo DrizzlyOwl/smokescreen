@@ -1,4 +1,5 @@
 import type { Command, CommandActions } from '../hooks/useCommandRegistry';
+import { useIncidentStore } from '../store/useIncidentStore';
 
 export const getCommands = (actions: CommandActions): Command[] => [
     // Panes
@@ -6,10 +7,10 @@ export const getCommands = (actions: CommandActions): Command[] => [
       id: 'chat',
       patterns: ['show chat', 'chat', 'warroom'],
       action: () => actions.openPane('chat'),
-      description: 'Display incident war room uplink',
+      description: 'Display incident war room connection',
       category: 'PANES',
-      usage: 'chat',
-      confirmation: 'OPENING_WAR_ROOM_UPLINK... [OK]',
+      usage: 'panes chat',
+      confirmation: 'OPENING_WAR_ROOM_CONNECTION... [OK]',
     },
     {
       id: 'terminal',
@@ -73,15 +74,6 @@ export const getCommands = (actions: CommandActions): Command[] => [
       category: 'PANES',
       usage: 'settings',
       confirmation: 'ACCESSING_SYSTEM_CONFIGURATION... [OK]',
-    },
-    {
-      id: 'metrics',
-      patterns: ['show metrics', 'metrics', 'charts', 'latency'],
-      action: () => actions.openPane('metrics'),
-      description: 'Display latency telemetry metrics',
-      category: 'PANES',
-      usage: 'metrics',
-      confirmation: 'FETCHING_REALTIME_LATENCY_METRICS... [OK]',
     },
     {
       id: 'debug',
@@ -375,6 +367,19 @@ export const getCommands = (actions: CommandActions): Command[] => [
       confirmation: 'CRITICAL_INCIDENT_DECLARED... [EMERGENCY_OVERRIDE_ACTIVE]',
     },
     {
+      id: 'k8s_restart',
+      patterns: ['k8s restart', 'kubectl restart'],
+      action: () => {
+        useIncidentStore.getState().healNodes('k8s');
+        useIncidentStore.getState().setIsDeployStabilized(true);
+        useIncidentStore.getState().incrementMitigationCount();
+      },
+      description: 'Stabilize K8s cluster workloads',
+      category: 'ACTION',
+      usage: 'k8s restart',
+      confirmation: 'RESTARTING_K8S_WORKLOADS... [OK]',
+    },
+    {
       id: 'cease',
       patterns: ['cease', 'resolve', 'restore', 'abort'],
       action: () => actions.handleCease(),
@@ -452,7 +457,10 @@ export const getCommands = (actions: CommandActions): Command[] => [
     {
       id: 'bgp_reset',
       patterns: ['bgp reset', 'bgp-reset'],
-      action: () => actions.incrementMitigationCount(),
+      action: () => {
+        useIncidentStore.getState().healNodes('bgp');
+        actions.incrementMitigationCount();
+      },
       description: 'Emergency reset of BGP transit sessions',
       category: 'ACTION',
       usage: 'bgp reset',
@@ -461,7 +469,10 @@ export const getCommands = (actions: CommandActions): Command[] => [
     {
       id: 'db_kill',
       patterns: ['db kill', 'db-kill'],
-      action: () => actions.incrementMitigationCount(),
+      action: () => {
+        useIncidentStore.getState().healNodes('db');
+        actions.incrementMitigationCount();
+      },
       description: 'Force-kill locked database queries',
       category: 'ACTION',
       usage: 'db kill',
@@ -470,7 +481,10 @@ export const getCommands = (actions: CommandActions): Command[] => [
     {
       id: 'mesh_restart',
       patterns: ['mesh restart', 'mesh-restart'],
-      action: () => actions.incrementMitigationCount(),
+      action: () => {
+        useIncidentStore.getState().healNodes('mesh');
+        actions.incrementMitigationCount();
+      },
       description: 'Soft-restart service mesh control plane',
       category: 'ACTION',
       usage: 'mesh restart',
@@ -479,7 +493,10 @@ export const getCommands = (actions: CommandActions): Command[] => [
     {
       id: 'vault_seal',
       patterns: ['vault seal', 'vault-seal'],
-      action: () => actions.incrementMitigationCount(),
+      action: () => {
+        useIncidentStore.getState().healNodes('vault');
+        actions.incrementMitigationCount();
+      },
       description: 'Emergency seal of kernel secret vault',
       category: 'ACTION',
       usage: 'vault seal',

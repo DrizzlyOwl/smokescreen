@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import type { Playbook, PlaybookEvent } from '../data/playbooks/types';
 import { type Severity, type Stack } from '../data/incidents';
 import type { ChatMessage } from '../contexts/types';
+import { getStackBot } from '../utils/team';
+import { useIncidentStore } from '../store/useIncidentStore';
 
 interface PlaybookEngineProps {
   sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bio?: string) => void;
@@ -35,6 +37,7 @@ export const usePlaybookEngine = ({
   const [activePlaybook, setActivePlaybook] = useState<Playbook | null>(null);
   const [currentEventIndex, setCurrentIndex] = useState(-1);
   const [isWaiting, setIsWaiting] = useState(false);
+  const isPaused = useIncidentStore(state => state.isPaused);
   
   const timerRef = useRef<number | null>(null);
 
@@ -70,7 +73,21 @@ export const usePlaybookEngine = ({
     switch (event.type) {
       case 'CHAT': {
         const p = event.payload as ChatMessage;
-        sendMessage(parseText(p.text), p.user, p.id, p.isBot, p.bio);
+        let user = p.user;
+        let bio = p.bio;
+
+        if (p.isBot) {
+            const bot = getStackBot(stack, p.user);
+            user = bot.name;
+            bio = bot.bio;
+        }
+
+        let text = parseText(p.text);
+        if (p.isBot) {
+            text = text.replace(/!/g, '.');
+        }
+
+        sendMessage(text, user, p.id, p.isBot, bio);
         break;
       }
       case 'LOG':
@@ -106,11 +123,11 @@ export const usePlaybookEngine = ({
         setIsWaiting(true);
         break;
     }
-  }, [sendMessage, injectLog, setSeverity, setIsChaos, addBeacon, triggerApproval, triggerOverride, triggerInterrupt, setObjective, declareIncident, parseText]);
+  }, [sendMessage, injectLog, setSeverity, setIsChaos, addBeacon, triggerApproval, triggerOverride, triggerInterrupt, setObjective, declareIncident, parseText, stack]);
 
   // Main execution loop
   useEffect(() => {
-    if (!activePlaybook || currentEventIndex < 0 || isWaiting) return;
+    if (!activePlaybook || currentEventIndex < 0 || isWaiting || isPaused) return;
 
     if (currentEventIndex >= activePlaybook.events.length) {
         // Playbook finished
@@ -134,7 +151,7 @@ export const usePlaybookEngine = ({
     }, Math.max(0, delay));
 
     return () => clearTimer();
-  }, [activePlaybook, currentEventIndex, isWaiting, executeEvent, clearTimer, setObjective]);
+  }, [activePlaybook, currentEventIndex, isWaiting, isPaused, executeEvent, clearTimer, setObjective]);
 
   const startPlaybook = useCallback((playbook: Playbook) => {
     stopPlaybook();

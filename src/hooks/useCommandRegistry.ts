@@ -31,18 +31,26 @@ export interface CommandActions {
   setSlowBurn: (on: boolean) => void;
   setTheme: (theme: Theme) => void;
   handleEject: () => void;
+  handleDeclare: () => void;
   handleCease: () => void;
   copyPlaybook: () => void;
   setView: (v: 'HOME' | 'TICKET') => void;
   handleLogout: () => void;
   help: (commands: Command[]) => void;
   startPlaybook: (id: string) => void;
+  setLogMultiplier: (m: number) => void;
+  setChatMultiplier: (m: number) => void;
   setEcoMode: (on: boolean) => void;
+  setIsDebugMode: (on: boolean) => void;
+  setIsChaos: (on: boolean) => void;
   triggerApproval: (type?: 'phrase' | 'hold' | 'slider') => void;
   mitigationCount: number;
   incrementMitigationCount: () => void;
   isDeclared: boolean;
   generateStrategy: () => Promise<void>;
+  // For freshness in tests
+  getMitigationCount?: () => number;
+  getIsDeclared?: () => boolean;
 }
 
 export const useCommandRegistry = (actions: CommandActions) => {
@@ -98,7 +106,10 @@ export const useCommandRegistry = (actions: CommandActions) => {
       }
 
       // Remediation Guard: Block resolution if no mitigations logged
-      if (match.id === 'cease' && actions.isDeclared && actions.mitigationCount === 0) {
+      const isDeclared = actions.getIsDeclared ? actions.getIsDeclared() : actions.isDeclared;
+      const mitigationCount = actions.getMitigationCount ? actions.getMitigationCount() : actions.mitigationCount;
+
+      if (match.id === 'cease' && isDeclared && mitigationCount === 0) {
         return { 
             isValid: false, 
             message: `ERROR: RESOLUTION DENIED. NO MITIGATION ACTIONS LOGGED. PERFORM FAILOVER ROUTING [MAP] OR AUTHORIZE OVERRIDES FIRST.` 

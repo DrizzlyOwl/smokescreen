@@ -64,7 +64,13 @@ describe('usePlaybookEngine', () => {
     act(() => {
       vi.advanceTimersByTime(100);
     });
-    expect(mockProps.sendMessage).toHaveBeenCalledWith('Hello @test from AWS', 'Bot', 'msg-1', true, undefined);
+    expect(mockProps.sendMessage).toHaveBeenCalledWith(
+        'Hello @test from AWS', 
+        'CloudWatch', 
+        'msg-1', 
+        true, 
+        'Real-time AWS infrastructure metrics.'
+    );
 
     // 200ms: LOG
     act(() => {

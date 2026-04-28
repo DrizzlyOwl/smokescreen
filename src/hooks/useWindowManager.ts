@@ -8,7 +8,6 @@ export type PaneId =
   | 'burn'
   | 'howTo'
   | 'settings'
-  | 'metrics'
   | 'playbooks'
   | 'incidentPlaybook'
   | 'readout'
@@ -46,7 +45,6 @@ export const useWindowManager = (initialPanes: PanesState) => {
       burn: 104,
       howTo: 106,
       settings: 107,
-      metrics: 108,
       playbooks: 109,
       incidentPlaybook: 110,
       readout: 111,
@@ -58,7 +56,7 @@ export const useWindowManager = (initialPanes: PanesState) => {
   const [poppedOutPanes, setPoppedOutPanes] = useState<Record<PaneId, boolean>>(() => {
     const state: Partial<Record<PaneId, boolean>> = {};
     (Object.keys(initialPanes) as PaneId[]).forEach(id => {
-      state[id] = false;
+      state[id] = id === 'map';
     });
     return state as Record<PaneId, boolean>;
   });

@@ -1,18 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface BatteryManager extends EventTarget {
   level: number;
   charging: boolean;
   addEventListener(type: 'levelchange' | 'chargingchange', listener: (this: BatteryManager, ev: Event) => void): void;
   removeEventListener(type: 'levelchange' | 'chargingchange', listener: (this: BatteryManager, ev: Event) => void): void;
-}
-
-interface NetworkInformation extends EventTarget {
-  type?: 'bluetooth' | 'cellular' | 'ethernet' | 'none' | 'wifi' | 'wimax' | 'other' | 'unknown';
-  effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
-  downlink?: number;
-  addEventListener(type: 'change', listener: (this: NetworkInformation, ev: Event) => void): void;
-  removeEventListener(type: 'change', listener: (this: NetworkInformation, ev: Event) => void): void;
 }
 
 interface ClientStats {
@@ -22,6 +14,7 @@ interface ClientStats {
   downlink: number | null;
   gpu: string;
   timezone: string;
+  fps: number;
 }
 
 export const useClientStats = () => {
@@ -31,17 +24,31 @@ export const useClientStats = () => {
     connectionType: 'UNKNOWN',
     downlink: null,
     gpu: 'EMULATED_VGA',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    fps: 60
   });
 
+  const batteryRef = useRef<BatteryManager | null>(null);
+
+  // 1. Core Info (GPU, Timezone)
   useEffect(() => {
-    // 1. Connection Stats
-    const nav = navigator as unknown as { 
-        connection?: NetworkInformation;
-        mozConnection?: NetworkInformation;
-        webkitConnection?: NetworkInformation;
-        getBattery?: () => Promise<BatteryManager>;
-    };
+    try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                const renderer = (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                const cleanRenderer = renderer.replace(/ANGLE \(|Direct3D11 vs_5_0 ps_5_0\)|Direct3D11/g, '').trim();
+                setStats(prev => ({ ...prev, gpu: cleanRenderer.toUpperCase() }));
+            }
+        }
+    } catch { /* GPU info unavailable */ }
+  }, []);
+
+  // 2. Network & Battery
+  useEffect(() => {
+    const nav = navigator as any;
     const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
     
     const updateConnection = () => {
@@ -54,53 +61,61 @@ export const useClientStats = () => {
       }
     };
 
+    const handleBatteryChange = (e: any) => {
+        const batt = e.target as BatteryManager;
+        setStats(prev => ({
+            ...prev,
+            batteryLevel: Math.round(batt.level * 100),
+            isCharging: batt.charging
+        }));
+    };
+
     if (conn) {
       updateConnection();
       conn.addEventListener('change', updateConnection);
     }
 
-    // 2. Battery Stats
-    let batteryInstance: BatteryManager | null = null;
-    
-    const updateBattery = (batt: BatteryManager) => {
-      setStats(prev => ({
-        ...prev,
-        batteryLevel: Math.round(batt.level * 100),
-        isCharging: batt.charging
-      }));
-    };
-
     if (nav.getBattery) {
       nav.getBattery().then((batt: BatteryManager) => {
-        batteryInstance = batt;
-        updateBattery(batt);
-        batt.addEventListener('levelchange', () => updateBattery(batt));
-        batt.addEventListener('chargingchange', () => updateBattery(batt));
+        batteryRef.current = batt;
+        setStats(prev => ({
+            ...prev,
+            batteryLevel: Math.round(batt.level * 100),
+            isCharging: batt.charging
+        }));
+        batt.addEventListener('levelchange', handleBatteryChange);
+        batt.addEventListener('chargingchange', handleBatteryChange);
       });
     }
 
-    // 3. GPU Info
-    try {
-        const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        if (gl) {
-            const debugInfo = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
-            if (debugInfo) {
-                const renderer = (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-                // Clean up the string a bit (remove common prefixes)
-                const cleanRenderer = renderer.replace(/ANGLE \(|Direct3D11 vs_5_0 ps_5_0\)|Direct3D11/g, '').trim();
-                setStats(prev => ({ ...prev, gpu: cleanRenderer.toUpperCase() }));
-            }
-        }
-    } catch { /* GPU info unavailable */ }
-
     return () => {
       if (conn) conn.removeEventListener('change', updateConnection);
-      if (batteryInstance) {
-        batteryInstance.removeEventListener('levelchange', () => updateBattery(batteryInstance!));
-        batteryInstance.removeEventListener('chargingchange', () => updateBattery(batteryInstance!));
+      if (batteryRef.current) {
+        batteryRef.current.removeEventListener('levelchange', handleBatteryChange);
+        batteryRef.current.removeEventListener('chargingchange', handleBatteryChange);
       }
     };
+  }, []);
+
+  // 3. FPS Counter (Isolated & Improved)
+  useEffect(() => {
+    let frames = 0;
+    let prevTime = performance.now();
+    let rafId: number;
+
+    const loop = (time: number) => {
+      frames++;
+      if (time >= prevTime + 1000) {
+        const calculatedFps = Math.round((frames * 1000) / (time - prevTime));
+        setStats(s => ({ ...s, fps: calculatedFps }));
+        frames = 0;
+        prevTime = time;
+      }
+      rafId = requestAnimationFrame(loop);
+    };
+
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   return stats;

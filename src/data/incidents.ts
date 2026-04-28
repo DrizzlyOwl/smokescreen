@@ -102,7 +102,7 @@ export const stackJargon: Record<Stack, Jargon> = {
     errors: {
       NOMINAL: [],
       P3: ['NFS stale file handle', 'minor predictive drive failure', 'VLAN 10 broadcast storm (suppressed)', 'UPS battery self-test failure'],
-      P1: ['BGP flapping in the core switch', 'air-con failure in Rack B', 'memory ECC error', 'packet loss on the fiber uplink', 'disk pressure on the root partition'],
+      P1: ['BGP flapping in the core switch', 'air-con failure in Rack B', 'memory ECC error', 'packet loss on the fiber link', 'disk pressure on the root partition'],
       P0: ['Core switch total hardware failure', 'SAN storage array head unit crash', 'Data center fire suppression discharge', 'Total site power loss (UPS bypassed)']
     }
   },
