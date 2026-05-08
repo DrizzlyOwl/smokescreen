@@ -3,13 +3,15 @@ import type { PaneId } from './useWindowManager';
 
 interface ShortcutsProps {
   loggedTogglePane: (id: PaneId) => void;
+  togglePause: () => void;
   isDeclared: boolean;
 }
 
-export const useKeyboardShortcuts = ({ loggedTogglePane, isDeclared }: ShortcutsProps) => {
+export const useKeyboardShortcuts = ({ loggedTogglePane, togglePause, isDeclared }: ShortcutsProps) => {
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
+        case 'Pause': e.preventDefault(); togglePause(); break;
         case 'F1': e.preventDefault(); loggedTogglePane('terminal'); break;
         case 'F2': e.preventDefault(); loggedTogglePane('logs'); break;
         case 'F3': e.preventDefault(); loggedTogglePane('deploy'); break;

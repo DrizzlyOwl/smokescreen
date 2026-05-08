@@ -9,7 +9,7 @@ import { useIncidentStore } from '../store/useIncidentStore';
 import { TacticalOverview } from './TacticalOverview';
 
 // Lazy load panes
-const WarRoom = lazy(() => import('./WarRoom').then(m => ({ default: m.WarRoom })));
+const ChatPane = lazy(() => import('./ChatPane').then(m => ({ default: m.ChatPane })));
 const OutageMap = lazy(() => import('./OutageMap').then(m => ({ default: m.OutageMap })));
 const SystemLog = lazy(() => import('./SystemLog').then(m => ({ default: m.SystemLog })));
 const BurnRateDashboard = lazy(() => import('./BurnRateDashboard').then(m => ({ default: m.BurnRateDashboard })));
@@ -124,7 +124,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           operatorName={operatorName}
         />;
       case 'chat':
-        return <WarRoom 
+        return <ChatPane 
           {...commonProps}
           messages={messages}
           sendMessage={sendMessage}

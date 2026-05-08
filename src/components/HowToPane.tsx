@@ -84,7 +84,7 @@ export const HowToPane = ({
             <li><b className="text-amber">declare</b> / <b className="text-green">resolve</b>: Starts or ends the active incident.</li>
             <li><b className="text-amber">aws</b> / <b className="text-amber">gcp</b> / <b className="text-amber">azure</b>: Switches the target infrastructure stack.</li>
             <li><b className="text-amber">p3</b> / <b className="text-amber">p1</b> / <b className="text-amber">p0</b>: Manually changes the incident severity.</li>
-            <li><b className="text-amber">warroom</b> / <b className="text-amber">logs</b>: Opens the specified panes.</li>
+            <li><b className="text-amber">chat</b> / <b className="text-amber">logs</b>: Opens the specified panes.</li>
             <li><b className="text-amber">help</b>: Displays a complete list of all available terminal commands.</li>
           </ul>
         </section>

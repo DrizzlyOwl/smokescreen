@@ -12,7 +12,7 @@ interface SecureGatewayProps {
 
 export const SecureGateway: React.FC<SecureGatewayProps> = ({ onComplete, playLoginChime }) => {
   const [step, setAppState] = useState<'LOGIN' | 'LOADING' | 'GRANTED'>('LOGIN');
-  const [loginPhase, setLoginPhase] = useState<'NAME' | 'MODE'>('NAME');
+  const [activeField, setActiveField] = useState<'NAME' | 'MODE' | 'SUBMIT'>('NAME');
   
   const setOperatorName = useTerminalStore(state => state.setOperatorName);
   const { gameMode, setGameMode } = useIncidentStore();
@@ -20,6 +20,12 @@ export const SecureGateway: React.FC<SecureGatewayProps> = ({ onComplete, playLo
   const [isError, setIsError] = useState(false);
 
   const startSession = useCallback(() => {
+    if (name.trim().length === 0) {
+      setIsError(true);
+      setActiveField('NAME');
+      setTimeout(() => setIsError(false), 500);
+      return;
+    }
     setOperatorName(name.trim());
     setAppState('LOADING');
     setTimeout(() => {
@@ -29,28 +35,52 @@ export const SecureGateway: React.FC<SecureGatewayProps> = ({ onComplete, playLo
     }, 1500);
   }, [name, setOperatorName, onComplete, playLoginChime]);
 
-  const handleNameSubmit = useCallback(() => {
-    if (name.trim().length > 0) {
-      setLoginPhase('MODE');
-    } else {
-      setIsError(true);
-      setTimeout(() => setIsError(false), 500);
-    }
-  }, [name]);
-
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (step !== 'LOGIN') return;
 
-    if (loginPhase === 'MODE') {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        if (activeField === 'NAME') setActiveField('SUBMIT');
+        else if (activeField === 'MODE') setActiveField('NAME');
+        else setActiveField('MODE');
+      } else {
+        if (activeField === 'NAME') setActiveField('MODE');
+        else if (activeField === 'MODE') setActiveField('SUBMIT');
+        else setActiveField('NAME');
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (activeField === 'NAME') setActiveField('MODE');
+      else if (activeField === 'MODE') setActiveField('SUBMIT');
+      else setActiveField('NAME');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (activeField === 'NAME') setActiveField('SUBMIT');
+      else if (activeField === 'MODE') setActiveField('NAME');
+      else setActiveField('MODE');
+    }
+
+    if (activeField === 'MODE') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
         setGameMode(gameMode === 'ARCADE' ? 'SANDBOX' : 'ARCADE');
       } else if (e.key === 'Enter') {
         e.preventDefault();
+        setActiveField('SUBMIT');
+      }
+    } else if (activeField === 'SUBMIT') {
+      if (e.key === 'Enter') {
+        e.preventDefault();
         startSession();
       }
+    } else if (activeField === 'NAME') {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        setActiveField('MODE');
+      }
     }
-  }, [step, loginPhase, gameMode, setGameMode, startSession]);
+  }, [step, activeField, gameMode, setGameMode, startSession]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -73,49 +103,49 @@ export const SecureGateway: React.FC<SecureGatewayProps> = ({ onComplete, playLo
                 <span className="gateway__prompt">{'> '}OPERATOR_IDENTIFICATION_REQUIRED</span>
               </div>
               
-              <div className={`gateway__line ${isError ? 'error' : ''}`}>
+              <div className={`gateway__line ${activeField === 'NAME' ? 'focused' : ''} ${isError ? 'error' : ''}`}>
                 <span className="gateway__prompt">{'> '}LOGIN: </span>
-                {loginPhase === 'NAME' ? (
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="..."
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleNameSubmit();
-                      }
-                    }}
-                    className="gateway__inline-input"
-                    spellCheck={false}
-                    autoComplete="off"
-                  />
-                ) : (
-                  <span className="gateway__value">{name.toUpperCase()}</span>
-                )}
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="..."
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="gateway__inline-input"
+                  spellCheck={false}
+                  autoComplete="off"
+                  onFocus={() => setActiveField('NAME')}
+                />
               </div>
 
-              {loginPhase === 'MODE' && (
-                <>
-                  <div className="gateway__line">
-                    <span className="gateway__prompt">{'> '}SELECT_SIMULATION_MODE:</span>
+              <div className={`gateway__group ${activeField === 'MODE' ? 'focused' : ''}`}>
+                <div className="gateway__line">
+                  <span className="gateway__prompt">{'> '}SELECT_SIMULATION_MODE:</span>
+                </div>
+                <div className="gateway__modes-list">
+                  <div className={`gateway__mode-item ${gameMode === 'ARCADE' ? 'active' : ''}`}>
+                    {gameMode === 'ARCADE' ? '[*]' : '[ ]'} ARCADE  - HIGH_STAKES. MISSION_DRIVEN. PUNITIVE.
                   </div>
-                  <div className="gateway__modes-list">
-                    <div className={`gateway__mode-item ${gameMode === 'ARCADE' ? 'active' : ''}`}>
-                      {gameMode === 'ARCADE' ? '[*]' : '[ ]'} ARCADE  - HIGH_STAKES. MISSION_DRIVEN. PUNITIVE.
-                    </div>
-                    <div className={`gateway__mode-item ${gameMode === 'SANDBOX' ? 'active' : ''}`}>
-                      {gameMode === 'SANDBOX' ? '[*]' : '[ ]'} SANDBOX - MANUAL_CONTROL. UNLIMITED_RESOURCES.
-                    </div>
+                  <div className={`gateway__mode-item ${gameMode === 'SANDBOX' ? 'active' : ''}`}>
+                    {gameMode === 'SANDBOX' ? '[*]' : '[ ]'} SANDBOX - MANUAL_CONTROL. UNLIMITED_RESOURCES.
                   </div>
-                  <div className="gateway__line gateway__line--hint">
-                    <span className="gateway__prompt">{'> '}USE_ARROWS_TO_TOGGLE_//_PRESS_ENTER_TO_INITIALIZE</span>
-                  </div>
-                </>
-              )}
+                </div>
+              </div>
+
+              <div className={`gateway__line gateway__submit-line ${activeField === 'SUBMIT' ? 'focused' : ''}`}>
+                <span className="gateway__prompt">{'> '}</span>
+                <button 
+                  className="gateway__submit-button"
+                  onClick={startSession}
+                  onFocus={() => setActiveField('SUBMIT')}
+                >
+                  [ INITIALIZE_SESSION ]
+                </button>
+              </div>
+
+              <div className="gateway__line gateway__line--hint">
+                <span className="gateway__prompt">{'> '}USE_ARROWS/TAB_TO_NAVIGATE_//_ENTER_TO_ACTION</span>
+              </div>
             </div>
           )}
 

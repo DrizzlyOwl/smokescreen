@@ -5,6 +5,7 @@ import { MissionHUD } from './MissionHUD';
 import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { useSystemMetrics } from '../hooks/useSystemMetrics';
 import { useIncidentStore } from '../store/useIncidentStore';
+import { getNodeType, NODE_TYPE_REMEDIATION } from '../utils/nodeTypes';
 import '../styles/TacticalOverview.scss';
 
 interface TacticalOverviewProps {
@@ -23,7 +24,8 @@ export const TacticalOverview = ({
   const addTerminalLine = useIncidentStore(state => state.addTerminalLine);
   const serviceHealth = useIncidentStore(state => state.serviceHealth);
 
-  const metrics = useSystemMetrics(severity);
+  const isPaused = useIncidentStore(state => state.isPaused);
+  const metrics = useSystemMetrics(severity, isPaused);
   const coreCount = React.useMemo(() => Math.min(navigator.hardwareConcurrency || 8, 4), []); // Cap at 4 for space
   
   const [coreHistory, setCoreHistory] = React.useState<number[][]>(() => 
@@ -93,20 +95,8 @@ export const TacticalOverview = ({
         return;
     }
 
-    const n = svc.name.toLowerCase();
-    let hint = 'MANUAL_OVERRIDE';
-    
-    if (n.includes('eks') || n.includes('gke') || n.includes('aks') || n.includes('k8s') || n.includes('cluster') || n.includes('fargate') || n.includes('lambda')) {
-        hint = 'k8s restart';
-    } else if (n.includes('rds') || n.includes('spanner') || n.includes('sql') || n.includes('database') || n.includes('redis') || n.includes('kafka') || n.includes('storage')) {
-        hint = 'db kill';
-    } else if (n.includes('gateway') || n.includes('transit') || n.includes('directconnect') || n.includes('peer') || n.includes('dns') || n.includes('route')) {
-        hint = 'bgp reset';
-    } else if (n.includes('mesh') || n.includes('ingress') || n.includes('proxy') || n.includes('consul')) {
-        hint = 'mesh restart';
-    } else if (n.includes('vault') || n.includes('secret') || n.includes('iam') || n.includes('policy')) {
-        hint = 'vault seal';
-    }
+    const type = getNodeType(svc.name);
+    const hint = NODE_TYPE_REMEDIATION[type];
 
     addTerminalLine({ text: `TECHNICAL_SITREP: ${svc.name} IS UNSTABLE.`, type: 'error' });
     addTerminalLine({ text: `REMEDIATION_HINT: EXECUTE "${hint}" TO STABILIZE.`, type: 'system' });

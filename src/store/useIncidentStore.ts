@@ -1,3 +1,4 @@
+import { getNodeType, NodeType } from '../utils/nodeTypes';
 import { create } from 'zustand';
 import { generateIncidentReport, generateAIIncidentReport, type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { getInitialStateFromUrl } from '../hooks/useUrlSync';
@@ -80,7 +81,7 @@ interface IncidentState {
   removeBeacon: (id: string) => void;
   serviceHealth: Record<string, 'UP' | 'DN'>;
   updateServiceNode: (name: string, status: 'UP' | 'DN') => void;
-  healNodes: (type: 'k8s' | 'db' | 'bgp' | 'mesh' | 'vault') => void;
+  healNodes: (type: NodeType) => void;
   strikes: number;
   timeInP0: number;
   setStrikes: (s: number | ((prev: number) => number)) => void;
@@ -224,25 +225,8 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     const next = { ...state.serviceHealth };
     let healedCount = 0;
     Object.keys(next).forEach(key => {
-        const k = key.toLowerCase();
         const wasDown = next[key] === 'DN';
-        let matched = false;
-
-        if (type === 'k8s' && (k.includes('eks') || k.includes('gke') || k.includes('aks') || k.includes('k8s') || k.includes('cluster') || k.includes('fargate') || k.includes('lambda'))) {
-            matched = true;
-        }
-        if (type === 'db' && (k.includes('rds') || k.includes('spanner') || k.includes('sql') || k.includes('database') || k.includes('redis') || k.includes('kafka') || k.includes('storage'))) {
-            matched = true;
-        }
-        if (type === 'bgp' && (k.includes('gateway') || k.includes('transit') || k.includes('directconnect') || k.includes('peer') || k.includes('dns') || k.includes('route'))) {
-            matched = true;
-        }
-        if (type === 'mesh' && (k.includes('mesh') || k.includes('ingress') || k.includes('proxy') || k.includes('consul'))) {
-            matched = true;
-        }
-        if (type === 'vault' && (k.includes('vault') || k.includes('secret') || k.includes('iam') || k.includes('policy'))) {
-            matched = true;
-        }
+        const matched = getNodeType(key) === type;
 
         if (matched && wasDown) {
             next[key] = 'UP';

@@ -73,16 +73,64 @@ export const useCommandRegistry = (actions: CommandActions) => {
     const categories: Command['category'][] = ['PANES', 'THREAT', 'STACK', 'SYSTEM', 'ACTION'];
     let categoryLimit: Command['category'] | null = null;
 
+    // man page / general help
+    if (['help', 'man', '?', '/?'].includes(cmd)) {
+        let message = `SMOKESCREEN(1)             User Commands            SMOKESCREEN(1)\n\n`;
+        message += `NAME\n`;
+        message += `       smokescreen - technical incident theatre simulation console\n\n`;
+        message += `SYNOPSIS\n`;
+        message += `       help [category]\n`;
+        message += `       [command]\n\n`;
+        message += `DESCRIPTION\n`;
+        message += `       SMOKESCREEN provides a command-line interface for managing\n`;
+        message += `       incident simulations, infrastructure stacks, and observability\n`;
+        message += `       panes. Commands are grouped into functional categories.\n\n`;
+        message += `CATEGORIES\n`;
+
+        for (const cat of categories) {
+          const catCmds = commands.filter(c => c.category === cat);
+          message += `       ${cat.padEnd(10)} ${catCmds.length} commands available.\n`;
+          message += `                  (Type '${cat.toLowerCase()} help' for details)\n\n`;
+        }
+
+        message += `EXAMPLES\n`;
+        message += `       panes help          List all viewport management commands\n`;
+        message += `       p0                  Escalate to catastrophic threat level\n`;
+        message += `       aws                 Switch primary stack to AWS\n`;
+        message += `       analyze             Run automated diagnostics\n\n`;
+        message += `SEE ALSO\n`;
+        message += `       F12 [HELP] button for full graphical manual.\n\n`;
+        message += `Smokescreen 1.0.0            2026-05-08            SMOKESCREEN(1)`;
+        
+        actions.help(commands);
+        return { isValid: true, message };
+    }
+
+    // Check if command starts with a category (e.g. "panes show logs")
     for (const cat of categories) {
-      if (cmd === cat.toLowerCase() || cmd === cat.toLowerCase() + ' help') {
+      if (cmd === cat.toLowerCase() || cmd === cat.toLowerCase() + ' help' || cmd === 'help ' + cat.toLowerCase()) {
         const catCmds = commands.filter(c => c.category === cat);
-        let message = `--- ${cat}_COMMAND_MANIFEST ---\n\n`;
+        let message = `SMOKESCREEN(1)             ${cat} Commands            SMOKESCREEN(1)\n\n`;
+        message += `NAME\n`;
+        message += `       ${cat.toLowerCase()} - commands for managing ${cat.toLowerCase()} systems\n\n`;
+        message += `SYNOPSIS\n`;
+        message += `       ${cat.toLowerCase()} [command]\n\n`;
+        message += `COMMANDS\n`;
+
         catCmds.forEach(c => {
-            message += `  ${c.patterns.join(', ')}\n`;
-            message += `  > ${c.description}\n\n`;
+            const patternStr = c.patterns.join(', ');
+            message += `       ${patternStr.padEnd(20)} ${c.description}\n`;
+            if (c.usage && c.usage !== c.patterns[0]) {
+                message += `                            Usage: ${c.usage}\n`;
+            }
+            message += `\n`;
         });
-        message += `---------------------------`;
-        return { isValid: false, message };
+        
+        message += `SEE ALSO\n`;
+        message += `       help (Return to main manual)\n\n`;
+        message += `Smokescreen 1.0.0            2026-05-08            SMOKESCREEN(1)`;
+        
+        return { isValid: true, message };
       }
 
       if (cmd.startsWith(cat.toLowerCase() + ' ')) {

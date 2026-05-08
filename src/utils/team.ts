@@ -79,31 +79,16 @@ export const ALL_PERSONAS = [...COMPANY_TEAM, ...BOT_FLEET];
  * Returns a fallback if not found.
  */
 export const getPersonByRole = (role: string): Persona => {
-    const found = COMPANY_TEAM.find(p => p.role.toUpperCase() === role.toUpperCase());
+    const r = role.toUpperCase();
+    const found = COMPANY_TEAM.find(p => p.role.toUpperCase() === r);
     if (found) return found;
     
     // Check bots by name or role
     const bot = BOT_FLEET.find(b => 
-        b.name.toUpperCase() === role.toUpperCase() || 
-        b.role.toUpperCase() === role.toUpperCase()
+        b.name.toUpperCase() === r || 
+        b.role.toUpperCase() === r
     );
     if (bot) return bot;
-
-    return COMPANY_TEAM[0];
-};
-
-/**
- * Global Bio Mapping for all possible roles/bios
- */
-export const getBioByRole = (role: string): string => {
-    const r = role.toUpperCase();
-    
-    // Direct matches from templates
-    const persona = ALL_PERSONAS.find(p => 
-        p.role.toUpperCase() === r || 
-        (p.isBot && p.name.toUpperCase() === r)
-    );
-    if (persona) return persona.bio;
 
     // Manual fallbacks for system/manual roles
     const fallbacks: Record<string, string> = {
@@ -119,7 +104,20 @@ export const getBioByRole = (role: string): string => {
         'ONCALL': 'Primary responder for the current shift.',
     };
 
-    return fallbacks[r] || fallbacks['STAFF'];
+    if (fallbacks[r]) {
+        return {
+            name: role,
+            role: role,
+            focus: 'General Support',
+            bio: fallbacks[r],
+            isBot: r === 'CORE_OS' || r === 'MONITORING'
+        };
+    }
+
+    return {
+        ...COMPANY_TEAM[0],
+        bio: fallbacks['STAFF']
+    };
 };
 
 /**

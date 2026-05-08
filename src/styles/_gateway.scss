@@ -82,16 +82,39 @@
     gap: rem(4);
     font-size: rem(14);
     color: var(--terminal-green);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+
+    &.focused {
+        opacity: 1;
+    }
 
     &.error {
         color: var(--terminal-red);
         animation: shake 0.4s ease-in-out;
+        opacity: 1;
     }
 
     &--hint {
         margin-top: rem(20);
-        opacity: 0.4;
+        opacity: 0.3;
         font-size: rem(10);
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: rem(5);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+
+    &.focused {
+        opacity: 1;
+        
+        .gateway__line {
+            opacity: 1;
+        }
     }
   }
 
@@ -119,7 +142,7 @@
   }
 
   &__modes-list {
-    margin-top: rem(10);
+    margin-top: rem(5);
     padding-left: rem(20);
     display: flex;
     flex-direction: column;
@@ -134,6 +157,30 @@
     &.active {
         color: var(--terminal-green);
         font-weight: bold;
+    }
+  }
+
+  &__submit-line {
+    margin-top: rem(20);
+
+    &.focused .gateway__submit-button {
+      background: color-mix(in srgb, var(--terminal-green), transparent 85%);
+      border-color: var(--terminal-green);
+      box-shadow: 0 0 rem(10) color-mix(in srgb, var(--terminal-green), transparent 80%);
+    }
+  }
+
+  &__submit-button {
+    all: unset;
+    color: var(--terminal-green);
+    font-weight: bold;
+    cursor: pointer;
+    padding: rem(5) rem(10);
+    border: rem(1) solid transparent;
+    transition: all 0.2s;
+
+    &:hover {
+        background: color-mix(in srgb, var(--terminal-green), transparent 90%);
     }
   }
 

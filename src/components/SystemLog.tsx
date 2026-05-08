@@ -64,7 +64,11 @@ export const SystemLog = ({
             };
         }
 
-        workerRef.current.postMessage({ type: 'START', severity, multiplier: logMultiplier });
+        if (isPaused) {
+            workerRef.current.postMessage({ type: 'STOP' });
+        } else {
+            workerRef.current.postMessage({ type: 'START', severity, multiplier: logMultiplier });
+        }
 
         const handleInjectLog = (e: Event) => {
             const customEvent = e as CustomEvent<string>;

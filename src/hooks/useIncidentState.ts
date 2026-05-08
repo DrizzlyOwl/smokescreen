@@ -9,8 +9,9 @@ import { usePlaybookEngine } from './usePlaybookEngine';
 import { useIncidentChat } from './useIncidentChat';
 import { useCommandRegistry } from './useCommandRegistry';
 import { useUrlSync } from './useUrlSync';
+import { useChaosEvents } from './useChaosEvents';
+import { useOnboarding } from './useOnboarding';
 import type { Severity, Stack } from '../data/incidents';
-import { getRandomExecutive } from '../utils/team';
 import { PLAYBOOKS } from '../data/playbooks';
 
 export type { TerminalLine, CommandResult };
@@ -83,6 +84,10 @@ export const useIncidentState = () => {
     log
   );
 
+  // Use domain-specific hooks
+  useChaosEvents({ sendMessage });
+  useOnboarding();
+
   const { commands, handleCommand: internalHandleCommand } = useCommandRegistry({
     gameMode: incidentStore.gameMode,
     togglePane: loggedTogglePane,
@@ -148,7 +153,13 @@ export const useIncidentState = () => {
         }
         return { isValid: false, message: 'ERROR: NO_ACTIVE_AUTHORIZATION_REQUIRED' };
     },
-    copyPlaybook: () => {},
+    copyPlaybook: () => {
+        const report = useIncidentStore.getState().incidentReport;
+        if (report) {
+            navigator.clipboard.writeText(report);
+            window.dispatchEvent(new CustomEvent('INJECT_LOG', { detail: 'SYSTEM: INCIDENT_REPORT_COPIED_TO_CLIPBOARD' }));
+        }
+    },
   });
 
   const { startPlaybook, stopPlaybook, currentEventIndex, activePlaybook } = usePlaybookEngine({
@@ -248,139 +259,12 @@ export const useIncidentState = () => {
     }
   }, [incidentStore.isResolving, incidentStore.ceaseTheatre, incidentStore.setIsResolving]);
 
-  const initialReadySet = useRef(false);
-  useEffect(() => {
-    if (terminalStore.appState === 'READY' && !initialReadySet.current) {
-        initialReadySet.current = true;
-        if (incidentStore.onboardingStep === 0) {
-            incidentStore.setOnboardingStep(1);
-            incidentStore.setTerminalHistory([
-                { text: '!!! OPERATOR CERTIFICATION REQUIRED !!!', type: 'error' },
-                { text: "TYPE 'aws' TO INITIALIZE PRIMARY STACK.", type: 'system' }
-            ]);
-        } else {
-            if (incidentStore.gameMode === 'ARCADE') {
-                incidentStore.setTerminalHistory([{ text: 'CRITICAL_INCIDENT_LOADED... [OK]', type: 'system' }, { text: 'PREPARE FOR MISSION BRIEFING.', type: 'system' }]);
-            } else {
-                incidentStore.setTerminalHistory([{ text: 'SYSTEM_READY. AWAITING_COMMAND...', type: 'system' }]);
-            }
-        }
-    }
-  }, [terminalStore.appState, incidentStore.gameMode, incidentStore.onboardingStep, incidentStore.setOnboardingStep, incidentStore]);
-
-  const lastStepRef = useRef(incidentStore.onboardingStep);
-  useEffect(() => {
-    if (incidentStore.onboardingStep !== lastStepRef.current) {
-        const step = incidentStore.onboardingStep;
-        lastStepRef.current = step;
-        
-        if (step === 2) {
-            incidentStore.setTerminalHistory(prev => [...prev, { text: "TYPE 'p3' TO ESCALATE THREAT LEVEL.", type: 'system' }]);
-        } else if (step === 3) {
-            incidentStore.setTerminalHistory(prev => [...prev, { text: "TYPE 'declare' TO ENGAGE THEATRE.", type: 'system' }]);
-        } else if (step === 4) {
-            incidentStore.setTerminalHistory(prev => [...prev, { text: "TYPE 'resolve' TO CEASE THEATRE.", type: 'system' }]);
-        }
-    }
-  }, [incidentStore.onboardingStep, incidentStore]);
-
   useEffect(() => {
     if (incidentStore.isSlowBurn && incidentStore.severity !== 'P0' && !incidentStore.isPaused) {
       const interval = setInterval(() => incidentStore.tickSlowBurn(playAlert, loggedHandleDeclare), 1000);
       return () => clearInterval(interval);
     }
   }, [incidentStore.isSlowBurn, incidentStore.severity, incidentStore.isPaused, incidentStore.tickSlowBurn, playAlert, loggedHandleDeclare]);
-
-  // Chaos Loop
-  useEffect(() => {
-    if (!incidentStore.isDeclared || incidentStore.isPaused) return;
-
-    const interval = setInterval(() => {
-        const threshold = incidentStore.severity === 'P0' ? 0.4 : incidentStore.severity === 'P1' ? 0.6 : 0.8;
-        const roll = Math.random();
-
-        if (roll > threshold) {
-            incidentStore.setApproval({
-                id: Math.random().toString(36).substring(2, 9),
-                type: 'phrase',
-                message: 'AUTHORIZE INFRASTRUCTURE ROTATION?',
-                phrase: 'rotate-now'
-            });
-        } else if (roll > threshold - 0.1 && incidentStore.activeApproval) {
-            incidentStore.setOverride({
-                code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-                message: 'CRITICAL SYSTEM OVERRIDE REQUIRED'
-            });
-        } else if (roll < threshold - 0.15 && !incidentStore.activeInterruption) {
-            // Trigger Executive Interruption
-            const exec = getRandomExecutive();
-            const duration = 60 + Math.floor(Math.random() * 31); // 60-90s
-            const penalty = 150000 + Math.floor(Math.random() * 50000);
-            
-            incidentStore.setInterruption({
-                id: Math.random().toString(36).substring(2, 9),
-                execName: exec.name,
-                deadline: Date.now() + (duration * 1000),
-                penalty
-            });
-
-            const userTag = `@${terminalStore.operatorName.split(' ')[0].toLowerCase()}`;
-            sendMessage(`${userTag} I need a SITREP immediately! The board is asking questions.`, exec.name, undefined, false, exec.role.toUpperCase());
-        }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [incidentStore.isDeclared, incidentStore.isPaused, incidentStore.severity, incidentStore.activeApproval, incidentStore.activeInterruption, terminalStore.operatorName, sendMessage, incidentStore]);
-
-  // Interruption Countdown Handler
-  useEffect(() => {
-    if (!incidentStore.activeInterruption || incidentStore.isPaused) return;
-
-    const checkInterval = setInterval(() => {
-        const now = Date.now();
-        if (now >= incidentStore.activeInterruption!.deadline) {
-            const { penalty, execName } = incidentStore.activeInterruption!;
-            incidentStore.setMoneyLost(prev => prev + penalty);
-            incidentStore.deductStrike();
-            incidentStore.addTerminalLine({ 
-                text: `ALERT: EXECUTIVE INTERRUPTION TIMEOUT (${execName}) - £${penalty.toLocaleString()} PENALTY | STRIKE_DEDUCTED`, 
-                type: 'error' 
-            });
-            incidentStore.setInterruption(null);
-        }
-    }, 1000);
-
-    return () => clearInterval(checkInterval);
-  }, [incidentStore.activeInterruption, incidentStore.isPaused, incidentStore]);
-
-  // P0 Sustained Outage Tracking (3 mins = 180s)
-  useEffect(() => {
-    if (incidentStore.severity !== 'P0' || !incidentStore.isDeclared || incidentStore.isPaused) {
-        if (incidentStore.timeInP0 !== 0) incidentStore.setTimeInP0(0);
-        return;
-    }
-
-    const interval = setInterval(() => {
-        incidentStore.setTimeInP0(prev => {
-            const next = prev + 1;
-            if (next >= 180) {
-                incidentStore.deductStrike();
-                incidentStore.addTerminalLine({ text: 'CRITICAL: SUSTAINED P0 OUTAGE PENALTY. STRIKE DEDUCTED.', type: 'error' });
-                return 0;
-            }
-            return next;
-        });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [incidentStore.severity, incidentStore.isDeclared, incidentStore.isPaused, incidentStore]);
-
-  // Game Over Transition
-  useEffect(() => {
-    if (incidentStore.strikes <= 0 && incidentStore.gameMode === 'ARCADE' && terminalStore.appState !== 'TERMINATED') {
-        terminalStore.setAppState('TERMINATED');
-    }
-  }, [incidentStore.strikes, incidentStore.gameMode, terminalStore.appState, terminalStore.setAppState]);
 
   return {
     ...terminalStore,

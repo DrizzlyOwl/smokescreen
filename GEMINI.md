@@ -14,7 +14,7 @@
 - **Centralized State Management**: Unified handling of global app state, incident parameters, and UI preferences via context-based orchestrator.
 - **Deep URL Synchronization**: App state (Threat Level, Stack, Theme, Panes, Eco/Debug) serialized into URL. Instant sharing + persistence.
 - **Dynamic Boot Sequencing**: Hardware-accurate BIOS sequence loads modules based on active URL parameters.
-- **Intelligent War Room**: 
+- **Intelligent Chat**: 
     - **Smart Unread System**: IntersectionObserver + 3s "dwell" requirement.
     - **Visual Grouping**: Slack-fidelity message grouping.
     - **Interactive Bios**: Technical specialization (SRE, DBA, etc.) shown on click.
@@ -35,7 +35,7 @@
 
 ## 4. Operational Controls
 - **Double-ESC / `resolve`**: Resolve incident state + clear alerts.
-- **Command Line**: `declare`, `resolve`, `warroom`, `p0`, `aws`, `amber`, `debug`, etc.
+- **Command Line**: `declare`, `resolve`, `chat`, `p0`, `aws`, `amber`, `debug`, etc.
 - **URL Control**: `?sev=P0&stack=GCP&theme=amber&panes=chat,logs,map` pre-configures theatre.
 
 ## 5. Architectural Standards

@@ -52,7 +52,7 @@ describe('useCommandRegistry', () => {
   it('correctly identifies and executes a pane command', () => {
     const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
     
-    const result = handleCommand('show chat');
+    const result = handleCommand('set chat on');
     
     expect(result.isValid).toBe(true);
     expect(mockActions.openPane).toHaveBeenCalledWith('chat');
@@ -78,7 +78,7 @@ describe('useCommandRegistry', () => {
   it('correctly executes a category-prefixed command', () => {
     const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
     
-    const result = handleCommand('panes show logs');
+    const result = handleCommand('panes set logs on');
     
     expect(result.isValid).toBe(true);
     expect(mockActions.openPane).toHaveBeenCalledWith('logs');
@@ -89,8 +89,9 @@ describe('useCommandRegistry', () => {
     
     const result = handleCommand('threat');
     
-    expect(result.isValid).toBe(false);
-    expect(result.message).toContain('--- THREAT_COMMAND_MANIFEST ---');
+    expect(result.isValid).toBe(true);
+    expect(result.message).toContain('SMOKESCREEN(1)');
+    expect(result.message).toContain('THREAT Commands');
     expect(result.message).toContain('p0');
   });
 
@@ -99,9 +100,26 @@ describe('useCommandRegistry', () => {
     
     const result = handleCommand('stack help');
     
-    expect(result.isValid).toBe(false);
-    expect(result.message).toContain('--- STACK_COMMAND_MANIFEST ---');
+    expect(result.isValid).toBe(true);
+    expect(result.message).toContain('SMOKESCREEN(1)');
+    expect(result.message).toContain('STACK Commands');
     expect(result.message).toContain('aws');
+  });
+
+  it('returns a man-page manifest when help or man is entered', () => {
+    const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
+    
+    const result = handleCommand('help');
+    
+    expect(result.isValid).toBe(true);
+    expect(result.message).toContain('SMOKESCREEN(1)');
+    expect(result.message).toContain('NAME');
+    expect(result.message).toContain('SYNOPSIS');
+    expect(result.message).toContain('CATEGORIES');
+    
+    const manResult = handleCommand('man');
+    expect(manResult.isValid).toBe(true);
+    expect(manResult.message).toBe(result.message);
   });
 
   it('returns an error when a command is not found in a specific category', () => {
@@ -134,12 +152,12 @@ describe('useCommandRegistry', () => {
     const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
     
     // Commands
-    expect(handleCommand('SHOW CHAT').isValid).toBe(true);
+    expect(handleCommand('SET CHAT ON').isValid).toBe(true);
     expect(handleCommand('p0').isValid).toBe(true);
     expect(handleCommand('P1').isValid).toBe(true);
     
     // Category prefixes
-    expect(handleCommand('PANES SHOW LOGS').isValid).toBe(true);
+    expect(handleCommand('PANES SET LOGS ON').isValid).toBe(true);
     
     // Commands with arguments
     expect(handleCommand('PLAYBOOK l1-routine-patch').isValid).toBe(true);

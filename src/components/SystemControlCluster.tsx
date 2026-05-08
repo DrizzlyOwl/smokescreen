@@ -98,11 +98,11 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   // Handle global keyboard shortcuts
-  useKeyboardShortcuts({ 
+  useKeyboardShortcuts({
     loggedTogglePane: props.loggedTogglePane,
+    togglePause: () => props.setIsPaused(!props.isPaused),
     isDeclared: props.isDeclared
   });
-
   // Handle auto-scroll for readout
   React.useEffect(() => {
     if (scrollRef.current) {
@@ -111,6 +111,7 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
   }, [props.displayText]);
 
   const handleTerminalCommand = (cmd: string): boolean => {
+    props.addCommandToHistory(cmd);
     const result = props.handleCommand(cmd);
     return result.isValid;
   };

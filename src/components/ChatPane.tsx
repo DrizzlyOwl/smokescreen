@@ -1,151 +1,12 @@
-import { useRef, useEffect, useState, memo, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Pane } from './Pane';
 import { ChatIcon, CheckIcon } from './Icons';
-import { type ChatMessage } from '../hooks/useIncidentChat';
-import { getBioByRole } from '../utils/team';
-import '../styles/WarRoom.scss';
+import { type ChatMessage } from '../contexts/types';
+import { ChatMessageItem } from './ChatMessageItem';
+import '../styles/ChatPane.scss';
 
-interface ExtendedChatMessage extends ChatMessage {
-    showBio?: boolean;
-}
-
-const ChatMessageItem = memo(({ 
-    message, 
-    isGrouped, 
-    avatarColor, 
-    onRead,
-    onUserClick,
-    isActive
-}: { 
-    message: ExtendedChatMessage, 
-    isGrouped: boolean, 
-    avatarColor: string,
-    onRead: (id: string) => void,
-    onUserClick: (id: string) => void,
-    isActive: boolean
-}) => {
-    const itemRef = useRef<HTMLDivElement>(null);
-    const timerRef = useRef<number | null>(null);
-    const isIntersecting = useRef(false);
-
-    const startTimer = useCallback(() => {
-        if (message.read || timerRef.current || !isIntersecting.current || !isActive || !document.hasFocus()) return;
-        
-        timerRef.current = window.setTimeout(() => {
-            onRead(message.id);
-        }, 3000);
-    }, [message.id, message.read, onRead, isActive]);
-
-    const stopTimer = useCallback(() => {
-        if (timerRef.current) {
-            window.clearTimeout(timerRef.current);
-            timerRef.current = null;
-        }
-    }, []);
-
-    useEffect(() => {
-        if (message.read) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                isIntersecting.current = entry.isIntersecting;
-                if (entry.isIntersecting) {
-                    startTimer();
-                } else {
-                    stopTimer();
-                }
-            },
-            { threshold: 0.5 }
-        );
-
-        if (itemRef.current) {
-            observer.observe(itemRef.current);
-        }
-
-        const handleFocusChange = () => {
-            if (document.hasFocus() && isActive) {
-                startTimer();
-            } else {
-                stopTimer();
-            }
-        };
-
-        window.addEventListener('focus', handleFocusChange);
-        window.addEventListener('blur', handleFocusChange);
-        document.addEventListener('visibilitychange', handleFocusChange);
-
-        return () => {
-            observer.disconnect();
-            stopTimer();
-            window.removeEventListener('focus', handleFocusChange);
-            window.removeEventListener('blur', handleFocusChange);
-            document.removeEventListener('visibilitychange', handleFocusChange);
-        };
-    }, [message.read, startTimer, stopTimer, isActive]);
-
-    return (
-        <div 
-            ref={itemRef}
-            className={`war-room__message ${isGrouped ? 'war-room__message--grouped' : ''} ${!message.read ? 'war-room__message--unread' : ''}`}
-        >
-            {isGrouped && !message.read && (
-                <div className="war-room__message-unread-dot" title="Unread message" />
-            )}
-            {!isGrouped && (
-            <div 
-                className={`war-room__message-avatar war-room__message-avatar--${message.isBot ? 'bot' : 'user'}`}
-                style={{ backgroundColor: !message.avatarUrl ? avatarColor : undefined, cursor: 'pointer' }}
-                onClick={() => onUserClick(message.id)}
-            >
-                {message.avatarUrl && !message.isBot ? (
-                    <img src={message.avatarUrl} alt={message.user} />
-                ) : (
-                    message.user.charAt(0).toUpperCase()
-                )}
-            </div>
-            )}
-            <div className="war-room__message-content">
-            {!isGrouped && (
-                <div className="war-room__message-header">
-                <span 
-                    className="war-room__message-header-user"
-                    onClick={() => onUserClick(message.id)}
-                >
-                    {message.user}
-                </span>
-                {message.bio && (
-                    <span 
-                        className="war-room__message-header-role-tag"
-                        onClick={() => onUserClick(message.id)}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        {message.bio}
-                    </span>
-                )}
-                <span className="war-room__message-header-time">{message.time}</span>
-                <span className="war-room__message-header-unread">NEW</span>
-                </div>
-            )}
-            <div className="war-room__message-body">
-                {message.text.split(' ').map((word, idx) => (
-                word.startsWith('@') 
-                    ? <span key={idx} className="war-room__message-tag">{word} </span>
-                    : word + ' '
-                ))}
-            </div>
-            {message.showBio && (
-                <div className="war-room__bio-bubble">
-                    <div className="war-room__bio-bubble-title">{message.bio || 'STAFF'}</div>
-                    <div className="war-room__bio-bubble-text">{getBioByRole(message.bio || 'STAFF')}</div>
-                </div>
-            )}
-            </div>
-        </div>
-    );
-});
-
-export const WarRoom = ({ 
+export const ChatPane = ({ 
     messages,
     typingUsers,
     zIndex, 
@@ -259,24 +120,24 @@ export const WarRoom = ({
       onSnapMainToggle={onSnapMainToggle}
       onClose={onClose}
     >
-      <div className="war-room">
+      <div className="chat-pane">
         {messages.length === 0 && (
-          <div className="war-room__empty-state">
+          <div className="chat-pane__empty-state">
             <p>It's quiet... too quiet. The calm before the P0 storm.</p>
           </div>
         )}
 
         {unreadCount > 0 && (
-            <div className="war-room__unread-banner">
+            <div className="chat-pane__unread-banner">
                 <span>{unreadCount} new messages since last focus</span>
-                <button onClick={markAllAsRead} className="war-room__unread-banner-action">
+                <button onClick={markAllAsRead} className="chat-pane__unread-banner-action">
                     Mark all as read <CheckIcon />
                 </button>
             </div>
         )}
         <Virtuoso
           ref={virtuosoRef}
-          className="war-room__chat-container"
+          className="chat-pane__chat-container"
           style={{ fontFamily: slackFontStack }}
           data={messages}
           initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
@@ -301,11 +162,11 @@ export const WarRoom = ({
           }}
           components={{
             Footer: () => typingUsers.length > 0 ? (
-                <div className="war-room__typing">
-                  <div className="war-room__typing-dots">
+                <div className="chat-pane__typing">
+                  <div className="chat-pane__typing-dots">
                     <span></span><span></span><span></span>
                   </div>
-                  <span className="war-room__typing-text">
+                  <span className="chat-pane__typing-text">
                     {typingUsers.length === 1 
                       ? `${typingUsers[0]} is typing...` 
                       : typingUsers.length === 2 
@@ -318,7 +179,7 @@ export const WarRoom = ({
         />
         
         {/* Input Area */}
-        <form onSubmit={handleSend} className="war-room__input-area">
+        <form onSubmit={handleSend} className="chat-pane__input-area">
           <input 
               type="text" 
               value={inputText}
@@ -326,7 +187,7 @@ export const WarRoom = ({
               placeholder={isDeclared ? "Type a message..." : "SYSTEM_LOCKED: INCIDENT_NOT_DECLARED"} 
               disabled={!isDeclared}
               onKeyDown={(e) => e.key === 'Enter' && handleSend(e)}
-              className="war-room__input-area-field"
+              className="chat-pane__input-area-field"
               style={{ 
                   cursor: isDeclared ? 'text' : 'not-allowed',
                   opacity: isDeclared ? 1 : 0.5
@@ -335,7 +196,7 @@ export const WarRoom = ({
           <button 
               type="submit"
               disabled={!isDeclared || !inputText.trim()}
-              className="war-room__input-area-icon"
+              className="chat-pane__input-area-icon"
               style={{ 
                   border: 'none', 
                   cursor: isDeclared ? 'pointer' : 'not-allowed' 

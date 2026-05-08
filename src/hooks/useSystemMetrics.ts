@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Severity } from '../data/incidents';
 
-export const useSystemMetrics = (severity: Severity) => {
+export const useSystemMetrics = (severity: Severity, isPaused: boolean = false) => {
   const [metrics, setMetrics] = useState({
     cpu: 12,
     ram: 4.2
@@ -22,6 +22,8 @@ export const useSystemMetrics = (severity: Severity) => {
   }, []);
 
   useEffect(() => {
+    if (isPaused) return;
+
     const interval = setInterval(() => {
       setMetrics((prev) => {
         let baseCpu = 5;

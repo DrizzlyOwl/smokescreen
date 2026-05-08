@@ -8,6 +8,7 @@ import { TerminationScreen } from './components/TerminationScreen';
 import { SystemControlCluster } from './components/SystemControlCluster';
 import { ApprovalModal } from './components/ApprovalModal';
 import { AfterActionReport } from './components/AfterActionReport';
+import { PauseScreen } from './components/PauseScreen';
 import './App.scss';
 
 function AppContent() {
@@ -85,18 +86,7 @@ function AppContent() {
       />
       
       {state.isPaused && (
-        <div className="pause-overlay">
-          <div className="pause-overlay__content">
-            <div className="pause-overlay__title">SYSTEM_PAUSED</div>
-            <div className="pause-overlay__hint">SYSTEM_STATE_FROZEN</div>
-            <button 
-              className="pause-overlay__resume-btn"
-              onClick={() => state.setIsPaused(false)}
-            >
-              RESUME_OPERATIONS
-            </button>
-          </div>
-        </div>
+        <PauseScreen onResume={() => state.setIsPaused(false)} />
       )}
     </div>
   );

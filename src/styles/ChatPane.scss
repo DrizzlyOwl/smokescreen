@@ -1,0 +1,147 @@
+.chat-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  position: relative;
+  overflow: hidden;
+
+  &__empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  &__unread-banner {
+    background-color: var(--status-p2);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+
+    &-action {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(255,255,255,0.3);
+      }
+
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
+
+  &__chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0;
+    
+    // Custom scrollbar for Slack-like feel
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--panel-border);
+      border-radius: 4px;
+      &:hover {
+        background: var(--text-dim);
+      }
+    }
+  }
+
+  &__typing {
+    padding: 0.5rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+
+    &-dots {
+      display: flex;
+      gap: 3px;
+      span {
+        width: 4px;
+        height: 4px;
+        background-color: var(--text-dim);
+        border-radius: 50%;
+        animation: typingDot 1.4s infinite;
+        &:nth-child(2) { animation-delay: 0.2s; }
+        &:nth-child(3) { animation-delay: 0.4s; }
+      }
+    }
+  }
+
+  &__input-area {
+    margin: 1.2rem;
+    margin-top: 0;
+    position: relative;
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.02);
+    display: flex;
+    align-items: center;
+
+    &:focus-within {
+      border-color: var(--text-dim);
+    }
+
+    &-field {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 0.8rem;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+
+      &::placeholder {
+        color: var(--text-dim);
+        opacity: 0.5;
+      }
+    }
+
+    &-icon {
+      padding: 0.8rem;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      background: transparent;
+      border: none;
+      &:hover:not(:disabled) {
+        color: #fff;
+      }
+    }
+  }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}

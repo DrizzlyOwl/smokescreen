@@ -285,6 +285,7 @@ export const OutageMap = ({
             <div 
                 ref={mapRef}
                 className="outage-map"
+                data-testid="outage-map-container"
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={() => setDragStartNode(null)}
