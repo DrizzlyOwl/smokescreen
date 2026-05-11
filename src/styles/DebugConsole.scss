@@ -33,6 +33,41 @@
     padding-bottom: rem(4);
   }
 
+  &__row {
+    display: flex;
+    gap: rem(20);
+    
+    .debug-menu__section {
+      flex: 1;
+    }
+  }
+
+  &__audio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(rem(140), 1fr));
+    gap: rem(12);
+  }
+
+  &__audio-group {
+    display: flex;
+    flex-direction: column;
+    gap: rem(6);
+  }
+
+  &__sub-label {
+    margin: 0;
+    font-size: rem(9);
+    color: var(--ui-text-dim);
+    opacity: 0.6;
+    letter-spacing: rem(0.5);
+  }
+
+  &__button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: rem(4);
+  }
+
   &__field {
     display: flex;
     align-items: center;

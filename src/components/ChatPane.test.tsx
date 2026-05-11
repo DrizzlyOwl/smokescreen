@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChatPane } from './ChatPane';
+import type { ChatMessage } from '../contexts/types';
 
 // Mock react-virtuoso
 vi.mock('react-virtuoso', () => ({
-  Virtuoso: ({ data, itemContent, components }: any) => (
+  Virtuoso: <T extends { id?: string }>({ data, itemContent, components }: { 
+    data: T[], 
+    itemContent: (index: number, item: T) => React.ReactNode,
+    components?: { Footer?: React.ComponentType }
+  }) => (
     <div data-testid="virtuoso-mock">
-      {data.map((item: any, index: number) => (
-        <div key={item.id}>
+      {data.map((item, index) => (
+        <div key={item.id || index}>
           {itemContent(index, item)}
         </div>
       ))}
@@ -40,7 +45,7 @@ class MockIntersectionObserver {
 vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
 
 describe('ChatPane', () => {
-  const mockMessages = [
+  const mockMessages: ChatMessage[] = [
     { id: '1', user: 'alice', text: 'hello', time: '10:00', read: true, isBot: false },
     { id: '2', user: 'bob', text: 'hi alice', time: '10:01', read: false, isBot: false },
   ];
@@ -59,6 +64,10 @@ describe('ChatPane', () => {
     markAllAsRead: vi.fn(),
     isMinimized: false,
     onMinimizeToggle: vi.fn(),
+    isPoppedOut: false,
+    onPopOutToggle: vi.fn(),
+    isSnappedMain: false,
+    onSnapMainToggle: vi.fn()
   };
 
   beforeEach(() => {
@@ -69,7 +78,7 @@ describe('ChatPane', () => {
     render(<ChatPane {...defaultProps} />);
     expect(screen.getByText('hello')).toBeDefined();
     expect(screen.getByText('hi alice')).toBeDefined();
-    expect(screen.getAllByText('alice')).toBeDefined(); // Multiple matches OK here
+    expect(screen.getAllByText('alice')).toBeDefined(); 
     expect(screen.getByText('bob')).toBeDefined();
   });
 
@@ -107,7 +116,7 @@ describe('ChatPane', () => {
   });
 
   it('groups messages from same user within same minute', () => {
-    const groupedMessages = [
+    const groupedMessages: ChatMessage[] = [
         { id: '1', user: 'alice', text: 'msg 1', time: '10:00', read: true, isBot: false },
         { id: '2', user: 'alice', text: 'msg 2', time: '10:00', read: true, isBot: false },
     ];

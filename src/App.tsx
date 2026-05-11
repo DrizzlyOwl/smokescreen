@@ -65,7 +65,7 @@ function AppContent() {
           approval={state.activeApproval} 
           onResolve={() => {
             state.setApproval(null);
-            state.resumePlaybook();
+            state.resumeScenario();
           }} 
           onFail={(reason) => {
             state.deductStrike();

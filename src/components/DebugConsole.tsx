@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef, memo } from 'react';
 import { Pane } from './Pane';
+import { Button } from './Button';
 import { BugIcon } from './Icons';
 import { useSync } from '../hooks/useSync';
+import { useAudio } from '../hooks/useAudio';
 import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/DebugConsole.scss';
 
@@ -22,55 +24,99 @@ const DebugMenuControls = memo(({
     logMultiplier: number,
     setLogMultiplier: (val: number) => void
 }) => {
+    const { 
+      playSlackPing, 
+      playTeamsPing, 
+      playTagPing, 
+      playLoginChime, 
+      playLogoutChime, 
+      playPostBeep, 
+      playMitigationSuccess,
+      playAlert 
+    } = useAudio();
+
     return (
         <div className="debug-menu__controls">
-          <div className="debug-menu__section">
-            <h3 className="debug-menu__section-title">Log Settings</h3>
-            <div className="debug-menu__field">
-              <label htmlFor="debug-logs" className="debug-menu__label">
-                LOG_DELAY_MULTIPLIER
-              </label>
-              <input 
-                id="debug-logs"
-                type="number" 
-                min="0.1" 
-                max="10.0" 
-                step="0.1" 
-                value={logMultiplier} 
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  if (!isNaN(val)) setLogMultiplier(val);
-                }}
-                className="debug-menu__input"
-              />
+          <div className="debug-menu__row">
+            <div className="debug-menu__section">
+              <h3 className="debug-menu__section-title">Log Settings</h3>
+              <div className="debug-menu__field">
+                <label htmlFor="debug-logs" className="debug-menu__label">
+                  LOG_DELAY_MULTIPLIER
+                </label>
+                <input 
+                  id="debug-logs"
+                  type="number" 
+                  min="0.1" 
+                  max="10.0" 
+                  step="0.1" 
+                  value={logMultiplier} 
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) setLogMultiplier(val);
+                  }}
+                  className="debug-menu__input"
+                />
+              </div>
+            </div>
+
+            <div className="debug-menu__section">
+              <h3 className="debug-menu__section-title">Chat Settings</h3>
+              <div className="debug-menu__field">
+                <label htmlFor="debug-chattiness" className="debug-menu__label">
+                  DELAY_MULTIPLIER
+                </label>
+                <input 
+                  id="debug-chattiness"
+                  type="number" 
+                  min="0.1" 
+                  max="10.0" 
+                  step="0.1" 
+                  value={chatMultiplier} 
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) setChatMultiplier(val);
+                  }}
+                  className="debug-menu__input"
+                />
+              </div>
             </div>
           </div>
 
           <div className="debug-menu__section">
-            <h3 className="debug-menu__section-title">Chat Settings</h3>
-            <div className="debug-menu__field">
-              <label htmlFor="debug-chattiness" className="debug-menu__label">
-                DELAY_MULTIPLIER
-              </label>
-              <input 
-                id="debug-chattiness"
-                type="number" 
-                min="0.1" 
-                max="10.0" 
-                step="0.1" 
-                value={chatMultiplier} 
-                onPointerDown={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  if (!isNaN(val)) setChatMultiplier(val);
-                }}
-                className="debug-menu__input"
-              />
+            <h3 className="debug-menu__section-title">Audio Engine Diagnostics</h3>
+            <div className="debug-menu__audio-grid">
+              <div className="debug-menu__audio-group">
+                <h4 className="debug-menu__sub-label">NOTIFICATION_PINGS</h4>
+                <div className="debug-menu__button-row">
+                  <Button onClick={playSlackPing} size="x-small">SLACK</Button>
+                  <Button onClick={playTeamsPing} size="x-small">TEAMS</Button>
+                  <Button onClick={playTagPing} size="x-small">TAG</Button>
+                  <Button onClick={playPostBeep} size="x-small">POST</Button>
+                </div>
+              </div>
+              <div className="debug-menu__audio-group">
+                <h4 className="debug-menu__sub-label">SYSTEM_ALERTS</h4>
+                <div className="debug-menu__button-row">
+                  <Button onClick={() => playAlert('P0')} size="x-small" style={{ color: 'var(--terminal-red)', borderColor: 'var(--terminal-red)' }}>P0</Button>
+                  <Button onClick={() => playAlert('P1')} size="x-small" style={{ color: 'var(--terminal-amber)', borderColor: 'var(--terminal-amber)' }}>P1</Button>
+                  <Button onClick={() => playAlert('P3')} size="x-small" style={{ color: 'var(--terminal-cobalt)', borderColor: 'var(--terminal-cobalt)' }}>P3</Button>
+                </div>
+              </div>
+              <div className="debug-menu__audio-group">
+                <h4 className="debug-menu__sub-label">STATE_CHIMES</h4>
+                <div className="debug-menu__button-row">
+                  <Button onClick={playLoginChime} size="x-small">LOGIN</Button>
+                  <Button onClick={playLogoutChime} size="x-small">LOGOUT</Button>
+                  <Button onClick={playMitigationSuccess} size="x-small">SUCCESS</Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

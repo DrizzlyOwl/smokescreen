@@ -10,6 +10,7 @@ export type LogCategory =
   | 'INCIDENT' 
   | 'CHAOS' 
   | 'PLAYBOOK' 
+  | 'SCENARIO'
   | 'CHAT' 
   | 'UI'
   | 'BOOT';

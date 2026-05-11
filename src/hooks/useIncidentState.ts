@@ -198,105 +198,21 @@ export const useIncidentState = () => {
     mitigationCount: incidentStore.mitigationCount,
     isDeclared: incidentStore.isDeclared,
     getMitigationCount: () => useIncidentStore.getState().mitigationCount,
-    getIsDeclared: () => useIncidentStore.getState().isDeclared,
-    setTheme: (t) => {
-        log('UI', `SET_THEME ${t}`);
-        terminalStore.setTheme(t);
-    },
-    handleLogout: () => {
-        log('SYSTEM', 'USER_LOGOUT');
-        incidentStore.setMitigationScore(0);
-        terminalStore.handleLogout();
-    },
-    setView: (v) => {
-        log('UI', `SET_VIEW ${v}`);
-        incidentStore.setView(v);
-    },
-    startScenario: (id: string) => { 
-        log('SCENARIO', `START ${id}`);
-        const scenario = Object.values(SCENARIOS).find(p => p.id.toLowerCase() === id.toLowerCase());
-        if (scenario) {
-            startScenario(scenario);
-        }
-    },
-    triggerApproval: (type) => {
-        log('CHAOS', `TRIGGER_APPROVAL ${type || 'PHRASE'}`);
-        incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Auth required' });
-    },
-    generateStrategy: () => {
-        log('SYSTEM', 'GENERATE_STRATEGY');
-        return incidentStore.generateStrategy();
-    },
-    clearInterruption: () => {
-        const state = useIncidentStore.getState();
-        if (state.activeInterruption) {
-            log('CHAOS', `CLEAR_INTERRUPTION ${state.activeInterruption.execName}`);
-            incidentStore.setInterruption(null);
-            incidentStore.setMitigationScore(prev => prev + 50);
-        }
-    },
-    handlePhraseApprove: (phrase: string) => {
-        const state = useIncidentStore.getState();
-        const active = state.activeApproval;
-        if (active?.type === 'phrase' && active.phrase && phrase.toLowerCase() === active.phrase.toLowerCase()) {
-            log('CHAOS', 'PHRASE_APPROVAL_SUCCESS');
-            incidentStore.setApproval(null);
-            incidentStore.incrementMitigationCount();
-            incidentStore.setMitigationScore(prev => prev + 50);
-            return { isValid: true, message: 'AUTHORIZATION_SUCCESSFUL... [OK]' };
-        }
-        if (state.activeApproval?.type === 'phrase') {
-            log('CHAOS', 'PHRASE_APPROVAL_FAILURE');
-            incidentStore.deductStrike();
-            return { isValid: false, message: 'ERROR: INVALID_AUTHORIZATION_PHRASE | STRIKE_DEDUCTED' };
-        }
-        return { isValid: false, message: 'ERROR: NO_ACTIVE_AUTHORIZATION_REQUIRED' };
-    },
-    copyPlaybook: () => {
-        log('SYSTEM', 'COPY_REPORT_TO_CLIPBOARD');
-        const report = useIncidentStore.getState().incidentReport;
-        if (report) {
-            navigator.clipboard.writeText(report);
-            window.dispatchEvent(new CustomEvent('INJECT_LOG', { detail: 'SYSTEM: INCIDENT_REPORT_COPIED_TO_CLIPBOARD' }));
-        }
-    },
+    getIncidentReport: () => useIncidentStore.getState().incidentReport,
+    declareIncident: loggedHandleDeclare,
+    ceaseTheatre: loggedCeaseTheatre,
+    generateStrategy: incidentStore.generateStrategy,
+    scenarios: SCENARIOS,
+    startScenario
   });
 
-  const handleCommand = useCallback((cmd: string): CommandResult => {
-    const originalCmd = cmd.trim();
-    const state = useIncidentStore.getState();
+  const handleCommand = useCallback((cmd: string) => {
+    const result = internalHandleCommand(cmd);
     
-    log('CMD', 'EXEC', originalCmd);
-
-    // Terminal Override Handling
-    if (state.activeOverride) {
-        if (originalCmd.toUpperCase() === state.activeOverride.code) {
-            log('CMD', 'OVERRIDE_SUCCESS');
-            incidentStore.setOverride(null);
-            incidentStore.incrementMitigationCount();
-            resumeScenario();
-            const successMsg = 'OVERRIDE_SUCCESSFUL... [OK]';
-            incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: successMsg, type: 'output' }]);
-            return { isValid: true, message: successMsg };
-        } else {
-            log('CMD', 'OVERRIDE_FAILURE');
-            const penalty = 50000 + Math.floor(Math.random() * 25000);
-            incidentStore.setMoneyLost(prev => prev + penalty);
-            incidentStore.deductStrike();
-            const errorMsg = `ERROR: INVALID_OVERRIDE_CODE. PENALTY: £${penalty.toLocaleString()} | STRIKE_DEDUCTED`;
-            incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: errorMsg, type: 'error' }]);
-            return { isValid: false, message: errorMsg };
-        }
+    // Auto-open Readout if strategy generated
+    if (result.isValid && (cmd.toLowerCase().startsWith('strategy') || cmd.toLowerCase() === 'help')) {
+        windowManager.openPane('readout');
     }
-
-    const result = internalHandleCommand(originalCmd);
-    
-    // Add to history
-    incidentStore.setTerminalHistory(prev => [
-        ...prev, 
-        { text: `> ${originalCmd}`, type: 'command' },
-        ...(result.message ? [{ text: result.message, type: result.isValid ? 'output' : 'error' } as TerminalLine] : [])
-    ]);
 
     // Resume scenario if waiting for a command
     if (result.isValid && isWaiting) {
@@ -305,7 +221,7 @@ export const useIncidentState = () => {
     }
 
     return result;
-  }, [internalHandleCommand, incidentStore, isWaiting, resumeScenario, log]);
+  }, [internalHandleCommand, windowManager, isWaiting, resumeScenario, log]);
 
   useUrlSync({
     severity: incidentStore.severity,
@@ -331,21 +247,28 @@ export const useIncidentState = () => {
   });
 
   useEffect(() => {
-    if (incidentStore.isResolving) {
+    const isResolving = incidentStore.isResolving;
+    const setIsResolving = incidentStore.setIsResolving;
+    if (isResolving) {
         const timeout = setTimeout(() => { 
             loggedCeaseTheatre(); 
-            incidentStore.setIsResolving(false); 
+            setIsResolving(false); 
         }, 5000);
         return () => clearTimeout(timeout);
     }
-  }, [incidentStore.isResolving, loggedCeaseTheatre]);
+  }, [incidentStore.isResolving, loggedCeaseTheatre, incidentStore.setIsResolving]);
 
   useEffect(() => {
-    if (incidentStore.isSlowBurn && incidentStore.severity !== 'P0' && !incidentStore.isPaused) {
-      const interval = setInterval(() => incidentStore.tickSlowBurn(playAlert, loggedHandleDeclare), 1000);
+    const isSlowBurn = incidentStore.isSlowBurn;
+    const severity = incidentStore.severity;
+    const isPaused = incidentStore.isPaused;
+    const tickSlowBurn = incidentStore.tickSlowBurn;
+
+    if (isSlowBurn && severity !== 'P0' && !isPaused) {
+      const interval = setInterval(() => tickSlowBurn(playAlert, loggedHandleDeclare), 1000);
       return () => clearInterval(interval);
     }
-  }, [incidentStore, playAlert, loggedHandleDeclare]);
+  }, [incidentStore.isSlowBurn, incidentStore.severity, incidentStore.isPaused, incidentStore.tickSlowBurn, playAlert, loggedHandleDeclare]);
 
   return {
     ...terminalStore,

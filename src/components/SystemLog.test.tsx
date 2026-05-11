@@ -26,9 +26,12 @@ vi.stubGlobal('Worker', vi.fn().mockImplementation(function() {
 
 // Mock react-virtuoso
 vi.mock('react-virtuoso', () => ({
-  Virtuoso: ({ data, itemContent }: any) => (
+  Virtuoso: <T,>({ data, itemContent }: { 
+    data: T[], 
+    itemContent: (index: number, item: T) => React.ReactNode 
+  }) => (
     <div data-testid="virtuoso-mock">
-      {data.map((item: any, index: number) => (
+      {data.map((item, index) => (
         <div key={index}>
           {itemContent(index, item)}
         </div>
@@ -47,7 +50,7 @@ vi.mock('../hooks/useSync', () => ({
 
 // Mock useIncidentStore
 vi.mock('../store/useIncidentStore', () => ({
-  useIncidentStore: (selector: any) => selector({ isPaused: false })
+  useIncidentStore: <T,>(selector: (state: { isPaused: boolean }) => T) => selector({ isPaused: false })
 }));
 
 // Mock Pane
@@ -71,6 +74,10 @@ describe('SystemLog', () => {
     onClose: vi.fn(),
     isMinimized: false,
     onMinimizeToggle: vi.fn(),
+    isPoppedOut: false,
+    onPopOutToggle: vi.fn(),
+    isSnappedMain: false,
+    onSnapMainToggle: vi.fn()
   };
 
   beforeEach(() => {
@@ -87,7 +94,7 @@ describe('SystemLog', () => {
     
     // Find the worker instance from the mock
     const { default: LogWorkerMock } = await import('../utils/logWorker?worker');
-    const workerInstance = (LogWorkerMock as any).mock.instances[0];
+    const workerInstance = vi.mocked(LogWorkerMock).mock.instances[0] as unknown as { onmessage: (e: { data: { type: string, log: string } }) => void };
     
     act(() => {
       workerInstance.onmessage({ data: { type: 'LOG', log: 'Test Log Message' } });
@@ -110,7 +117,7 @@ describe('SystemLog', () => {
   it('applies correct CSS classes for log levels', async () => {
     render(<SystemLog {...defaultProps} />);
     const { default: LogWorkerMock } = await import('../utils/logWorker?worker');
-    const workerInstance = (LogWorkerMock as any).mock.instances[0];
+    const workerInstance = vi.mocked(LogWorkerMock).mock.instances[0] as unknown as { onmessage: (e: { data: { type: string, log: string } }) => void };
     
     act(() => {
       workerInstance.onmessage({ data: { type: 'LOG', log: 'PANIC: Kernel error' } });

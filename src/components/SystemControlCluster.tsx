@@ -5,24 +5,33 @@ import { CommandStrip } from './CommandStrip';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import type { Severity, Stack } from '../data/incidents';
 import type { PaneId, WindowManagerActions } from '../hooks/useWindowManager';
-import type { ChatMessage, Objective, ApprovalState, TerminalOverrideState } from '../contexts/types';
-import type { CommandResult } from '../hooks/useIncidentState';
+import type { ChatMessage, Objective } from '../contexts/types';
+import type { ApprovalState, TerminalOverrideState, GameMode } from '../store/useIncidentStore';
+import type { CommandResult, TerminalLine } from '../hooks/useIncidentState';
 import type { Command } from '../hooks/useCommandRegistry';
 import type { Scenario } from '../data/scenarios/types';
+import type { Theme } from '../contexts/types';
 
-interface SystemControlClusterProps extends WindowManagerActions {
+export interface SystemControlClusterProps extends WindowManagerActions {
   severity: Severity;
   stack: Stack;
   isDeclared: boolean;
   isEcoMode: boolean;
   setIsEcoMode: (val: boolean) => void;
-  gameMode: import('../store/useIncidentStore').GameMode;
+  gameMode: GameMode;
   activeObjective: Objective | null;
   currentEventIndex: number;
   loggedTogglePane: (id: PaneId) => void;
   addCommandToHistory: (cmd: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  playLoginChime: () => void;
+  playLogoutChime: () => void;
+  playPostBeep: () => void;
+  playMitigationSuccess: () => void;
+  stopAllSounds: () => void;
+  isAudioOn: boolean;
+  setIsAudioOn: (on: boolean) => void;
   ticketId: string;
   activeApproval: ApprovalState | null;
   setApproval: (approval: ApprovalState | null) => void;
@@ -31,6 +40,7 @@ interface SystemControlClusterProps extends WindowManagerActions {
   setObjective: (obj: Objective | null) => void;
   startScenario: (p: Scenario) => void;
   stopScenario: () => void;
+  resumeScenario: () => void;
   onFocus: (id: PaneId) => void;
   onClose: (id: PaneId) => void;
   toggleMinimize: (id: PaneId) => void;
@@ -38,6 +48,7 @@ interface SystemControlClusterProps extends WindowManagerActions {
   onSnapMainToggle: (id: PaneId) => void;
   isChaos: boolean;
   setIsChaos: (on: boolean) => void;
+  activeBeacons: string[];
   addBeacon: (id: string) => void;
   displayText: string;
   setDisplayText: (text: string) => void;
@@ -63,6 +74,18 @@ interface SystemControlClusterProps extends WindowManagerActions {
   typingUsers: string[];
   commands: Command[];
   executeCeaseTheatre: () => void;
+  incidentReport: string;
+  setIncidentReport: (r: string) => void;
+  terminalHistory: TerminalLine[];
+  setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
+  commandHistory: string[];
+  isDeployStabilized: boolean;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  unreadChat: number;
+  mitigationCount: number;
+  declareIncident: (playAlert: (s: Severity) => void) => Promise<void>;
+  loggedHandleDeclare: () => void;
 }
 
 export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props) => {
@@ -112,31 +135,23 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
       />
       <PaneGrid
         {...props}
-        messages={props.messages}
-        sendMessage={props.sendMessage}
-        typingUsers={props.typingUsers}
-        markAsRead={props.markAsRead}
-        markAllAsRead={props.markAllAsRead}
-        commands={props.commands}
         onCommand={handleTerminalCommand}
         onSelectScenario={props.startScenario}
-        activeScenario={props.activeScenario}
-        completedScenarios={props.completedScenarios}
         scrollRef={scrollRef}
-        severity={props.severity}
-        logMultiplier={props.logMultiplier}
       />
       <CommandStrip 
         panes={props.panes} 
         loggedTogglePane={props.loggedTogglePane} 
-        beacons={props.beacons}
-        isDeclared={props.isDeclared}
+        handleLogout={props.handleLogout}
         severity={props.severity}
-        onSnapMainToggle={props.onSnapMainToggle}
-        onPopOutToggle={props.onPopOutToggle}
-        toggleMinimize={props.toggleMinimize}
-        bringToFront={props.onFocus}
+        isDeclared={props.isDeclared}
+        onDeclare={props.loggedHandleDeclare}
+        onResolve={props.executeCeaseTheatre}
+        mitigationCount={props.mitigationCount}
+        unreadChat={props.unreadChat}
+        gameMode={props.gameMode}
       />
     </div>
   );
 };
+

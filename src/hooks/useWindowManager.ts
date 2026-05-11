@@ -18,6 +18,27 @@ export type PanesState = Record<PaneId, boolean>;
 export type MinimizedState = Record<PaneId, boolean>;
 export type ZIndicesState = Record<PaneId, number>;
 
+export interface WindowManagerActions {
+  panes: PanesState;
+  minimizedPanes: MinimizedState;
+  zIndices: ZIndicesState;
+  poppedOutPanes: Record<PaneId, boolean>;
+  snappedMainPanes: Record<PaneId, boolean>;
+  activePane: PaneId | null;
+  openPane: (paneId: PaneId) => void;
+  closePane: (paneId: PaneId) => void;
+  togglePane: (paneId: PaneId) => void;
+  toggleMinimize: (paneId: PaneId) => void;
+  togglePopOut: (paneId: PaneId) => void;
+  toggleSnapMain: (paneId: PaneId) => void;
+  setMinimized: (paneId: PaneId, minimized: boolean) => void;
+  bringToFront: (paneId: PaneId) => void;
+  closeAll: () => void;
+  openAll: () => void;
+  setActivePane: (paneId: PaneId | null) => void;
+  setPanes: React.Dispatch<React.SetStateAction<PanesState>>;
+}
+
 export const useWindowManager = (initialPanes: PanesState) => {
   const [panes, setPanes] = useState<PanesState>(initialPanes);
   const [minimizedPanes, setMinimizedPanes] = useState<MinimizedState>(() => {
