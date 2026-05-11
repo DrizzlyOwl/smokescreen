@@ -23,18 +23,21 @@ export const AfterActionReport: React.FC<AfterActionReportProps> = ({
   mitigationScore = 0,
   onClose
 }) => {
-  const [grade, setGrade] = useState('D');
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
-    const score = mitigations * 100 + mitigationScore;
-    if (score > 1000) setGrade('S');
-    else if (score > 800) setGrade('A');
-    else if (score > 500) setGrade('B');
-    else if (score > 200) setGrade('C');
-    else setGrade('D');
-  }, [mitigations, mitigationScore]);
+    const raf = requestAnimationFrame(() => {
+        setIsVisible(true);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const score = mitigations * 100 + mitigationScore;
+  let grade = 'D';
+  if (score > 1000) grade = 'S';
+  else if (score > 800) grade = 'A';
+  else if (score > 500) grade = 'B';
+  else if (score > 200) grade = 'C';
 
   return (
     <div className={`aar ${isVisible ? 'isVisible' : ''}`}>

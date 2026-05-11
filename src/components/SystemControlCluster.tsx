@@ -10,6 +10,10 @@ import type { ChatMessage } from '../contexts/types';
 import type { Command } from '../hooks/useCommandRegistry';
 import '../styles/SystemControlCluster.scss';
 
+import type { ApprovalState, TerminalOverrideState } from '../store/useIncidentStore';
+import type { Playbook } from '../data/playbooks/types';
+import type { Objective, Theme } from '../contexts/types';
+
 export interface SystemControlClusterProps {
   panes: PanesState;
   minimizedPanes: MinimizedState;
@@ -26,8 +30,8 @@ export interface SystemControlClusterProps {
   setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
   commandHistory: string[];
   addCommandToHistory: (cmd: string) => void;
-  theme: import('../contexts/types').Theme;
-  setTheme: (theme: import('../contexts/types').Theme) => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
   setView: (view: 'HOME' | 'TICKET') => void;
   isEcoMode: boolean;
   setIsEcoMode: (on: boolean) => void;
@@ -38,7 +42,7 @@ export interface SystemControlClusterProps {
   loggedCeaseTheatre: () => void;
   loggedHandleDeclare: () => void;
   gameMode: import('../store/useIncidentStore').GameMode;
-  activeObjective: import('../contexts/types').Objective | null;
+  activeObjective: Objective | null;
   mitigationCount: number;
   incrementMitigationCount: () => void;
   unreadChat: number;
@@ -54,12 +58,12 @@ export interface SystemControlClusterProps {
   isAudioOn: boolean;
   setIsAudioOn: (on: boolean) => void;
   ticketId: string;
-  activeApproval: any;
-  setApproval: (approval: any) => void;
-  activeOverride: any;
-  setOverride: (override: any) => void;
-  setObjective: (obj: any) => void;
-  startPlaybook: (p?: any) => void;
+  activeApproval: ApprovalState | null;
+  setApproval: (approval: ApprovalState | null) => void;
+  activeOverride: TerminalOverrideState | null;
+  setOverride: (override: TerminalOverrideState | null) => void;
+  setObjective: (obj: Objective | null) => void;
+  startPlaybook: (p: Playbook) => void;
   stopPlaybook: () => void;
   onFocus: (id: PaneId) => void;
   onClose: (id: PaneId) => void;
@@ -74,13 +78,13 @@ export interface SystemControlClusterProps {
   logMultiplier: number;
   setLogMultiplier: (m: number) => void;
   chatMultiplier: number;
-  setChatMultiplier: (m: number) => void;
+  setChatMultiplier: (multiplier: number) => void;
   setIsResolving: (on: boolean) => void;
   setIsDebugMode: (on: boolean) => void;
   isPaused: boolean;
   setIsPaused: (on: boolean) => void;
   operatorName: string;
-  activePlaybook: any;
+  activePlaybook: Playbook | null;
   handleCommand: (cmd: string) => CommandResult;
   handleLogout: () => void;
   moneyLost: number;

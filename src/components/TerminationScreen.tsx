@@ -8,6 +8,12 @@ export const TerminationScreen: React.FC = () => {
     const setAppState = useTerminalStore(state => state.setAppState);
     const { mitigationScore, moneyLost, ceaseTheatre } = useIncidentStore();
 
+    const [randomId, setRandomId] = React.useState('');
+
+    React.useEffect(() => {
+        setRandomId(Math.random().toString(36).substring(2, 10).toUpperCase());
+    }, []);
+
     const handleReboot = () => {
         ceaseTheatre();
         setAppState('BOOT');
@@ -37,7 +43,7 @@ export const TerminationScreen: React.FC = () => {
                 </div>
 
                 <div className="shutdown-screen__footer" style={{ marginTop: '4rem', opacity: 0.5 }}>
-                    ID: {Math.random().toString(36).substring(2, 10).toUpperCase()} // SMOKESCREEN_OS
+                    ID: {randomId} // SMOKESCREEN_OS
                 </div>
             </div>
         </div>

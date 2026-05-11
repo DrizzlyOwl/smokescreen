@@ -85,7 +85,7 @@ export const useSystemMetrics = (severity: Severity, isPaused: boolean = false) 
     }, 400); // 2.5Hz update for much better visual fluidity
 
     return () => clearInterval(interval);
-  }, [severity, activeSpikes]);
+  }, [severity, activeSpikes, isPaused]);
 
   return metrics;
 };

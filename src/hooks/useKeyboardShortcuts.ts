@@ -44,5 +44,5 @@ export const useKeyboardShortcuts = ({ loggedTogglePane, togglePause, isDeclared
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [loggedTogglePane, isDeclared]);
+  }, [loggedTogglePane, togglePause, isDeclared]);
 };

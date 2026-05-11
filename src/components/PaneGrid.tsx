@@ -22,6 +22,9 @@ const DebugConsole = lazy(() => import('./DebugConsole').then(m => ({ default: m
 const HowToPane = lazy(() => import('./HowToPane').then(m => ({ default: m.HowToPane })));
 const TerminalPane = lazy(() => import('./TerminalPane').then(m => ({ default: m.TerminalPane })));
 
+import type { Command } from '../hooks/useCommandRegistry';
+import type { Playbook } from '../data/playbooks/types';
+
 interface PaneGridProps {
   panes: PanesState;
   minimizedPanes: Record<PaneId, boolean>;
@@ -38,7 +41,7 @@ interface PaneGridProps {
   onCommand: (cmd: string) => boolean;
   setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
   commandHistory: string[];
-  commands: any[];
+  commands: Command[];
   operatorName: string;
   onFocus: (id: PaneId) => void;
   onClose: (id: PaneId) => void;
@@ -52,8 +55,8 @@ interface PaneGridProps {
   typingUsers: string[];
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  onSelectPlaybook: (playbook: any) => void;
-  activePlaybook: any;
+  onSelectPlaybook: (playbook: Playbook) => void;
+  activePlaybook: Playbook | null;
   activeObjective: import('../contexts/types').Objective | null;
   displayText: string;
   setDisplayText: (text: string) => void;

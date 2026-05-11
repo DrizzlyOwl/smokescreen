@@ -100,5 +100,5 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
     if (incidentStore.strikes <= 0 && incidentStore.gameMode === 'ARCADE' && terminalStore.appState !== 'TERMINATED') {
         terminalStore.setAppState('TERMINATED');
     }
-  }, [incidentStore.strikes, incidentStore.gameMode, terminalStore.appState, terminalStore.setAppState]);
+  }, [incidentStore.strikes, incidentStore.gameMode, terminalStore.appState, terminalStore.setAppState, terminalStore, incidentStore]);
 };

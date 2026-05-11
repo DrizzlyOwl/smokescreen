@@ -17,6 +17,21 @@ interface ClientStats {
   fps: number;
 }
 
+interface NetworkInformation extends EventTarget {
+  type?: string;
+  effectiveType?: string;
+  downlink?: number;
+  addEventListener(type: 'change', listener: (this: NetworkInformation, ev: Event) => void): void;
+  removeEventListener(type: 'change', listener: (this: NetworkInformation, ev: Event) => void): void;
+}
+
+interface NavigatorWithExtras extends Navigator {
+  connection?: NetworkInformation;
+  mozConnection?: NetworkInformation;
+  webkitConnection?: NetworkInformation;
+  getBattery?: () => Promise<BatteryManager>;
+}
+
 export const useClientStats = () => {
   const [stats, setStats] = useState<ClientStats>({
     batteryLevel: null,
@@ -48,7 +63,7 @@ export const useClientStats = () => {
 
   // 2. Network & Battery
   useEffect(() => {
-    const nav = navigator as any;
+    const nav = navigator as NavigatorWithExtras;
     const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
     
     const updateConnection = () => {
@@ -61,7 +76,7 @@ export const useClientStats = () => {
       }
     };
 
-    const handleBatteryChange = (e: any) => {
+    const handleBatteryChange = (e: Event) => {
         const batt = e.target as BatteryManager;
         setStats(prev => ({
             ...prev,

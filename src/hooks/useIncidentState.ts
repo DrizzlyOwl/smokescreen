@@ -57,7 +57,7 @@ export const useIncidentState = () => {
     if (incidentStore.onboardingStep === 4) {
         incidentStore.setOnboardingStep(-1);
     }
-  }, [incidentStore.ceaseTheatre, incidentStore.onboardingStep, incidentStore.setOnboardingStep]);
+  }, [incidentStore]);
 
   const handleCommandCease = useCallback(() => {
     const state = useIncidentStore.getState();
@@ -257,14 +257,14 @@ export const useIncidentState = () => {
         }, 5000);
         return () => clearTimeout(timeout);
     }
-  }, [incidentStore.isResolving, incidentStore.ceaseTheatre, incidentStore.setIsResolving]);
+  }, [incidentStore]);
 
   useEffect(() => {
     if (incidentStore.isSlowBurn && incidentStore.severity !== 'P0' && !incidentStore.isPaused) {
       const interval = setInterval(() => incidentStore.tickSlowBurn(playAlert, loggedHandleDeclare), 1000);
       return () => clearInterval(interval);
     }
-  }, [incidentStore.isSlowBurn, incidentStore.severity, incidentStore.isPaused, incidentStore.tickSlowBurn, playAlert, loggedHandleDeclare]);
+  }, [incidentStore, playAlert, loggedHandleDeclare]);
 
   return {
     ...terminalStore,
