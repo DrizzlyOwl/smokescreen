@@ -15,9 +15,9 @@
 
 ## 3. Code Coverage Issues
 - [ ] Add unit tests for major UI components:
-  - [ ] `ChatPane`
-  - [ ] `OutageMap`
-  - [ ] `SystemLog`
+  - [x] `ChatPane`
+  - [ ] `OutageMap` (Expand current basic test)
+  - [x] `SystemLog`
   - [ ] `DeploymentStatus`
 - [ ] Add unit tests for core utilities:
   - [ ] `src/utils/team.ts` (persona generation)
