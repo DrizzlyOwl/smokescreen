@@ -15,7 +15,7 @@ export const useOnboarding = () => {
             incidentStore.setTerminalHistory([
                 { text: '--- ARCADE_MODE_ACTIVE ---', type: 'system' },
                 { text: '!!! OPERATOR_CERTIFICATION_REQUIRED !!!', type: 'error' },
-                { text: "TYPE 'playbook start l0-certification' TO BEGIN TRAINING.", type: 'system' }
+                { text: "TYPE 'scenario l0-certification' TO BEGIN TRAINING.", type: 'system' }
             ]);
         } else {
             incidentStore.setTerminalHistory([

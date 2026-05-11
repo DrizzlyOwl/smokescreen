@@ -1,7 +1,7 @@
 import React from 'react';
 import { TechnicalPane } from './TechnicalPane';
 import { PlaybookIcon } from './Icons';
-import type { Playbook } from '../data/playbooks/types';
+import type { Scenario } from '../data/scenarios/types';
 import '../styles/PlaybookPane.scss';
 
 interface IncidentPlaybookPaneProps {
@@ -11,7 +11,7 @@ interface IncidentPlaybookPaneProps {
   onClose: () => void;
   isMinimized: boolean;
   onMinimizeToggle: () => void;
-  activePlaybook: Playbook | null;
+  activeScenario: Scenario | null;
   initialPos?: { x: number, y: number };
   initialSize?: { width: number, height: number };
   isPoppedOut?: boolean;
@@ -27,7 +27,7 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
   onClose,
   isMinimized,
   onMinimizeToggle,
-  activePlaybook,
+  activeScenario,
   initialPos,
   initialSize = { width: 400, height: 500 },
   isPoppedOut,
@@ -61,13 +61,13 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
       }}
     >
       <div className="playbook-content">
-        {activePlaybook ? (
+        {activeScenario ? (
           <div>
-            <h1>{activePlaybook.name}</h1>
+            <h1>{activeScenario.name}</h1>
             <div className="playbook-content__steps">
-              {activePlaybook.runbookText ? (
+              {activeScenario.runbookText ? (
                 <div>
-                  {activePlaybook.runbookText.split('\n').map((line, i) => {
+                  {activeScenario.runbookText.split('\n').map((line, i) => {
                     if (line.startsWith('### ')) {
                       return <h3 key={i}>{line.replace('### ', '')}</h3>;
                     }

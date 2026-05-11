@@ -5,14 +5,14 @@ import { useAudioStore } from '../store/useAudioStore';
 import { useWindowManager, type PaneId } from './useWindowManager';
 import { useAudio as useAudioHook } from './useAudio';
 import { useDebugLogger } from './useDebugLogger';
-import { usePlaybookEngine } from './usePlaybookEngine';
+import { useScenarioEngine } from './useScenarioEngine';
 import { useIncidentChat } from './useIncidentChat';
 import { useCommandRegistry } from './useCommandRegistry';
 import { useUrlSync } from './useUrlSync';
 import { useChaosEvents } from './useChaosEvents';
 import { useOnboarding } from './useOnboarding';
 import type { Severity, Stack } from '../data/incidents';
-import { PLAYBOOKS } from '../data/playbooks';
+import { SCENARIOS } from '../data/scenarios';
 
 export type { TerminalLine, CommandResult };
 
@@ -67,14 +67,6 @@ export const useIncidentState = () => {
     incidentStore.declareIncident(playAlert);
   }, [incidentStore, playAlert, log]);
 
-  const loggedCeaseTheatre = useCallback(() => {
-    log('INCIDENT', 'CEASE_THEATRE');
-    incidentStore.ceaseTheatre();
-    if (incidentStore.onboardingStep === 4) {
-        incidentStore.setOnboardingStep(-1);
-    }
-  }, [incidentStore, log]);
-
   const handleCommandCease = useCallback(() => {
     const state = useIncidentStore.getState();
     if (state.isDeclared && state.mitigationCount === 0) {
@@ -105,6 +97,45 @@ export const useIncidentState = () => {
   // Use domain-specific hooks
   useChaosEvents({ sendMessage });
   useOnboarding();
+
+  const { startScenario, stopScenario, resumeScenario, currentEventIndex, activeScenario, isWaiting } = useScenarioEngine({
+    sendMessage,
+    injectLog: (msg) => { window.dispatchEvent(new CustomEvent('INJECT_LOG', { detail: msg })); },
+    setSeverity: loggedSetSeverity,
+    setIsChaos: incidentStore.setIsChaos,
+    addBeacon: incidentStore.addBeacon,
+    triggerApproval: (type) => {
+        log('SCENARIO', `TRIGGER_APPROVAL ${type || 'PHRASE'}`);
+        incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Scenario Auth' });
+    },
+    triggerOverride: () => {
+        log('SCENARIO', 'TRIGGER_OVERRIDE');
+        incidentStore.setOverride({ code: Math.random().toString(36).substring(2, 8).toUpperCase(), message: 'MANUAL OVERRIDE REQUIRED' });
+    },
+    triggerInterrupt: () => {},
+    setObjective: (obj) => {
+        log('SCENARIO', `SET_OBJECTIVE ${obj?.title || 'NULL'}`);
+        incidentStore.setObjective(obj);
+    },
+    declareIncident: loggedHandleDeclare,
+    stack: incidentStore.stack,
+    operatorName: terminalStore.operatorName
+  });
+
+  const loggedCeaseTheatre = useCallback(() => {
+    log('INCIDENT', 'CEASE_THEATRE');
+    
+    // Mark scenario as completed if a scenario was active
+    if (activeScenario) {
+      log('SCENARIO', 'SCENARIO_COMPLETED', activeScenario.id);
+      terminalStore.markScenarioCompleted(activeScenario.id);
+    }
+
+    incidentStore.ceaseTheatre();
+    if (incidentStore.onboardingStep === 4) {
+        incidentStore.setOnboardingStep(-1);
+    }
+  }, [incidentStore, activeScenario, terminalStore, log]);
 
   const { commands, handleCommand: internalHandleCommand } = useCommandRegistry({
     gameMode: incidentStore.gameMode,
@@ -181,11 +212,11 @@ export const useIncidentState = () => {
         log('UI', `SET_VIEW ${v}`);
         incidentStore.setView(v);
     },
-    startPlaybook: (id: string) => { 
-        log('PLAYBOOK', `START ${id}`);
-        const playbook = Object.values(PLAYBOOKS).find(p => p.id.toLowerCase() === id.toLowerCase());
-        if (playbook) {
-            startPlaybook(playbook);
+    startScenario: (id: string) => { 
+        log('SCENARIO', `START ${id}`);
+        const scenario = Object.values(SCENARIOS).find(p => p.id.toLowerCase() === id.toLowerCase());
+        if (scenario) {
+            startScenario(scenario);
         }
     },
     triggerApproval: (type) => {
@@ -231,30 +262,6 @@ export const useIncidentState = () => {
     },
   });
 
-  const { startPlaybook, stopPlaybook, resumePlaybook, currentEventIndex, activePlaybook, isWaiting } = usePlaybookEngine({
-    sendMessage,
-    injectLog: (msg) => { window.dispatchEvent(new CustomEvent('INJECT_LOG', { detail: msg })); },
-    setSeverity: loggedSetSeverity,
-    setIsChaos: incidentStore.setIsChaos,
-    addBeacon: incidentStore.addBeacon,
-    triggerApproval: (type) => {
-        log('PLAYBOOK', `TRIGGER_APPROVAL ${type || 'PHRASE'}`);
-        incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Playbook Auth' });
-    },
-    triggerOverride: () => {
-        log('PLAYBOOK', 'TRIGGER_OVERRIDE');
-        incidentStore.setOverride({ code: Math.random().toString(36).substring(2, 8).toUpperCase(), message: 'MANUAL OVERRIDE REQUIRED' });
-    },
-    triggerInterrupt: () => {},
-    setObjective: (obj) => {
-        log('PLAYBOOK', `SET_OBJECTIVE ${obj?.title || 'NULL'}`);
-        incidentStore.setObjective(obj);
-    },
-    declareIncident: loggedHandleDeclare,
-    stack: incidentStore.stack,
-    operatorName: terminalStore.operatorName
-  });
-
   const handleCommand = useCallback((cmd: string): CommandResult => {
     const originalCmd = cmd.trim();
     const state = useIncidentStore.getState();
@@ -267,7 +274,7 @@ export const useIncidentState = () => {
             log('CMD', 'OVERRIDE_SUCCESS');
             incidentStore.setOverride(null);
             incidentStore.incrementMitigationCount();
-            resumePlaybook();
+            resumeScenario();
             const successMsg = 'OVERRIDE_SUCCESSFUL... [OK]';
             incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: successMsg, type: 'output' }]);
             return { isValid: true, message: successMsg };
@@ -291,14 +298,14 @@ export const useIncidentState = () => {
         ...(result.message ? [{ text: result.message, type: result.isValid ? 'output' : 'error' } as TerminalLine] : [])
     ]);
 
-    // Resume playbook if waiting for a command
+    // Resume scenario if waiting for a command
     if (result.isValid && isWaiting) {
-        log('PLAYBOOK', 'RESUME_ON_CMD');
-        resumePlaybook();
+        log('SCENARIO', 'RESUME_ON_CMD');
+        resumeScenario();
     }
 
     return result;
-  }, [internalHandleCommand, incidentStore, isWaiting, resumePlaybook, log]);
+  }, [internalHandleCommand, incidentStore, isWaiting, resumeScenario, log]);
 
   useUrlSync({
     severity: incidentStore.severity,
@@ -326,12 +333,12 @@ export const useIncidentState = () => {
   useEffect(() => {
     if (incidentStore.isResolving) {
         const timeout = setTimeout(() => { 
-            incidentStore.ceaseTheatre(); 
+            loggedCeaseTheatre(); 
             incidentStore.setIsResolving(false); 
         }, 5000);
         return () => clearTimeout(timeout);
     }
-  }, [incidentStore]);
+  }, [incidentStore.isResolving, loggedCeaseTheatre]);
 
   useEffect(() => {
     if (incidentStore.isSlowBurn && incidentStore.severity !== 'P0' && !incidentStore.isPaused) {
@@ -343,12 +350,13 @@ export const useIncidentState = () => {
   return {
     ...terminalStore,
     ...incidentStore,
+    completedScenarios: terminalStore.completedScenarios,
     ...windowManager,
     ...audioStore,
     messages, sendMessage, typingUsers, markAsRead, markAllAsRead,
     commands, handleCommand,
     playLoginChime, playLogoutChime, playPostBeep, playMitigationSuccess, stopAllSounds,
-    activePlaybook, startPlaybook, stopPlaybook, resumePlaybook,
+    activeScenario, startScenario, stopScenario, resumeScenario,
     currentEventIndex,
     loggedHandleDeclare, loggedCeaseTheatre,
     loggedTogglePane, loggedSetStack, loggedSetSeverity, loggedSetIsSlowBurn,

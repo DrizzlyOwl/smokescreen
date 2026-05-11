@@ -1,70 +1,36 @@
 import React from 'react';
 import { StatusBar } from './StatusBar';
-import { CommandStrip } from './CommandStrip';
 import { PaneGrid } from './PaneGrid';
+import { CommandStrip } from './CommandStrip';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import type { Severity, Stack } from '../data/incidents';
-import type { PaneId, PanesState, MinimizedState, ZIndicesState } from '../hooks/useWindowManager';
-import type { TerminalLine, CommandResult } from '../hooks/useIncidentState';
-import type { ChatMessage } from '../contexts/types';
+import type { PaneId, WindowManagerActions } from '../hooks/useWindowManager';
+import type { ChatMessage, Objective, ApprovalState, TerminalOverrideState } from '../contexts/types';
+import type { CommandResult } from '../hooks/useIncidentState';
 import type { Command } from '../hooks/useCommandRegistry';
-import '../styles/SystemControlCluster.scss';
+import type { Scenario } from '../data/scenarios/types';
 
-import type { ApprovalState, TerminalOverrideState } from '../store/useIncidentStore';
-import type { Playbook } from '../data/playbooks/types';
-import type { Objective, Theme } from '../contexts/types';
-
-export interface SystemControlClusterProps {
-  panes: PanesState;
-  minimizedPanes: MinimizedState;
-  zIndices: ZIndicesState;
-  poppedOutPanes: Record<PaneId, boolean>;
-  snappedMainPanes: Record<PaneId, boolean>;
-  activePane: PaneId | null;
+interface SystemControlClusterProps extends WindowManagerActions {
   severity: Severity;
   stack: Stack;
   isDeclared: boolean;
-  incidentReport: string;
-  setIncidentReport: (report: string) => void;
-  terminalHistory: TerminalLine[];
-  setTerminalHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>;
-  commandHistory: string[];
-  addCommandToHistory: (cmd: string) => void;
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  setView: (view: 'HOME' | 'TICKET') => void;
   isEcoMode: boolean;
-  setIsEcoMode: (on: boolean) => void;
-  loggedTogglePane: (id: PaneId) => void;
-  loggedSetStack: (s: Stack) => void;
-  loggedSetSeverity: (s: Severity) => void;
-  loggedSetIsSlowBurn: (on: boolean) => void;
-  loggedCeaseTheatre: () => void;
-  loggedHandleDeclare: () => void;
+  setIsEcoMode: (val: boolean) => void;
   gameMode: import('../store/useIncidentStore').GameMode;
   activeObjective: Objective | null;
-  mitigationCount: number;
-  incrementMitigationCount: () => void;
-  unreadChat: number;
-  isDeployStabilized: boolean;
-  currentEventIndex?: number;
-  handleNewChatMessage: () => void;
+  currentEventIndex: number;
+  loggedTogglePane: (id: PaneId) => void;
+  addCommandToHistory: (cmd: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  playLoginChime: () => void;
-  playPostBeep: () => void;
-  playMitigationSuccess: () => void;
-  stopAllSounds: () => void;
-  isAudioOn: boolean;
-  setIsAudioOn: (on: boolean) => void;
   ticketId: string;
   activeApproval: ApprovalState | null;
   setApproval: (approval: ApprovalState | null) => void;
   activeOverride: TerminalOverrideState | null;
   setOverride: (override: TerminalOverrideState | null) => void;
   setObjective: (obj: Objective | null) => void;
-  startPlaybook: (p: Playbook) => void;
-  stopPlaybook: () => void;
+  startScenario: (p: Scenario) => void;
+  stopScenario: () => void;
   onFocus: (id: PaneId) => void;
   onClose: (id: PaneId) => void;
   toggleMinimize: (id: PaneId) => void;
@@ -84,7 +50,8 @@ export interface SystemControlClusterProps {
   isPaused: boolean;
   setIsPaused: (on: boolean) => void;
   operatorName: string;
-  activePlaybook: Playbook | null;
+  activeScenario: Scenario | null;
+  completedScenarios: string[];
   handleCommand: (cmd: string) => CommandResult;
   handleLogout: () => void;
   moneyLost: number;
@@ -120,6 +87,14 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
     return result.isValid;
   };
 
+  const actionableEvents = props.activeScenario?.events.filter(e => 
+    e.type === 'OBJECTIVE' && (e.payload as Objective).status !== 'complete'
+  ) || [];
+  
+  const currentActionableCount = props.activeScenario?.events
+    .slice(0, (props.currentEventIndex ?? -1) + 1)
+    .filter(e => e.type === 'OBJECTIVE' && (e.payload as Objective).status !== 'complete').length || 0;
+
   return (
     <div className="cluster-layout">
       <StatusBar 
@@ -130,7 +105,10 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
         setIsEcoMode={props.setIsEcoMode}
         gameMode={props.gameMode}
         activeObjective={props.activeObjective}
-        playbookProgress={{ current: (props.currentEventIndex ?? -1) + 1, total: props.activePlaybook?.events.length || 0 }}
+        playbookProgress={{ 
+          current: Math.max(1, currentActionableCount), 
+          total: actionableEvents.length 
+        }}
       />
       <PaneGrid
         {...props}
@@ -141,23 +119,23 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
         markAllAsRead={props.markAllAsRead}
         commands={props.commands}
         onCommand={handleTerminalCommand}
-        onSelectPlaybook={props.startPlaybook}
-        activePlaybook={props.activePlaybook}
+        onSelectScenario={props.startScenario}
+        activeScenario={props.activeScenario}
+        completedScenarios={props.completedScenarios}
         scrollRef={scrollRef}
         severity={props.severity}
         logMultiplier={props.logMultiplier}
       />
       <CommandStrip 
-        panes={props.panes}
-        loggedTogglePane={props.loggedTogglePane}
-        severity={props.severity}
+        panes={props.panes} 
+        loggedTogglePane={props.loggedTogglePane} 
+        beacons={props.beacons}
         isDeclared={props.isDeclared}
-        onDeclare={props.loggedHandleDeclare}
-        onResolve={props.loggedCeaseTheatre}
-        mitigationCount={props.mitigationCount}
-        unreadChat={props.unreadChat}
-        gameMode={props.gameMode}
-        handleLogout={props.handleLogout}
+        severity={props.severity}
+        onSnapMainToggle={props.onSnapMainToggle}
+        onPopOutToggle={props.onPopOutToggle}
+        toggleMinimize={props.toggleMinimize}
+        bringToFront={props.onFocus}
       />
     </div>
   );

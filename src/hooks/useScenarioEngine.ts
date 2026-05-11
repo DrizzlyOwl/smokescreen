@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { Playbook, PlaybookEvent } from '../data/playbooks/types';
+import type { Scenario, ScenarioEvent } from '../data/scenarios/types';
 import { type Severity, type Stack } from '../data/incidents';
 import type { ChatMessage } from '../contexts/types';
 import { getStackBot } from '../utils/team';
 import { useIncidentStore } from '../store/useIncidentStore';
 import { useDebugLogger } from './useDebugLogger';
 
-interface PlaybookEngineProps {
+interface ScenarioEngineProps {
   sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bio?: string) => void;
   injectLog: (log: string) => void;
   setSeverity: (s: Severity) => void;
@@ -21,7 +21,7 @@ interface PlaybookEngineProps {
   declareIncident: () => void;
 }
 
-export const usePlaybookEngine = ({ 
+export const useScenarioEngine = ({ 
   sendMessage, 
   injectLog, 
   setSeverity, 
@@ -34,9 +34,9 @@ export const usePlaybookEngine = ({
   stack, 
   operatorName,
   declareIncident 
-}: PlaybookEngineProps) => {
+}: ScenarioEngineProps) => {
   const { log } = useDebugLogger();
-  const [activePlaybook, setActivePlaybook] = useState<Playbook | null>(null);
+  const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
   const [currentEventIndex, setCurrentIndex] = useState(-1);
   const [isWaiting, setIsWaiting] = useState(false);
   const isPaused = useIncidentStore(state => state.isPaused);
@@ -50,22 +50,22 @@ export const usePlaybookEngine = ({
     }
   }, []);
 
-  const stopPlaybook = useCallback(() => {
-    log('PLAYBOOK', 'STOP_PLAYBOOK', activePlaybook?.id);
+  const stopScenario = useCallback(() => {
+    log('SCENARIO', 'STOP_SCENARIO', activeScenario?.id);
     clearTimer();
-    setActivePlaybook(null);
+    setActiveScenario(null);
     setCurrentIndex(-1);
     setIsWaiting(false);
     setIsChaos(false);
     setObjective(null);
-  }, [clearTimer, setIsChaos, setObjective, log, activePlaybook]);
+  }, [clearTimer, setIsChaos, setObjective, log, activeScenario]);
 
-  const resumePlaybook = useCallback(() => {
+  const resumeScenario = useCallback(() => {
     if (!isWaiting) return;
-    log('PLAYBOOK', 'RESUME_PLAYBOOK', activePlaybook?.id);
+    log('SCENARIO', 'RESUME_SCENARIO', activeScenario?.id);
     setIsWaiting(false);
     setCurrentIndex(prev => prev + 1);
-  }, [isWaiting, log, activePlaybook]);
+  }, [isWaiting, log, activeScenario]);
 
   const parseText = useCallback((text: string) => {
     return text
@@ -73,8 +73,8 @@ export const usePlaybookEngine = ({
         .replace(/@operator/g, `@${operatorName.split(' ')[0].toLowerCase()}`);
   }, [stack, operatorName]);
 
-  const executeEvent = useCallback((event: PlaybookEvent) => {
-    log('PLAYBOOK', `EXEC_EVENT_${event.type}`, event.payload);
+  const executeEvent = useCallback((event: ScenarioEvent) => {
+    log('SCENARIO', `EXEC_EVENT_${event.type}`, event.payload);
     switch (event.type) {
       case 'CHAT': {
         const p = event.payload as ChatMessage;
@@ -132,20 +132,20 @@ export const usePlaybookEngine = ({
 
   // Main execution loop
   useEffect(() => {
-    if (!activePlaybook || currentEventIndex < 0 || isWaiting || isPaused) return;
+    if (!activeScenario || currentEventIndex < 0 || isWaiting || isPaused) return;
 
-    if (currentEventIndex >= activePlaybook.events.length) {
-        // Playbook finished
+    if (currentEventIndex >= activeScenario.events.length) {
+        // Scenario finished
         const timeout = window.setTimeout(() => {
-            setActivePlaybook(null);
+            setActiveScenario(null);
             setObjective(null);
             setCurrentIndex(-1);
         }, 1000);
         return () => window.clearTimeout(timeout);
     }
 
-    const event = activePlaybook.events[currentEventIndex];
-    const prevEvent = currentEventIndex > 0 ? activePlaybook.events[currentEventIndex - 1] : null;
+    const event = activeScenario.events[currentEventIndex];
+    const prevEvent = currentEventIndex > 0 ? activeScenario.events[currentEventIndex - 1] : null;
     const delay = event.offsetMs - (prevEvent ? prevEvent.offsetMs : 0);
 
     timerRef.current = window.setTimeout(() => {
@@ -156,13 +156,13 @@ export const usePlaybookEngine = ({
     }, Math.max(0, delay));
 
     return () => clearTimer();
-  }, [activePlaybook, currentEventIndex, isWaiting, isPaused, executeEvent, clearTimer, setObjective]);
+  }, [activeScenario, currentEventIndex, isWaiting, isPaused, executeEvent, clearTimer, setObjective]);
 
-  const startPlaybook = useCallback((playbook: Playbook) => {
-    stopPlaybook();
-    setActivePlaybook(playbook);
+  const startScenario = useCallback((scenario: Scenario) => {
+    stopScenario();
+    setActiveScenario(scenario);
     setCurrentIndex(0);
-  }, [stopPlaybook]);
+  }, [stopScenario]);
 
   useEffect(() => {
     return () => {
@@ -171,10 +171,10 @@ export const usePlaybookEngine = ({
   }, [clearTimer]);
 
   return {
-    activePlaybook,
-    startPlaybook,
-    stopPlaybook,
-    resumePlaybook,
+    activeScenario,
+    startScenario,
+    stopScenario,
+    resumeScenario,
     isWaiting,
     currentEventIndex
   };

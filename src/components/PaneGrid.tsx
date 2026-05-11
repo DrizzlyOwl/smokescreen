@@ -15,7 +15,7 @@ const SystemLog = lazy(() => import('./SystemLog').then(m => ({ default: m.Syste
 const BurnRateDashboard = lazy(() => import('./BurnRateDashboard').then(m => ({ default: m.BurnRateDashboard })));
 const DeploymentStatus = lazy(() => import('./DeploymentStatus').then(m => ({ default: m.DeploymentStatus })));
 const SettingsPane = lazy(() => import('./SettingsPane').then(m => ({ default: m.SettingsPane })));
-const PlaybookPane = lazy(() => import('./PlaybookPane').then(m => ({ default: m.PlaybookPane })));
+const ScenarioPane = lazy(() => import('./ScenarioPane').then(m => ({ default: m.ScenarioPane })));
 const IncidentPlaybookPane = lazy(() => import('./IncidentPlaybookPane').then(m => ({ default: m.IncidentPlaybookPane })));
 const ReadoutBox = lazy(() => import('./ReadoutBox').then(m => ({ default: m.ReadoutBox })));
 const DebugConsole = lazy(() => import('./DebugConsole').then(m => ({ default: m.DebugConsole })));
@@ -23,7 +23,7 @@ const HowToPane = lazy(() => import('./HowToPane').then(m => ({ default: m.HowTo
 const TerminalPane = lazy(() => import('./TerminalPane').then(m => ({ default: m.TerminalPane })));
 
 import type { Command } from '../hooks/useCommandRegistry';
-import type { Playbook } from '../data/playbooks/types';
+import type { Scenario } from '../data/scenarios/types';
 
 interface PaneGridProps {
   panes: PanesState;
@@ -55,8 +55,9 @@ interface PaneGridProps {
   typingUsers: string[];
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  onSelectPlaybook: (playbook: Playbook) => void;
-  activePlaybook: Playbook | null;
+  onSelectScenario: (scenario: Scenario) => void;
+  activeScenario: Scenario | null;
+  completedScenarios: string[];
   activeObjective: import('../contexts/types').Objective | null;
   displayText: string;
   setDisplayText: (text: string) => void;
@@ -94,8 +95,9 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
   typingUsers,
   markAsRead,
   markAllAsRead,
-  onSelectPlaybook,
-  activePlaybook,
+  onSelectScenario,
+  activeScenario,
+  completedScenarios,
   activeObjective,
   displayText,
   scrollRef,
@@ -118,6 +120,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
     switch (id) {
       case 'terminal':
         return <TerminalPane 
+          key={id}
           {...commonProps} 
           terminalHistory={terminalHistory}
           onCommand={onCommand}
@@ -128,6 +131,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
         />;
       case 'chat':
         return <ChatPane 
+          key={id}
           {...commonProps}
           messages={messages}
           sendMessage={sendMessage}
@@ -139,6 +143,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
         />;
       case 'logs':
         return <SystemLog 
+          key={id}
           {...commonProps}
           severity={severity}
           logMultiplier={logMultiplier}
@@ -146,17 +151,20 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
         />;
       case 'map':
         return <OutageMap 
+          key={id}
           {...commonProps}
           severity={severity} 
         />;
       case 'burn':
         return <BurnRateDashboard 
+          key={id}
           {...commonProps}
           severity={severity} 
           moneyLost={useIncidentStore.getState().moneyLost}
         />;
       case 'deploy':
         return <DeploymentStatus 
+          key={id}
           {...commonProps}
           severity={severity} 
           stack={stack}
@@ -164,28 +172,34 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
         />;
       case 'settings':
         return <SettingsPane 
+          key={id}
           {...commonProps}
           currentTheme={theme} 
           setTheme={setTheme} 
         />;
       case 'playbooks':
-        return <PlaybookPane 
+        return <ScenarioPane 
+          key={id}
           {...commonProps}
-          onSelectPlaybook={onSelectPlaybook}
+          onSelectScenario={onSelectScenario}
+          completedScenarios={completedScenarios}
         />;
       case 'incidentPlaybook':
         return <IncidentPlaybookPane 
+          key={id}
           {...commonProps}
-          activePlaybook={activePlaybook}
+          activeScenario={activeScenario}
         />;
       case 'howTo':
         return <HowToPane 
+          key={id}
           {...commonProps}
           initialPos={{ x: 50, y: 100 }}
         />;
       case 'readout':
         if (!incidentReport || incidentReport === 'HELP_DISPLAYED' || incidentReport.startsWith('COMMAND_NOT_RECOGNIZED')) return null;
         return <ReadoutBox 
+          key={id}
           {...commonProps}
           title="INCIDENT_PLAYBOOK_GENERATED"
           label="AUTOMATED_RESPONSE_STRATEGY"
@@ -216,7 +230,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           </div>
         </ReadoutBox>;
       case 'debug':
-        return <DebugConsole {...commonProps} />;
+        return <DebugConsole key={id} {...commonProps} />;
       default:
         return null;
     }
@@ -235,6 +249,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
               severity={severity}
               stack={stack}
               isDeclared={isDeclared}
+              activeScenario={activeScenario}
               objective={activeObjective}
             />
             <div className="cluster-layout__snapped-layer">

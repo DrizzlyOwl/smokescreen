@@ -1,7 +1,7 @@
-import type { Playbook } from './types';
+import type { Scenario } from './types';
 import { getPersonByRole } from '../../utils/team';
 
-export const PLAYBOOKS: Record<string, Playbook> = {
+export const SCENARIOS: Record<string, Scenario> = {
     'l0-certification': {
         id: 'l0-certification',
         name: 'Scenario L0: Operator Certification',
@@ -31,7 +31,7 @@ export const PLAYBOOKS: Record<string, Playbook> = {
             { offsetMs: 15000, type: 'WAIT', payload: null },
 
             { offsetMs: 16000, type: 'CHAT', payload: { id: 'l0-done', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Certification complete. You are now authorized to handle production incidents. Good luck out there.', isBot: false } },
-            { offsetMs: 17000, type: 'OBJECTIVE', payload: { title: 'Certification Complete', status: 'active' } }
+            { offsetMs: 17000, type: 'OBJECTIVE', payload: { title: 'Certification Complete', status: 'complete' } }
         ]
     },
     'l1-routine-patch': {

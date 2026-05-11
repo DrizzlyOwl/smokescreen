@@ -6,12 +6,14 @@ import { type Severity, type Stack, stackJargon, commonJargon } from '../data/in
 import { useSystemMetrics } from '../hooks/useSystemMetrics';
 import { useIncidentStore } from '../store/useIncidentStore';
 import { getNodeType, NODE_TYPE_REMEDIATION } from '../utils/nodeTypes';
+import type { Scenario } from '../data/scenarios/types';
 import '../styles/TacticalOverview.scss';
 
 interface TacticalOverviewProps {
   severity: Severity;
   stack: Stack;
   isDeclared: boolean;
+  activeScenario: Scenario | null;
   objective: import('../contexts/types').Objective | null;
 }
 
@@ -19,6 +21,7 @@ export const TacticalOverview = ({
   severity, 
   stack, 
   isDeclared,
+  activeScenario,
   objective
 }: TacticalOverviewProps) => {
   const addTerminalLine = useIncidentStore(state => state.addTerminalLine);
@@ -113,6 +116,7 @@ export const TacticalOverview = ({
             <h2>PRIMARY_SYSTEM_OVERVIEW</h2>
           </div>
           <div className="tactical-overview__hero-metrics">
+            <StatReadout label="SCENARIO" value={activeScenario?.name.split(': ')[1] || 'MANUAL'} color="var(--terminal-cyan)" />
             <StatReadout label="STACK" value={stack} />
             <StatReadout label="THREAT" value={severity} color={statusColor} />
             <StatReadout label="STATUS" value={isDeclared ? 'ACTIVE' : 'NOMINAL'} color={isDeclared ? 'var(--terminal-red)' : 'var(--terminal-green)'} />

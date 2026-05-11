@@ -8,6 +8,7 @@ describe('useTerminalStore', () => {
         operatorName: '',
         theme: 'classic',
         isEcoMode: false,
+        completedScenarios: [],
         commandHistory: []
     });
     localStorage.clear();
@@ -19,6 +20,19 @@ describe('useTerminalStore', () => {
     expect(state.operatorName).toBe('');
     expect(state.theme).toBe('classic');
     expect(state.isEcoMode).toBe(false);
+    expect(state.completedScenarios).toEqual([]);
+  });
+
+  it('marks scenario as completed and persists to localStorage', () => {
+    useTerminalStore.getState().markScenarioCompleted('l0-certification');
+    expect(useTerminalStore.getState().completedScenarios).toEqual(['l0-certification']);
+    expect(localStorage.getItem('completed_scenarios')).toBe(JSON.stringify(['l0-certification']));
+  });
+
+  it('does not add duplicate completed scenarios', () => {
+    useTerminalStore.getState().markScenarioCompleted('l0-certification');
+    useTerminalStore.getState().markScenarioCompleted('l0-certification');
+    expect(useTerminalStore.getState().completedScenarios).toEqual(['l0-certification']);
   });
 
   it('sets operator name and persists to localStorage', () => {

@@ -23,10 +23,24 @@
     background: rgba(255, 255, 255, 0.02);
     position: relative;
     overflow: hidden;
+    transition: opacity 0.3s ease, border-color 0.3s ease;
 
     &--tutorial {
       border-color: color-mix(in srgb, var(--terminal-cyan), transparent 60%);
       background: color-mix(in srgb, var(--terminal-cyan), transparent 97%);
+    }
+
+    &--locked {
+      opacity: 0.5;
+      border-style: dashed;
+      cursor: not-allowed;
+
+      .playbooks__card-desc {
+        color: var(--terminal-red);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+      }
     }
 
     h3 {
@@ -35,6 +49,12 @@
       border-bottom: none;
       padding-bottom: 0;
     }
+  }
+
+  &__card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
   }
 
   &__badge {
@@ -47,6 +67,18 @@
     padding: rem(2) rem(8);
     font-weight: bold;
     letter-spacing: rem(1);
+
+    &--completed {
+      background: var(--terminal-green);
+      position: static;
+      margin-left: rem(10);
+    }
+
+    &--locked {
+      background: var(--terminal-red);
+      position: static;
+      margin-left: rem(10);
+    }
   }
 
   &__card-desc {

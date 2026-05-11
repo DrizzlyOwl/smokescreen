@@ -37,7 +37,7 @@ export interface CommandActions {
   setView: (v: 'HOME' | 'TICKET') => void;
   handleLogout: () => void;
   help: (commands: Command[]) => void;
-  startPlaybook: (id: string) => void;
+  startScenario: (id: string) => void;
   setLogMultiplier: (m: number) => void;
   setChatMultiplier: (m: number) => void;
   setEcoMode: (on: boolean) => void;
