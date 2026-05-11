@@ -111,6 +111,21 @@
       color: var(--status-text);
     }
   }
+
+  &--success {
+    background: transparent;
+    border: rem(2) solid var(--terminal-cyan);
+    color: var(--terminal-cyan);
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--terminal-cyan), transparent 90%);
+    }
+
+    &:active:not(:disabled), &.button--active {
+      background: var(--terminal-cyan);
+      color: var(--status-text);
+    }
+  }
 }
 
 /* Action Group Styles */

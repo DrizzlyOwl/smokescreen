@@ -32,7 +32,7 @@ export interface Playbook {
   id: string;
   name: string;
   description: string;
-  difficulty: 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
+  difficulty: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
   events: PlaybookEvent[];
   runbookText?: string;
 }

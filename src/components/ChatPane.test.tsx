@@ -41,8 +41,8 @@ vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
 
 describe('ChatPane', () => {
   const mockMessages = [
-    { id: '1', user: 'alice', text: 'hello', time: '10:00', read: true },
-    { id: '2', user: 'bob', text: 'hi alice', time: '10:01', read: false },
+    { id: '1', user: 'alice', text: 'hello', time: '10:00', read: true, isBot: false },
+    { id: '2', user: 'bob', text: 'hi alice', time: '10:01', read: false, isBot: false },
   ];
 
   const defaultProps = {
@@ -108,8 +108,8 @@ describe('ChatPane', () => {
 
   it('groups messages from same user within same minute', () => {
     const groupedMessages = [
-        { id: '1', user: 'alice', text: 'msg 1', time: '10:00', read: true },
-        { id: '2', user: 'alice', text: 'msg 2', time: '10:00', read: true },
+        { id: '1', user: 'alice', text: 'msg 1', time: '10:00', read: true, isBot: false },
+        { id: '2', user: 'alice', text: 'msg 2', time: '10:00', read: true, isBot: false },
     ];
     render(<ChatPane {...defaultProps} messages={groupedMessages} />);
     

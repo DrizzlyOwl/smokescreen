@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useDebugLogger } from './useDebugLogger';
 
 type Direction = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -8,6 +9,7 @@ export const useResizable = (
   position = { x: 0, y: 0 },
   setPosition?: (pos: { x: number, y: number }) => void
 ) => {
+  const { log } = useDebugLogger();
   const [size, setSize] = useState(() => {
     if (storageKey) {
       const saved = localStorage.getItem(`smokescreen_size_${storageKey}`);
@@ -108,9 +110,12 @@ export const useResizable = (
   }, [isResizing, resizeDir, setPosition, storageKey]);
 
   const onMouseUp = useCallback(() => {
+    if (isResizing) {
+      log('WINDOW', `RESIZE_${storageKey?.toUpperCase() || 'PANE'}`, size);
+    }
     setIsResizing(false);
     setResizeDir(null);
-  }, []);
+  }, [isResizing, log, storageKey, size]);
 
   useEffect(() => {
     if (isResizing) {

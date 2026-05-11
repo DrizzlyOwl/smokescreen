@@ -19,7 +19,7 @@ export const useIncidentChat = (
     isActive: boolean = true,
     isFocused: boolean = false,
     chatMultiplier: number = 1,
-    log?: (action: string, data?: unknown) => void
+    log?: (category: import('./useDebugLogger').LogCategory, action: string, data?: unknown) => void
 ) => {
     const isPaused = useIncidentStore(state => state.isPaused);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -262,7 +262,7 @@ export const useIncidentChat = (
 
         const interval = setInterval(async () => {
             const newMessage = await getDynamicMessage(severity);
-            if (log) log('CHAT_GENERATOR', { user: newMessage.user, isBot: newMessage.isBot });
+            if (log) log('CHAT', 'GENERATED_MESSAGE', { user: newMessage.user, isBot: newMessage.isBot });
             send({ type: 'TYPING_INDICATOR', user: newMessage.user, isTyping: true });
             
             setTimeout(() => {

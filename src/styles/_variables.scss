@@ -3,6 +3,7 @@
   --terminal-green: #18ff62;
   --terminal-amber: #ffb000;
   --terminal-cobalt: #00d8ff;
+  --terminal-cyan: #00ffff;
   --terminal-red: #ff3b3b;
   --terminal-bg: #0d110d;
   
@@ -36,14 +37,15 @@
 }
 
 [data-theme='protanopia'] {
-  --terminal-green: #0072B2;
-  --terminal-amber: #F0E442;
-  --terminal-red: #D55E00;
-  --terminal-cobalt: #56B4E9;
+  --terminal-green: #648FFF; // Ultramarine (High luminance for Protan)
+  --terminal-amber: #FFB000; // Gold
+  --terminal-red: #FE6100;   // Bright Orange (Visible as 'bright' to Protan)
+  --terminal-cobalt: #785EF0; // Indigo
+  --terminal-cyan: #DC267F;   // Magenta
   --glow-color: var(--terminal-green);
-  --ui-bg: #001a33;
-  --ui-bg-alt: #000d1a;
-  --ui-border: #004d99;
+  --ui-bg: #050a14;           // Deep Midnight Blue
+  --ui-bg-alt: #020408;
+  --ui-border: #1a3366;
   --ui-text: #e6f2ff;
   --status-nominal: var(--terminal-green);
   --status-p3: var(--terminal-amber);
@@ -52,15 +54,16 @@
 }
 
 [data-theme='deuteranopia'] {
-  --terminal-green: #357ebd;
-  --terminal-amber: #f0e442;
-  --terminal-red: #d55e00;
-  --terminal-cobalt: #56b4e9;
+  --terminal-green: #56B4E9; // Sky Blue
+  --terminal-amber: #F0E442; // Yellow
+  --terminal-red: #D55E00;   // Vermilion
+  --terminal-cobalt: #0072B2; // Blue
+  --terminal-cyan: #CC79A7;   // Reddish Purple
   --glow-color: var(--terminal-green);
-  --ui-bg: #001a33;
-  --ui-bg-alt: #000d1a;
-  --ui-border: #004d99;
-  --ui-text: #e6f2ff;
+  --ui-bg: #121410;           // Dark Olive/Charcoal Tint
+  --ui-bg-alt: #090a08;
+  --ui-border: #333d29;
+  --ui-text: #f0f4ef;
   --status-nominal: var(--terminal-green);
   --status-p3: var(--terminal-amber);
   --status-p1: var(--terminal-amber);
@@ -68,24 +71,26 @@
 }
 
 [data-theme='tritanopia'] {
-  --terminal-green: #1f78b4;
-  --terminal-amber: #ff7f00;
-  --terminal-red: #e31a1c;
-  --terminal-cobalt: #a6cee3;
+  --terminal-green: #3ddbd9; // Bright Teal (Distinct Success)
+  --terminal-amber: #F0E442; // Yellow
+  --terminal-red: #fb4b53;   // Soft Coral/Red (Visible)
+  --terminal-cobalt: #4589ff; // Ultramarine Blue
+  --terminal-cyan: #ed97bb;   // Pink/Magenta (Distinct)
   --glow-color: var(--terminal-green);
-  --ui-bg: #1a1a1a;
-  --ui-bg-alt: #0d0d0d;
-  --ui-border: #333333;
-  --ui-text: #f2f2f2;
+  --ui-bg: #161616;
+  --ui-bg-alt: #0a0a0a;
+  --ui-border: #393939;
+  --ui-text: #f4f4f4;
   --status-nominal: var(--terminal-green);
   --status-p3: var(--terminal-amber);
   --status-p1: var(--terminal-amber);
-  --status-p0: var(--terminal-red);
+  --status-p0: #dc267f; // Magenta (High contrast error for Tritan)
 }
 
 [data-theme='amber'] {
   --glow-color: var(--terminal-amber);
   --terminal-green: var(--terminal-amber);
+  --terminal-cyan: var(--terminal-amber);
   --ui-bg: #1a1810;
   --ui-bg-alt: #12110a;
   --ui-border: #4d3d00;
@@ -104,6 +109,7 @@
 [data-theme='cobalt'] {
   --glow-color: var(--terminal-cobalt);
   --terminal-green: var(--terminal-cobalt);
+  --terminal-cyan: var(--terminal-cobalt);
   --ui-bg: #0a191d;
   --ui-bg-alt: #051012;
   --ui-border: #004d5a;
@@ -120,6 +126,7 @@
   --terminal-amber: #ffb86c;
   --terminal-red: #ff5555;
   --terminal-cobalt: #8be9fd;
+  --terminal-cyan: #8be9fd;
   --terminal-bg: #282a36;
   --bg-color: #282a36;
   --glow-opacity: 0.15;
@@ -145,6 +152,7 @@
   --terminal-amber: #e6db74;
   --terminal-red: #f92672;
   --terminal-cobalt: #66d9ef;
+  --terminal-cyan: #66d9ef;
   --terminal-bg: #272822;
   --bg-color: #272822;
   --glow-opacity: 0.1;
@@ -170,6 +178,7 @@
   --terminal-amber: #ffff00;
   --terminal-red: #ff0055;
   --terminal-cobalt: #0000ff;
+  --terminal-cyan: #00ffff;
   --terminal-bg: #050505;
   --bg-color: #050505;
   --glow-opacity: 0.3;
@@ -195,6 +204,7 @@
   --terminal-amber: #ffff00;
   --terminal-red: #ff0000;
   --terminal-cobalt: #00ffff;
+  --terminal-cyan: #00ffff;
   --terminal-bg: #000;
   --bg-color: #000;
   --glow-opacity: 0;

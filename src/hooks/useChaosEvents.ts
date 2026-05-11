@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { useIncidentStore } from '../store/useIncidentStore';
 import { useTerminalStore } from '../store/useTerminalStore';
 import { getRandomExecutive } from '../utils/team';
+import { useDebugLogger } from './useDebugLogger';
 
 interface UseChaosEventsProps {
     sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bioOverride?: string) => void;
 }
 
 export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
+  const { log } = useDebugLogger();
   const incidentStore = useIncidentStore();
   const terminalStore = useTerminalStore();
 
@@ -20,6 +22,7 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
         const roll = Math.random();
 
         if (roll > threshold) {
+            log('CHAOS', 'TRIGGER_APPROVAL', 'INFRA_ROTATION');
             incidentStore.setApproval({
                 id: Math.random().toString(36).substring(2, 9),
                 type: 'phrase',
@@ -27,6 +30,7 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
                 phrase: 'rotate-now'
             });
         } else if (roll > threshold - 0.1 && incidentStore.activeApproval) {
+            log('CHAOS', 'TRIGGER_OVERRIDE', 'SYSTEM_CORE');
             incidentStore.setOverride({
                 code: Math.random().toString(36).substring(2, 8).toUpperCase(),
                 message: 'CRITICAL SYSTEM OVERRIDE REQUIRED'
@@ -37,6 +41,8 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
             const duration = 60 + Math.floor(Math.random() * 31); // 60-90s
             const penalty = 150000 + Math.floor(Math.random() * 50000);
             
+            log('CHAOS', 'TRIGGER_INTERRUPTION', { exec: exec.name, penalty });
+
             incidentStore.setInterruption({
                 id: Math.random().toString(36).substring(2, 9),
                 execName: exec.name,
@@ -50,7 +56,7 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [incidentStore.isDeclared, incidentStore.isPaused, incidentStore.severity, incidentStore.activeApproval, incidentStore.activeInterruption, terminalStore.operatorName, sendMessage, incidentStore]);
+  }, [incidentStore.isDeclared, incidentStore.isPaused, incidentStore.severity, incidentStore.activeApproval, incidentStore.activeInterruption, terminalStore.operatorName, sendMessage, incidentStore, log]);
 
   // Interruption Countdown Handler
   useEffect(() => {
@@ -60,6 +66,7 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
         const now = Date.now();
         if (now >= incidentStore.activeInterruption!.deadline) {
             const { penalty, execName } = incidentStore.activeInterruption!;
+            log('CHAOS', 'INTERRUPTION_TIMEOUT', { exec: execName, penalty });
             incidentStore.setMoneyLost(prev => prev + penalty);
             incidentStore.deductStrike();
             incidentStore.addTerminalLine({ 
@@ -71,7 +78,7 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
     }, 1000);
 
     return () => clearInterval(checkInterval);
-  }, [incidentStore.activeInterruption, incidentStore.isPaused, incidentStore]);
+  }, [incidentStore.activeInterruption, incidentStore.isPaused, incidentStore, log]);
 
   // P0 Sustained Outage Tracking (3 mins = 180s)
   useEffect(() => {
@@ -84,6 +91,7 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
         incidentStore.setTimeInP0(prev => {
             const next = prev + 1;
             if (next >= 180) {
+                log('INCIDENT', 'SUSTAINED_P0_PENALTY');
                 incidentStore.deductStrike();
                 incidentStore.addTerminalLine({ text: 'CRITICAL: SUSTAINED P0 OUTAGE PENALTY. STRIKE DEDUCTED.', type: 'error' });
                 return 0;
@@ -93,12 +101,13 @@ export const useChaosEvents = ({ sendMessage }: UseChaosEventsProps) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [incidentStore.severity, incidentStore.isDeclared, incidentStore.isPaused, incidentStore]);
+  }, [incidentStore.severity, incidentStore.isDeclared, incidentStore.isPaused, incidentStore, log]);
 
   // Game Over Transition
   useEffect(() => {
     if (incidentStore.strikes <= 0 && incidentStore.gameMode === 'ARCADE' && terminalStore.appState !== 'TERMINATED') {
+        log('SYSTEM', 'GAME_OVER_TRIGGERED');
         terminalStore.setAppState('TERMINATED');
     }
-  }, [incidentStore.strikes, incidentStore.gameMode, terminalStore.appState, terminalStore.setAppState, terminalStore, incidentStore]);
+  }, [incidentStore.strikes, incidentStore.gameMode, terminalStore.appState, terminalStore.setAppState, terminalStore, incidentStore, log]);
 };

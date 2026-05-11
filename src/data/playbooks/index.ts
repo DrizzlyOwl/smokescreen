@@ -2,6 +2,38 @@ import type { Playbook } from './types';
 import { getPersonByRole } from '../../utils/team';
 
 export const PLAYBOOKS: Record<string, Playbook> = {
+    'l0-certification': {
+        id: 'l0-certification',
+        name: 'Scenario L0: Operator Certification',
+        description: 'Guided walkthrough of the core SMOKESCREEN game loop. Required for all new recruits.',
+        difficulty: 'L0',
+        runbookText: '### CERTIFICATION_RUNBOOK\n1. Initialize Stack: `aws` / `gcp` / `azure`\n2. Escalate Threat: `p3` / `p1` / `p0`\n3. Engage Theatre: `declare`\n4. Mitigate: Follow on-screen beacons.\n5. Resolve: `resolve`',
+        events: [
+            { offsetMs: 0, type: 'OBJECTIVE', payload: { title: 'Initialize Primary Stack', status: 'active' } },
+            { offsetMs: 1000, type: 'CHAT', payload: { id: 'l0-1', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Welcome to the war room. First, we need to choose a cloud provider. Type `aws` to initialize our primary stack.', isBot: false } },
+            { offsetMs: 2000, type: 'WAIT', payload: null },
+            
+            { offsetMs: 3000, type: 'OBJECTIVE', payload: { title: 'Escalate Threat Level', status: 'active' } },
+            { offsetMs: 4000, type: 'CHAT', payload: { id: 'l0-2', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Good. Now we need to simulate a threat. Type `p3` to escalate the threat level.', isBot: false } },
+            { offsetMs: 5000, type: 'WAIT', payload: null },
+
+            { offsetMs: 6000, type: 'OBJECTIVE', payload: { title: 'Declare Incident', status: 'active' } },
+            { offsetMs: 7000, type: 'CHAT', payload: { id: 'l0-3', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Threat detected. We need to officially engage. Type `declare` to start the incident theatre.', isBot: false } },
+            { offsetMs: 8000, type: 'WAIT', payload: null },
+
+            { offsetMs: 9000, type: 'OBJECTIVE', payload: { title: 'Open Incident Chat', status: 'active' } },
+            { offsetMs: 10000, type: 'CHAT', payload: { id: 'l0-4', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'The war room is active. Open the Incident Chat pane [F5] to stay in sync with the team.', isBot: false } },
+            { offsetMs: 11000, type: 'BEACON', payload: 'chat' },
+            { offsetMs: 12000, type: 'WAIT', payload: null },
+
+            { offsetMs: 13000, type: 'OBJECTIVE', payload: { title: 'Resolve Incident', status: 'active' } },
+            { offsetMs: 14000, type: 'CHAT', payload: { id: 'l0-5', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'We have mitigated the simulated issues. Close the incident by typing `resolve`.', isBot: false } },
+            { offsetMs: 15000, type: 'WAIT', payload: null },
+
+            { offsetMs: 16000, type: 'CHAT', payload: { id: 'l0-done', user: getPersonByRole('SRE Lead').name, bio: getPersonByRole('SRE Lead').role, text: 'Certification complete. You are now authorized to handle production incidents. Good luck out there.', isBot: false } },
+            { offsetMs: 17000, type: 'OBJECTIVE', payload: { title: 'Certification Complete', status: 'active' } }
+        ]
+    },
     'l1-routine-patch': {
         id: 'l1-routine-patch',
         name: 'Scenario L1: Routine Patching',

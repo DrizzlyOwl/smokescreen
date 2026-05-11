@@ -42,31 +42,49 @@ export const useIncidentState = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loggedTogglePane = useCallback((id: PaneId) => {
-    log('WINDOW_MANAGER', `Toggle ${id}`);
+    log('WINDOW', `TOGGLE ${id}`);
     windowManager.togglePane(id);
     if (!windowManager.panes[id]) incidentStore.removeBeacon(id);
   }, [windowManager, incidentStore, log]);
 
-  const loggedSetStack = useCallback((s: Stack) => incidentStore.setStack(s), [incidentStore]);
-  const loggedSetSeverity = useCallback((s: Severity) => incidentStore.setSeverity(s), [incidentStore]);
-  const loggedSetIsSlowBurn = useCallback((on: boolean) => incidentStore.setIsSlowBurn(on), [incidentStore]);
-  const loggedHandleDeclare = useCallback(() => incidentStore.declareIncident(playAlert), [incidentStore, playAlert]);
+  const loggedSetStack = useCallback((s: Stack) => {
+    log('INCIDENT', `SET_STACK ${s}`);
+    incidentStore.setStack(s);
+  }, [incidentStore, log]);
+
+  const loggedSetSeverity = useCallback((s: Severity) => {
+    log('INCIDENT', `SET_SEVERITY ${s}`);
+    incidentStore.setSeverity(s);
+  }, [incidentStore, log]);
+
+  const loggedSetIsSlowBurn = useCallback((on: boolean) => {
+    log('SYSTEM', `SET_SLOWBURN ${on}`);
+    incidentStore.setIsSlowBurn(on);
+  }, [incidentStore, log]);
+
+  const loggedHandleDeclare = useCallback(() => {
+    log('INCIDENT', 'DECLARE_INCIDENT');
+    incidentStore.declareIncident(playAlert);
+  }, [incidentStore, playAlert, log]);
 
   const loggedCeaseTheatre = useCallback(() => {
+    log('INCIDENT', 'CEASE_THEATRE');
     incidentStore.ceaseTheatre();
     if (incidentStore.onboardingStep === 4) {
         incidentStore.setOnboardingStep(-1);
     }
-  }, [incidentStore]);
+  }, [incidentStore, log]);
 
   const handleCommandCease = useCallback(() => {
     const state = useIncidentStore.getState();
     if (state.isDeclared && state.mitigationCount === 0) {
+        log('CMD', 'RESOLVE_DENIED', 'MITIGATION_REQUIRED');
         incidentStore.addTerminalLine({ text: 'ERROR: RESOLUTION DENIED. MITIGATION REQUIRED.', type: 'error' });
         return;
     }
+    log('INCIDENT', 'START_RESOLUTION_SEQUENCE');
     incidentStore.setIsResolving(true);
-  }, [incidentStore]);
+  }, [incidentStore, log]);
 
   const handleNewChatMessage = useCallback(() => {}, []);
 
@@ -91,10 +109,22 @@ export const useIncidentState = () => {
   const { commands, handleCommand: internalHandleCommand } = useCommandRegistry({
     gameMode: incidentStore.gameMode,
     togglePane: loggedTogglePane,
-    openPane: loggedTogglePane,
-    closePane: (id) => windowManager.closePane(id),
-    openAll: () => windowManager.openAll(),
-    closeAll: () => windowManager.closeAll(),
+    openPane: (id) => {
+        log('WINDOW', `OPEN ${id}`);
+        windowManager.openPane(id);
+    },
+    closePane: (id) => {
+        log('WINDOW', `CLOSE ${id}`);
+        windowManager.closePane(id);
+    },
+    openAll: () => {
+        log('WINDOW', 'OPEN_ALL');
+        windowManager.openAll();
+    },
+    closeAll: () => {
+        log('WINDOW', 'CLOSE_ALL');
+        windowManager.closeAll();
+    },
     setStack: loggedSetStack,
     setSeverity: loggedSetSeverity,
     setSlowBurn: loggedSetIsSlowBurn,
@@ -102,38 +132,74 @@ export const useIncidentState = () => {
     handleDeclare: loggedHandleDeclare,
     handleEject: loggedHandleDeclare,
     help: () => { 
+        log('CMD', 'HELP_DISPLAYED');
         incidentStore.setIncidentReport('HELP_DISPLAYED'); 
         incidentStore.setDisplayText('MANUAL_LOADED'); 
     },
-    incrementMitigationCount: incidentStore.incrementMitigationCount,
-    setLogMultiplier: (m: number) => incidentStore.setLogMultiplier(m), 
-    setChatMultiplier: (m: number) => incidentStore.setChatMultiplier(m),
-    setEcoMode: terminalStore.setIsEcoMode, 
-    setIsDebugMode: terminalStore.setIsDebugMode, 
-    setAudio: audioStore.setIsAudioOn, 
-    setIsChaos: incidentStore.setIsChaos,
+    incrementMitigationCount: () => {
+        log('INCIDENT', 'MITIGATION_COUNT_INCREMENTED');
+        incidentStore.incrementMitigationCount();
+    },
+    setLogMultiplier: (m: number) => {
+        log('SYSTEM', `SET_LOG_MULTIPLIER ${m}`);
+        incidentStore.setLogMultiplier(m);
+    },
+    setChatMultiplier: (m: number) => {
+        log('SYSTEM', `SET_CHAT_MULTIPLIER ${m}`);
+        incidentStore.setChatMultiplier(m);
+    },
+    setEcoMode: (on) => {
+        log('SYSTEM', `SET_ECO_MODE ${on}`);
+        terminalStore.setIsEcoMode(on);
+    },
+    setIsDebugMode: (on) => {
+        log('SYSTEM', `SET_DEBUG_MODE ${on}`);
+        terminalStore.setIsDebugMode(on);
+    },
+    setAudio: (on) => {
+        log('AUDIO', `SET_AUDIO_ENABLED ${on}`);
+        audioStore.setIsAudioOn(on);
+    },
+    setIsChaos: (on) => {
+        log('CHAOS', `SET_CHAOS_ENABLED ${on}`);
+        incidentStore.setIsChaos(on);
+    },
     mitigationCount: incidentStore.mitigationCount,
     isDeclared: incidentStore.isDeclared,
     getMitigationCount: () => useIncidentStore.getState().mitigationCount,
     getIsDeclared: () => useIncidentStore.getState().isDeclared,
-    setTheme: terminalStore.setTheme,
+    setTheme: (t) => {
+        log('UI', `SET_THEME ${t}`);
+        terminalStore.setTheme(t);
+    },
     handleLogout: () => {
+        log('SYSTEM', 'USER_LOGOUT');
         incidentStore.setMitigationScore(0);
         terminalStore.handleLogout();
     },
-    setView: incidentStore.setView,
+    setView: (v) => {
+        log('UI', `SET_VIEW ${v}`);
+        incidentStore.setView(v);
+    },
     startPlaybook: (id: string) => { 
-        log('PLAYBOOK', `Start ${id}`);
+        log('PLAYBOOK', `START ${id}`);
         const playbook = Object.values(PLAYBOOKS).find(p => p.id.toLowerCase() === id.toLowerCase());
         if (playbook) {
             startPlaybook(playbook);
         }
     },
-    triggerApproval: (type) => incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Auth required' }),
-    generateStrategy: incidentStore.generateStrategy,
+    triggerApproval: (type) => {
+        log('CHAOS', `TRIGGER_APPROVAL ${type || 'PHRASE'}`);
+        incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Auth required' });
+    },
+    generateStrategy: () => {
+        log('SYSTEM', 'GENERATE_STRATEGY');
+        return incidentStore.generateStrategy();
+    },
     clearInterruption: () => {
         const state = useIncidentStore.getState();
         if (state.activeInterruption) {
+            log('CHAOS', `CLEAR_INTERRUPTION ${state.activeInterruption.execName}`);
             incidentStore.setInterruption(null);
             incidentStore.setMitigationScore(prev => prev + 50);
         }
@@ -142,18 +208,21 @@ export const useIncidentState = () => {
         const state = useIncidentStore.getState();
         const active = state.activeApproval;
         if (active?.type === 'phrase' && active.phrase && phrase.toLowerCase() === active.phrase.toLowerCase()) {
+            log('CHAOS', 'PHRASE_APPROVAL_SUCCESS');
             incidentStore.setApproval(null);
             incidentStore.incrementMitigationCount();
             incidentStore.setMitigationScore(prev => prev + 50);
             return { isValid: true, message: 'AUTHORIZATION_SUCCESSFUL... [OK]' };
         }
         if (state.activeApproval?.type === 'phrase') {
+            log('CHAOS', 'PHRASE_APPROVAL_FAILURE');
             incidentStore.deductStrike();
             return { isValid: false, message: 'ERROR: INVALID_AUTHORIZATION_PHRASE | STRIKE_DEDUCTED' };
         }
         return { isValid: false, message: 'ERROR: NO_ACTIVE_AUTHORIZATION_REQUIRED' };
     },
     copyPlaybook: () => {
+        log('SYSTEM', 'COPY_REPORT_TO_CLIPBOARD');
         const report = useIncidentStore.getState().incidentReport;
         if (report) {
             navigator.clipboard.writeText(report);
@@ -162,16 +231,25 @@ export const useIncidentState = () => {
     },
   });
 
-  const { startPlaybook, stopPlaybook, currentEventIndex, activePlaybook } = usePlaybookEngine({
+  const { startPlaybook, stopPlaybook, resumePlaybook, currentEventIndex, activePlaybook, isWaiting } = usePlaybookEngine({
     sendMessage,
     injectLog: (msg) => { window.dispatchEvent(new CustomEvent('INJECT_LOG', { detail: msg })); },
     setSeverity: loggedSetSeverity,
     setIsChaos: incidentStore.setIsChaos,
     addBeacon: incidentStore.addBeacon,
-    triggerApproval: (type) => incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Playbook Auth' }),
-    triggerOverride: () => incidentStore.setOverride({ code: Math.random().toString(36).substring(2, 8).toUpperCase(), message: 'MANUAL OVERRIDE REQUIRED' }),
+    triggerApproval: (type) => {
+        log('PLAYBOOK', `TRIGGER_APPROVAL ${type || 'PHRASE'}`);
+        incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Playbook Auth' });
+    },
+    triggerOverride: () => {
+        log('PLAYBOOK', 'TRIGGER_OVERRIDE');
+        incidentStore.setOverride({ code: Math.random().toString(36).substring(2, 8).toUpperCase(), message: 'MANUAL OVERRIDE REQUIRED' });
+    },
     triggerInterrupt: () => {},
-    setObjective: (obj) => incidentStore.setObjective(obj),
+    setObjective: (obj) => {
+        log('PLAYBOOK', `SET_OBJECTIVE ${obj?.title || 'NULL'}`);
+        incidentStore.setObjective(obj);
+    },
     declareIncident: loggedHandleDeclare,
     stack: incidentStore.stack,
     operatorName: terminalStore.operatorName
@@ -181,20 +259,25 @@ export const useIncidentState = () => {
     const originalCmd = cmd.trim();
     const state = useIncidentStore.getState();
     
+    log('CMD', 'EXEC', originalCmd);
+
     // Terminal Override Handling
     if (state.activeOverride) {
         if (originalCmd.toUpperCase() === state.activeOverride.code) {
+            log('CMD', 'OVERRIDE_SUCCESS');
             incidentStore.setOverride(null);
             incidentStore.incrementMitigationCount();
+            resumePlaybook();
             const successMsg = 'OVERRIDE_SUCCESSFUL... [OK]';
-            if (state.onboardingStep === -1) incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: successMsg, type: 'output' }]);
+            incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: successMsg, type: 'output' }]);
             return { isValid: true, message: successMsg };
         } else {
+            log('CMD', 'OVERRIDE_FAILURE');
             const penalty = 50000 + Math.floor(Math.random() * 25000);
             incidentStore.setMoneyLost(prev => prev + penalty);
             incidentStore.deductStrike();
             const errorMsg = `ERROR: INVALID_OVERRIDE_CODE. PENALTY: £${penalty.toLocaleString()} | STRIKE_DEDUCTED`;
-            if (state.onboardingStep === -1) incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: errorMsg, type: 'error' }]);
+            incidentStore.setTerminalHistory(prev => [...prev, { text: `> ${originalCmd}`, type: 'command' }, { text: errorMsg, type: 'error' }]);
             return { isValid: false, message: errorMsg };
         }
     }
@@ -202,29 +285,20 @@ export const useIncidentState = () => {
     const result = internalHandleCommand(originalCmd);
     
     // Add to history
-    if (state.onboardingStep === -1 || !result.isValid) {
-        incidentStore.setTerminalHistory(prev => [
-            ...prev, 
-            { text: `> ${originalCmd}`, type: 'command' },
-            ...(result.message ? [{ text: result.message, type: result.isValid ? 'output' : 'error' } as TerminalLine] : [])
-        ]);
-    }
+    incidentStore.setTerminalHistory(prev => [
+        ...prev, 
+        { text: `> ${originalCmd}`, type: 'command' },
+        ...(result.message ? [{ text: result.message, type: result.isValid ? 'output' : 'error' } as TerminalLine] : [])
+    ]);
 
-    // Onboarding Transitions
-    if (result.isValid) {
-        if (state.onboardingStep === 1 && originalCmd.toLowerCase().includes('aws')) {
-            incidentStore.setOnboardingStep(2);
-        } else if (state.onboardingStep === 2 && originalCmd.toLowerCase().includes('p3')) {
-            incidentStore.setOnboardingStep(3);
-        } else if (state.onboardingStep === 3 && (originalCmd.toLowerCase().includes('declare') || originalCmd.toLowerCase().includes('emergency'))) {
-            incidentStore.setOnboardingStep(4);
-        } else if (state.onboardingStep === 4 && (originalCmd.toLowerCase().includes('resolve') || originalCmd.toLowerCase().includes('cease'))) {
-            incidentStore.setOnboardingStep(-1);
-        }
+    // Resume playbook if waiting for a command
+    if (result.isValid && isWaiting) {
+        log('PLAYBOOK', 'RESUME_ON_CMD');
+        resumePlaybook();
     }
 
     return result;
-  }, [internalHandleCommand, incidentStore]);
+  }, [internalHandleCommand, incidentStore, isWaiting, resumePlaybook, log]);
 
   useUrlSync({
     severity: incidentStore.severity,
@@ -274,17 +348,31 @@ export const useIncidentState = () => {
     messages, sendMessage, typingUsers, markAsRead, markAllAsRead,
     commands, handleCommand,
     playLoginChime, playLogoutChime, playPostBeep, playMitigationSuccess, stopAllSounds,
-    activePlaybook, startPlaybook, stopPlaybook,
+    activePlaybook, startPlaybook, stopPlaybook, resumePlaybook,
     currentEventIndex,
     loggedHandleDeclare, loggedCeaseTheatre,
     loggedTogglePane, loggedSetStack, loggedSetSeverity, loggedSetIsSlowBurn,
     scrollRef,
     handleNewChatMessage,
     executeCeaseTheatre: loggedCeaseTheatre,
-    onFocus: (id: PaneId) => windowManager.bringToFront(id),
-    onClose: (id: PaneId) => windowManager.closePane(id),
-    toggleMinimize: (id: PaneId) => windowManager.toggleMinimize(id),
-    onPopOutToggle: (id: PaneId) => windowManager.togglePopOut(id),
-    onSnapMainToggle: (id: PaneId) => windowManager.toggleSnapMain(id)
+    onFocus: (id: PaneId) => {
+        windowManager.bringToFront(id);
+    },
+    onClose: (id: PaneId) => {
+        log('WINDOW', `CLOSE ${id}`);
+        windowManager.closePane(id);
+    },
+    toggleMinimize: (id: PaneId) => {
+        log('WINDOW', `TOGGLE_MINIMIZE ${id}`);
+        windowManager.toggleMinimize(id);
+    },
+    onPopOutToggle: (id: PaneId) => {
+        log('WINDOW', `TOGGLE_POPOUT ${id}`);
+        windowManager.togglePopOut(id);
+    },
+    onSnapMainToggle: (id: PaneId) => {
+        log('WINDOW', `TOGGLE_SNAPMAIN ${id}`);
+        windowManager.toggleSnapMain(id);
+    }
   };
 };

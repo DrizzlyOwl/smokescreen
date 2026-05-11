@@ -4,6 +4,7 @@ import { type Severity, type Stack } from '../data/incidents';
 import type { ChatMessage } from '../contexts/types';
 import { getStackBot } from '../utils/team';
 import { useIncidentStore } from '../store/useIncidentStore';
+import { useDebugLogger } from './useDebugLogger';
 
 interface PlaybookEngineProps {
   sendMessage: (text: string, user: string, id?: string, isBot?: boolean, bio?: string) => void;
@@ -34,6 +35,7 @@ export const usePlaybookEngine = ({
   operatorName,
   declareIncident 
 }: PlaybookEngineProps) => {
+  const { log } = useDebugLogger();
   const [activePlaybook, setActivePlaybook] = useState<Playbook | null>(null);
   const [currentEventIndex, setCurrentIndex] = useState(-1);
   const [isWaiting, setIsWaiting] = useState(false);
@@ -49,19 +51,21 @@ export const usePlaybookEngine = ({
   }, []);
 
   const stopPlaybook = useCallback(() => {
+    log('PLAYBOOK', 'STOP_PLAYBOOK', activePlaybook?.id);
     clearTimer();
     setActivePlaybook(null);
     setCurrentIndex(-1);
     setIsWaiting(false);
     setIsChaos(false);
     setObjective(null);
-  }, [clearTimer, setIsChaos, setObjective]);
+  }, [clearTimer, setIsChaos, setObjective, log, activePlaybook]);
 
   const resumePlaybook = useCallback(() => {
     if (!isWaiting) return;
+    log('PLAYBOOK', 'RESUME_PLAYBOOK', activePlaybook?.id);
     setIsWaiting(false);
     setCurrentIndex(prev => prev + 1);
-  }, [isWaiting]);
+  }, [isWaiting, log, activePlaybook]);
 
   const parseText = useCallback((text: string) => {
     return text
@@ -70,6 +74,7 @@ export const usePlaybookEngine = ({
   }, [stack, operatorName]);
 
   const executeEvent = useCallback((event: PlaybookEvent) => {
+    log('PLAYBOOK', `EXEC_EVENT_${event.type}`, event.payload);
     switch (event.type) {
       case 'CHAT': {
         const p = event.payload as ChatMessage;
@@ -123,7 +128,7 @@ export const usePlaybookEngine = ({
         setIsWaiting(true);
         break;
     }
-  }, [sendMessage, injectLog, setSeverity, setIsChaos, addBeacon, triggerApproval, triggerOverride, triggerInterrupt, setObjective, declareIncident, parseText, stack]);
+  }, [sendMessage, injectLog, setSeverity, setIsChaos, addBeacon, triggerApproval, triggerOverride, triggerInterrupt, setObjective, declareIncident, parseText, stack, log]);
 
   // Main execution loop
   useEffect(() => {

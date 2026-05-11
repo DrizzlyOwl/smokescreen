@@ -60,73 +60,47 @@ vi.mock('./useDebugLogger', () => ({
   })
 }));
 
-describe('Onboarding Tutorial', () => {
+describe('Onboarding Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    useIncidentStore.setState({
-        ...useIncidentStore.getInitialState(),
-        onboardingStep: 0 // Force onboarding
-    });
+    useIncidentStore.setState(useIncidentStore.getInitialState());
     useTerminalStore.setState(useTerminalStore.getInitialState());
   });
 
-  it('starts onboarding on first boot', () => {
+  it('shows arcade specific welcome on first boot in arcade mode', () => {
+    useIncidentStore.setState({ gameMode: 'ARCADE' });
     const { result } = renderHook(() => useIncidentState());
     
-    // Trigger the READY state
     act(() => {
         result.current.setAppState('READY');
     });
 
-    expect(result.current.onboardingStep).toBe(1);
     expect(result.current.terminalHistory).toContainEqual(
-        expect.objectContaining({ text: '!!! OPERATOR CERTIFICATION REQUIRED !!!', type: 'error' })
+        expect.objectContaining({ text: '--- ARCADE_MODE_ACTIVE ---', type: 'system' })
+    );
+    expect(result.current.terminalHistory).toContainEqual(
+        expect.objectContaining({ text: '!!! OPERATOR_CERTIFICATION_REQUIRED !!!', type: 'error' })
+    );
+    expect(result.current.terminalHistory).toContainEqual(
+        expect.objectContaining({ text: "TYPE 'playbook start l0-certification' TO BEGIN TRAINING.", type: 'system' })
     );
   });
 
-  it('advances steps only with correct commands', () => {
+  it('shows sandbox specific welcome on first boot in sandbox mode', () => {
+    useIncidentStore.setState({ gameMode: 'SANDBOX' });
     const { result } = renderHook(() => useIncidentState());
     
     act(() => {
         result.current.setAppState('READY');
     });
 
-    // Try wrong command
-    act(() => {
-        result.current.handleCommand('help');
-    });
-    expect(result.current.onboardingStep).toBe(1);
-    expect(result.current.terminalHistory[result.current.terminalHistory.length - 1].text).toContain("TYPE 'aws'");
-
-    // Step 1: aws
-    act(() => {
-        result.current.handleCommand('aws');
-    });
-    expect(result.current.onboardingStep).toBe(2);
-    expect(result.current.stack).toBe('AWS');
-
-    // Step 2: p3
-    act(() => {
-        result.current.handleCommand('p3');
-    });
-    expect(result.current.onboardingStep).toBe(3);
-    expect(result.current.severity).toBe('P3');
-
-    // Step 3: declare
-    act(() => {
-        result.current.handleCommand('declare');
-    });
-    expect(result.current.onboardingStep).toBe(4);
-    expect(result.current.isDeclared).toBe(true);
-
-    // Step 4: resolve
-    act(() => {
-        // Need to simulate a mitigation count for resolve to work in the registry
-        useIncidentStore.getState().incrementMitigationCount();
-        result.current.handleCommand('resolve');
-    });
+    expect(result.current.terminalHistory).toContainEqual(
+        expect.objectContaining({ text: '--- SANDBOX_MODE_ACTIVE ---', type: 'system' })
+    );
+    expect(result.current.terminalHistory).toContainEqual(
+        expect.objectContaining({ text: "TYPE 'help' FOR SYSTEM_MANUAL.", type: 'system' })
+    );
     expect(result.current.onboardingStep).toBe(-1);
-    expect(localStorage.getItem('smokescreen_onboarded')).toBe('true');
   });
 });

@@ -143,90 +143,104 @@ export const SettingsPane = ({
         <section className="settings__section">
           <h2>02. VISUAL_THEMES</h2>
           <p className="text-dim">
-            Switch between classic hardware aesthetics to match your terminal emulator preference.
+            Switch between hardware aesthetics to match your terminal emulator preference.
           </p>
-          <div className="settings__theme-grid">
-            <Button 
-                onClick={() => setTheme('classic')} 
-                active={currentTheme === 'classic'}
-                size="x-small"
-            >
-                CLASSIC
-            </Button>
-            <Button 
-                onClick={() => setTheme('amber')} 
-                active={currentTheme === 'amber'}
-                size="x-small"
-                style={{ color: 'var(--terminal-amber)', borderColor: 'var(--terminal-amber)' }}
-            >
-                AMBER
-            </Button>
-            <Button 
-                onClick={() => setTheme('cobalt')} 
-                active={currentTheme === 'cobalt'}
-                size="x-small"
-                style={{ color: 'var(--terminal-cobalt)', borderColor: 'var(--terminal-cobalt)' }}
-            >
-                COBALT
-            </Button>
-            <Button 
-                onClick={() => setTheme('dracula')} 
-                active={currentTheme === 'dracula'}
-                size="x-small"
-                style={{ color: '#bd93f9', borderColor: '#bd93f9' }}
-            >
-                DRACULA
-            </Button>
-            <Button 
-                onClick={() => setTheme('monokai')} 
-                active={currentTheme === 'monokai'}
-                size="x-small"
-                style={{ color: '#f92672', borderColor: '#f92672' }}
-            >
-                MONOKAI
-            </Button>
-            <Button 
-                onClick={() => setTheme('cyberpunk')} 
-                active={currentTheme === 'cyberpunk'}
-                size="x-small"
-                style={{ color: '#ff00ff', borderColor: '#ff00ff', textShadow: '0 0 5px #ff00ff' }}
-            >
-                CYBERPUNK
-            </Button>
-            <Button 
-                onClick={() => setTheme('high-contrast')} 
-                active={currentTheme === 'high-contrast'}
-                size="x-small"
-                style={{ color: '#ffffff', borderColor: '#ffffff', background: '#000000' }}
-            >
-                CONTRAST
-            </Button>
+          
+          <div className="settings__theme-group">
+            <h3 className="settings__group-label">DESIGNER_PROFILES</h3>
+            <div className="settings__theme-grid">
+              <Button 
+                  onClick={() => setTheme('classic')} 
+                  active={currentTheme === 'classic'}
+                  size="x-small"
+              >
+                  CLASSIC
+              </Button>
+              <Button 
+                  onClick={() => setTheme('dracula')} 
+                  active={currentTheme === 'dracula'}
+                  size="x-small"
+                  style={{ color: '#bd93f9', borderColor: '#bd93f9' }}
+              >
+                  DRACULA
+              </Button>
+              <Button 
+                  onClick={() => setTheme('monokai')} 
+                  active={currentTheme === 'monokai'}
+                  size="x-small"
+                  style={{ color: '#e6db74', borderColor: '#e6db74' }}
+              >
+                  MONOKAI
+              </Button>
+            </div>
           </div>
-          <div className="settings__theme-grid" style={{ marginTop: '10px' }}>
-            <Button 
-                onClick={() => setTheme('protanopia')} 
-                active={currentTheme === 'protanopia'}
-                size="x-small"
-                style={{ color: '#0072B2', borderColor: '#0072B2' }}
-            >
-                PROTAN
-            </Button>
-            <Button 
-                onClick={() => setTheme('deuteranopia')} 
-                active={currentTheme === 'deuteranopia'}
-                size="x-small"
-                style={{ color: '#357ebd', borderColor: '#357ebd' }}
-            >
-                DEUTER
-            </Button>
-            <Button 
-                onClick={() => setTheme('tritanopia')} 
-                active={currentTheme === 'tritanopia'}
-                size="x-small"
-                style={{ color: '#1f78b4', borderColor: '#1f78b4' }}
-            >
-                TRITAN
-            </Button>
+
+          <div className="settings__theme-group">
+            <h3 className="settings__group-label">HIGH_INTENSITY</h3>
+            <div className="settings__theme-grid">
+              <Button 
+                  onClick={() => setTheme('amber')} 
+                  active={currentTheme === 'amber'}
+                  size="x-small"
+                  style={{ color: 'var(--terminal-amber)', borderColor: 'var(--terminal-amber)' }}
+              >
+                  AMBER
+              </Button>
+              <Button 
+                  onClick={() => setTheme('cobalt')} 
+                  active={currentTheme === 'cobalt'}
+                  size="x-small"
+                  style={{ color: 'var(--terminal-cobalt)', borderColor: 'var(--terminal-cobalt)' }}
+              >
+                  COBALT
+              </Button>
+              <Button 
+                  onClick={() => setTheme('cyberpunk')} 
+                  active={currentTheme === 'cyberpunk'}
+                  size="x-small"
+                  style={{ color: '#ff00ff', borderColor: '#ff00ff', textShadow: '0 0 5px #ff00ff' }}
+              >
+                  CYBERPUNK
+              </Button>
+              <Button 
+                  onClick={() => setTheme('high-contrast')} 
+                  active={currentTheme === 'high-contrast'}
+                  size="x-small"
+                  style={{ color: '#ffffff', borderColor: '#ffffff', background: '#000000' }}
+              >
+                  CONTRAST
+              </Button>
+            </div>
+          </div>
+
+          <div className="settings__theme-group">
+            <h3 className="settings__group-label">ACCESSIBILITY</h3>
+            <div className="settings__theme-grid">
+              <Button 
+                  onClick={() => setTheme('protanopia')} 
+                  active={currentTheme === 'protanopia'}
+                  size="x-small"
+                  style={{ color: '#0072B2', borderColor: '#0072B2' }}
+              >
+                  PROTAN
+              </Button>
+              <Button 
+                  onClick={() => setTheme('deuteranopia')} 
+                  active={currentTheme === 'deuteranopia'}
+                  size="x-small"
+                  style={{ color: '#357ebd', borderColor: '#357ebd' }}
+              >
+                  DEUTER
+              </Button>
+              <Button 
+                  onClick={() => setTheme('tritanopia')} 
+                  active={currentTheme === 'tritanopia'}
+                  size="x-small"
+                  style={{ color: '#1f78b4', borderColor: '#1f78b4' }}
+              >
+                  TRITAN
+              </Button>
+            </div>
           </div>
         </section>
 

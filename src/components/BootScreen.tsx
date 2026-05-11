@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { getRandomItem } from '../utils/telemetry';
 import { MOTD } from './MOTD';
+import { useDebugLogger } from '../hooks/useDebugLogger';
 
 interface NavigatorUAData {
   getHighEntropyValues: (hints: string[]) => Promise<{
@@ -34,6 +35,7 @@ interface HardwareIntelligence {
 }
 
 export const BootScreen = ({ terminalId, onComplete, playPostBeep }: { terminalId: string, onComplete: () => void, playPostBeep: () => void }) => {
+  const { log } = useDebugLogger();
   const [visibleLines, setVisibleLines] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const [memoryKB, setMemoryKB] = useState(0);
@@ -52,6 +54,7 @@ export const BootScreen = ({ terminalId, onComplete, playPostBeep }: { terminalI
 
   // Gather high-entropy hardware data
   useEffect(() => {
+    log('BOOT', 'BIOS_START');
     const gatherIntel = async () => {
         const intel: Partial<HardwareIntelligence> = {
             cpuCores: nav.hardwareConcurrency,
@@ -77,7 +80,7 @@ export const BootScreen = ({ terminalId, onComplete, playPostBeep }: { terminalI
     };
 
     gatherIntel();
-  }, [nav]);
+  }, [nav, log]);
 
   const [easterEgg] = useState(() => {
     const eggs = [

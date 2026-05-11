@@ -48,6 +48,23 @@
     gap: rem(10);
   }
 
+  &__theme-group {
+    display: flex;
+    flex-direction: column;
+    gap: rem(8);
+    margin-top: rem(10);
+  }
+
+  &__group-label {
+    font-size: rem(10);
+    color: var(--ui-text-dim);
+    letter-spacing: rem(1);
+    font-weight: bold;
+    border-bottom: rem(1) solid color-mix(in srgb, var(--ui-border), transparent 80%);
+    padding-bottom: rem(4);
+    margin: 0;
+  }
+
   &__option {
     display: flex;
     gap: rem(15);

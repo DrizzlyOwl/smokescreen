@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, memo } from 'react';
 import { Pane } from './Pane';
 import { BugIcon } from './Icons';
 import { useSync } from '../hooks/useSync';
+import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/DebugConsole.scss';
 
 interface DebugLog {
@@ -85,10 +86,6 @@ export const DebugConsole = ({
     onMinimizeToggle,
     initialPos = { x: 50, y: 400 },
     initialSize = { width: 500, height: 400 },
-    chatMultiplier = 1,
-    setChatMultiplier = () => {},
-    logMultiplier = 1,
-    setLogMultiplier = () => {},
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
@@ -102,10 +99,6 @@ export const DebugConsole = ({
     onMinimizeToggle: () => void,
     initialPos?: { x: number, y: number },
     initialSize?: { width: number, height: number },
-    chatMultiplier?: number,
-    setChatMultiplier?: (val: number) => void,
-    logMultiplier?: number,
-    setLogMultiplier?: (val: number) => void,
     isPoppedOut?: boolean,
     onPopOutToggle?: () => void,
     isSnappedMain?: boolean,
@@ -114,6 +107,11 @@ export const DebugConsole = ({
   const [logs, setLogs] = useState<DebugLog[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { subscribe } = useSync();
+  
+  const chatMultiplier = useIncidentStore(state => state.chatMultiplier);
+  const logMultiplier = useIncidentStore(state => state.logMultiplier);
+  const setChatMultiplier = useIncidentStore(state => state.setChatMultiplier);
+  const setLogMultiplier = useIncidentStore(state => state.setLogMultiplier);
 
   useEffect(() => {
     const unsubscribe = subscribe((data) => {

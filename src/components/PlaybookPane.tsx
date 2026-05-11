@@ -56,17 +56,25 @@ export const PlaybookPane = ({
 
         <div className="playbooks__list">
           {Object.values(PLAYBOOKS).map((playbook) => (
-            <div key={playbook.id} className="playbooks__card">
+            <div key={playbook.id} className={`playbooks__card ${playbook.difficulty === 'L0' ? 'playbooks__card--tutorial' : ''}`}>
               <h3>{playbook.name}</h3>
+              {playbook.difficulty === 'L0' && <div className="playbooks__badge">BEGINNER_FRIENDLY</div>}
               <div className="playbooks__card-desc">{playbook.description}</div>
-              <div className="playbooks__card-scenario">THREAT_LEVEL: <span className="text-amber">{playbook.id.includes('l1') ? 'P3' : playbook.id.includes('l2') ? 'P3' : playbook.id.includes('l3') ? 'P1' : 'P0'}</span></div>
+              <div className="playbooks__card-scenario">
+                MIN_SEVERITY: <span className="text-amber">
+                    {playbook.difficulty === 'L0' ? 'P3' : 
+                     playbook.difficulty === 'L1' ? 'P3' : 
+                     playbook.difficulty === 'L2' ? 'P3' : 
+                     playbook.difficulty === 'L3' ? 'P1' : 'P0'}
+                </span>
+              </div>
               <Button 
                 onClick={() => onSelectPlaybook(playbook)}
-                variant="primary"
+                variant={playbook.difficulty === 'L0' ? 'success' : 'primary'}
                 size="small"
                 fullWidth
               >
-                INITIALIZE_SCENARIO
+                {playbook.difficulty === 'L0' ? 'START_CERTIFICATION' : 'INITIALIZE_SCENARIO'}
               </Button>
             </div>
           ))}

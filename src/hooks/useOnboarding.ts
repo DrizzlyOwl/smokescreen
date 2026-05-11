@@ -10,35 +10,22 @@ export const useOnboarding = () => {
   useEffect(() => {
     if (terminalStore.appState === 'READY' && !initialReadySet.current) {
         initialReadySet.current = true;
-        if (incidentStore.onboardingStep === 0) {
-            incidentStore.setOnboardingStep(1);
+        
+        if (incidentStore.gameMode === 'ARCADE') {
             incidentStore.setTerminalHistory([
-                { text: '!!! OPERATOR CERTIFICATION REQUIRED !!!', type: 'error' },
-                { text: "TYPE 'aws' TO INITIALIZE PRIMARY STACK.", type: 'system' }
+                { text: '--- ARCADE_MODE_ACTIVE ---', type: 'system' },
+                { text: '!!! OPERATOR_CERTIFICATION_REQUIRED !!!', type: 'error' },
+                { text: "TYPE 'playbook start l0-certification' TO BEGIN TRAINING.", type: 'system' }
             ]);
         } else {
-            if (incidentStore.gameMode === 'ARCADE') {
-                incidentStore.setTerminalHistory([{ text: 'CRITICAL_INCIDENT_LOADED... [OK]', type: 'system' }, { text: 'PREPARE FOR MISSION BRIEFING.', type: 'system' }]);
-            } else {
-                incidentStore.setTerminalHistory([{ text: 'SYSTEM_READY. AWAITING_COMMAND...', type: 'system' }]);
-            }
+            incidentStore.setTerminalHistory([
+                { text: '--- SANDBOX_MODE_ACTIVE ---', type: 'system' },
+                { text: 'SYSTEM_READY. UNRESTRICTED_ACCESS_GRANTED.', type: 'system' },
+                { text: "TYPE 'help' FOR SYSTEM_MANUAL.", type: 'system' }
+            ]);
+            // Ensure Sandbox users aren't blocked by legacy onboarding logic
+            incidentStore.setOnboardingStep(-1);
         }
     }
-  }, [terminalStore.appState, incidentStore.gameMode, incidentStore.onboardingStep, incidentStore.setOnboardingStep, incidentStore]);
-
-  const lastStepRef = useRef(incidentStore.onboardingStep);
-  useEffect(() => {
-    if (incidentStore.onboardingStep !== lastStepRef.current) {
-        const step = incidentStore.onboardingStep;
-        lastStepRef.current = step;
-        
-        if (step === 2) {
-            incidentStore.setTerminalHistory(prev => [...prev, { text: "TYPE 'p3' TO ESCALATE THREAT LEVEL.", type: 'system' }]);
-        } else if (step === 3) {
-            incidentStore.setTerminalHistory(prev => [...prev, { text: "TYPE 'declare' TO ENGAGE THEATRE.", type: 'system' }]);
-        } else if (step === 4) {
-            incidentStore.setTerminalHistory(prev => [...prev, { text: "TYPE 'resolve' TO CEASE THEATRE.", type: 'system' }]);
-        }
-    }
-  }, [incidentStore.onboardingStep, incidentStore]);
+  }, [terminalStore.appState, incidentStore.gameMode, incidentStore.setTerminalHistory, incidentStore.setOnboardingStep, incidentStore]);
 };

@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useDebugLogger } from './useDebugLogger';
 
 export const useDraggable = (initialPos = { x: 20, y: 20 }, storageKey?: string) => {
+  const { log } = useDebugLogger();
   const [position, setPosition] = useState(() => {
     if (storageKey) {
       const saved = localStorage.getItem(`smokescreen_pos_${storageKey}`);
@@ -53,8 +55,11 @@ export const useDraggable = (initialPos = { x: 20, y: 20 }, storageKey?: string)
   }, [isDragging, offset, storageKey]);
 
   const onMouseUp = useCallback(() => {
+    if (isDragging) {
+      log('WINDOW', `MOVE_${storageKey?.toUpperCase() || 'PANE'}`, position);
+    }
     setIsDragging(false);
-  }, []);
+  }, [isDragging, log, storageKey, position]);
 
   useEffect(() => {
     if (isDragging) {

@@ -9,10 +9,12 @@ import { SystemControlCluster } from './components/SystemControlCluster';
 import { ApprovalModal } from './components/ApprovalModal';
 import { AfterActionReport } from './components/AfterActionReport';
 import { PauseScreen } from './components/PauseScreen';
+import { useDebugLogger } from './hooks/useDebugLogger';
 import './App.scss';
 
 function AppContent() {
   const state = useIncidentState();
+  const { log } = useDebugLogger();
 
   useEffect(() => {
     document.body.setAttribute('data-theme', state.theme);
@@ -20,14 +22,20 @@ function AppContent() {
 
   if (state.appState === 'SPLASH') {
     return <SecureGateway 
-        onComplete={() => state.setAppState('READY')} 
+        onComplete={() => {
+            log('SYSTEM', 'GATEWAY_SUCCESS');
+            state.setAppState('READY');
+        }} 
         playLoginChime={state.playLoginChime}
     />;
   }
 
   if (state.appState === 'BOOT') {
     return <BootScreen 
-      onComplete={() => state.setAppState('SPLASH')} 
+      onComplete={() => {
+        log('BOOT', 'BIOS_COMPLETE');
+        state.setAppState('SPLASH');
+      }} 
       terminalId={state.terminalId}
       playPostBeep={state.playPostBeep}
     />;
@@ -44,6 +52,7 @@ function AppContent() {
   }
 
   const handleLogout = () => {
+    log('SYSTEM', 'SHUTDOWN_INITIATED');
     state.playLogoutChime();
     state.setAppState('SHUTDOWN');
     state.handleLogout();
@@ -54,7 +63,10 @@ function AppContent() {
       {state.activeApproval && (
         <ApprovalModal 
           approval={state.activeApproval} 
-          onResolve={() => state.setApproval(null)} 
+          onResolve={() => {
+            state.setApproval(null);
+            state.resumePlaybook();
+          }} 
           onFail={(reason) => {
             state.deductStrike();
             state.setTerminalHistory(prev => [
