@@ -204,7 +204,7 @@ export const useIncidentState = () => {
     generateStrategy: incidentStore.generateStrategy,
     scenarios: SCENARIOS,
     startScenario: (id: string) => {
-        const scenario = (SCENARIOS as any)[id];
+        const scenario = SCENARIOS[id];
         if (scenario) startScenario(scenario);
     },
     playDegauss,
