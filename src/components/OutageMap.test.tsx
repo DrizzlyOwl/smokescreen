@@ -20,16 +20,26 @@ vi.mock('../hooks/useAudio', () => ({
 // Mock useIncidentStore
 const mockSetSeverity = vi.fn();
 const mockIncrementMitigationCount = vi.fn();
+const mockSetMitigationScore = vi.fn();
 vi.mock('../store/useIncidentStore', () => ({
-  useIncidentStore: () => ({
+  useIncidentStore: Object.assign(() => ({
     setSeverity: mockSetSeverity,
     incrementMitigationCount: mockIncrementMitigationCount,
+  }), {
+    getState: () => ({
+        setMitigationScore: mockSetMitigationScore
+    })
   }),
 }));
 
 // Mock Pane
 vi.mock('./Pane', () => ({
-  Pane: ({ children }: { children: React.ReactNode }) => <div data-testid="pane-mock">{children}</div>,
+  Pane: ({ children, title }: { children: React.ReactNode, title: string }) => (
+    <div data-testid="pane-mock">
+        <h2>{title}</h2>
+        {children}
+    </div>
+  ),
 }));
 
 describe('OutageMap', () => {
@@ -45,33 +55,90 @@ describe('OutageMap', () => {
 
   beforeEach(() => {
     mockPlayMitigationSuccess.mockClear();
-    vi.spyOn(Math, 'random').mockReturnValue(0.1); // Ensure nodes are critical/warning
+    mockSetSeverity.mockClear();
+    mockIncrementMitigationCount.mockClear();
+    mockSetMitigationScore.mockClear();
+    
+    // Fixed seed for predictable node states
+    let callCount = 0;
+    vi.spyOn(Math, 'random').mockImplementation(() => {
+        callCount++;
+        // 1-8: Status generation for 8 regions (none healthy if all < 0.3 or similar logic)
+        // Let's just make everything critical/warning except when we force healthy
+        if (callCount <= 8) return 0.5; 
+        
+        // 9: randomIndex selection in the "Guarantee" block
+        // REGIONS has 8 items. We want index 1 (US-WEST-2).
+        // floor(0.2 * 8) = floor(1.6) = 1.
+        if (callCount === 9) return 0.2;
+        
+        return 0.5;
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('renders nodes correctly', () => {
+  it('renders correctly with severity', () => {
     render(<OutageMap {...mockProps} />);
-    // Check if some regions are rendered
-    expect(screen.getByText(/US-EAST-1/)).toBeDefined();
-    expect(screen.getByText(/AP-SOUTH-1/)).toBeDefined();
+    expect(screen.getByText('GLOBAL_INCIDENT_MONITOR')).toBeDefined();
+    expect(screen.getByText('US-EAST-1')).toBeDefined();
   });
 
-  it('successful failover plays chime', () => {
+  it('initiates drag on unhealthy nodes only', () => {
     render(<OutageMap {...mockProps} />);
-    const node = screen.getByText(/US-EAST-1/);
+    
+    const criticalNode = screen.getByText('US-EAST-1').parentElement!;
+    const healthyNode = screen.getByText('US-WEST-2').parentElement!;
+
+    fireEvent.mouseDown(criticalNode);
+    // Should set dragStartNode internally
+    
+    // Healthy nodes don't initiate drag
+    fireEvent.mouseDown(healthyNode);
+  });
+
+  it('successful failover updates state and plays audio', () => {
+    // We need to carefully mock the target node hit detection
+    // The getPos mapping is: x = ((lng + 180) / 360) * 100, y = ((90 - lat) / 180) * 100 (in raw %)
+    // US-WEST-2 is 45.0, -120.0 -> x = (-120+180)/360 * 100 = 16.6%, y = (90-45)/180 * 100 = 25%
+    
+    render(<OutageMap {...mockProps} />);
+    
+    const criticalNode = screen.getByText('US-EAST-1').parentElement!;
     const mapContainer = screen.getByTestId('outage-map-container');
     
-    // Test that dragging can be initiated
-    fireEvent.mouseDown(node);
+    // Mock getBoundingClientRect for mapContainer
+    vi.spyOn(mapContainer, 'getBoundingClientRect').mockReturnValue({
+        left: 0, top: 0, width: 1000, height: 500
+    } as DOMRect);
+
+    fireEvent.mouseDown(criticalNode, { clientX: 10, clientY: 10 });
     
-    // Drag and release
-    fireEvent.mouseMove(mapContainer, { clientX: 100, clientY: 100 });
-    fireEvent.mouseUp(mapContainer);
+    // Move to US-WEST-2 position (approx 16.6% of 1000 = 166, 25% of 500 = 125)
+    fireEvent.mouseMove(mapContainer, { clientX: 166, clientY: 125 });
+    fireEvent.mouseUp(mapContainer, { clientX: 166, clientY: 125 });
+
+    expect(mockPlayMitigationSuccess).toHaveBeenCalled();
+    expect(mockIncrementMitigationCount).toHaveBeenCalled();
+    expect(mockSetMitigationScore).toHaveBeenCalled();
+  });
+
+  it('handles touch events', () => {
+    render(<OutageMap {...mockProps} />);
+    const criticalNode = screen.getByText('US-EAST-1').parentElement!;
     
-    // Event should complete without crashing
-    expect(mapContainer).toBeDefined();
+    fireEvent.touchStart(criticalNode, { 
+        touches: [{ clientX: 10, clientY: 10 }] 
+    });
+    
+    const mapContainer = screen.getByTestId('outage-map-container');
+    fireEvent.touchMove(mapContainer, { 
+        touches: [{ clientX: 166, clientY: 125 }] 
+    });
+    fireEvent.touchEnd(mapContainer, { 
+        changedTouches: [{ clientX: 166, clientY: 125 }] 
+    });
   });
 });

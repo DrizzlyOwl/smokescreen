@@ -83,7 +83,7 @@ describe('Onboarding Hook', () => {
         expect.objectContaining({ text: '!!! OPERATOR_CERTIFICATION_REQUIRED !!!', type: 'error' })
     );
     expect(result.current.terminalHistory).toContainEqual(
-        expect.objectContaining({ text: "TYPE 'playbook start l0-certification' TO BEGIN TRAINING.", type: 'system' })
+        expect.objectContaining({ text: "TYPE 'scenario l0-certification' TO BEGIN TRAINING.", type: 'system' })
     );
   });
 

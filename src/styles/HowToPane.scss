@@ -1,9 +1,105 @@
 @use 'utils' as *;
 @use 'mixins' as *;
 
+.manual-intro {
+  margin-bottom: rem(40);
+  border-bottom: 1px solid var(--terminal-border);
+  padding-bottom: rem(20);
+}
+
 .how-to {
   display: flex; 
   flex-direction: column; 
-  gap: rem(30);
+  gap: rem(40);
   @include technical-typography;
+
+  h2 {
+    color: var(--terminal-amber);
+    font-size: rem(18);
+    letter-spacing: 2px;
+    margin-bottom: rem(15);
+    border-left: 4px solid var(--terminal-amber);
+    padding-left: rem(12);
+  }
+
+  code {
+    background: rgba(0,0,0,0.3);
+    padding: rem(2) rem(6);
+    border: 1px solid var(--terminal-border);
+    color: var(--terminal-amber);
+  }
+}
+
+.step-guide {
+  display: flex;
+  flex-direction: column;
+  gap: rem(20);
+  margin-top: rem(20);
+
+  .step {
+    display: flex;
+    gap: rem(20);
+    align-items: flex-start;
+
+    &-number {
+      background: var(--terminal-amber);
+      color: #000;
+      font-weight: bold;
+      padding: rem(4) rem(10);
+      font-size: rem(12);
+      min-width: rem(80);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    &-content {
+      p { margin: 0 0 rem(8) 0; }
+    }
+  }
+}
+
+.command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(rem(250), 1fr));
+  gap: rem(20);
+  margin-top: rem(20);
+
+  .command-item {
+    border: 1px solid var(--terminal-border);
+    padding: rem(15);
+    background: rgba(var(--terminal-green-rgb), 0.05);
+
+    .command-name {
+      display: block;
+      color: var(--terminal-green);
+      font-weight: bold;
+      font-family: var(--font-mono);
+      margin-bottom: rem(5);
+      
+      &::before { content: '> '; }
+    }
+
+    .command-desc {
+      font-size: rem(13);
+      line-height: 1.4;
+      opacity: 0.8;
+    }
+  }
+}
+
+.pro-tips {
+  list-style: none;
+  padding: 0;
+  
+  li {
+    margin-bottom: rem(10);
+    padding-left: rem(20);
+    position: relative;
+
+    &::before {
+      content: '⚡';
+      position: absolute;
+      left: 0;
+    }
+  }
 }

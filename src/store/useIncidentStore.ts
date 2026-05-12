@@ -1,8 +1,10 @@
-import { getNodeType, NodeType } from '../utils/nodeTypes';
+import { NodeType } from '../utils/nodeTypes';
 import { create } from 'zustand';
-import { generateIncidentReport, generateAIIncidentReport, type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
+import { type Severity, type Stack } from '../data/incidents';
 import { getInitialStateFromUrl } from '../hooks/useUrlSync';
 import type { Objective } from '../contexts/types';
+import { incidentService } from '../services/incidentService';
+import { reportService } from '../services/reportService';
 
 export interface TerminalLine {
   text: string;
@@ -222,45 +224,39 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   })),
 
   healNodes: (type) => set((state) => {
-    const next = { ...state.serviceHealth };
-    let healedCount = 0;
-    Object.keys(next).forEach(key => {
-        const wasDown = next[key] === 'DN';
-        const matched = getNodeType(key) === type;
-
-        if (matched && wasDown) {
-            next[key] = 'UP';
-            healedCount++;
-        }
-    });
-
-    const anyStillDown = Object.values(next).some(s => s === 'DN');
-    const bonus = (!anyStillDown && Object.values(state.serviceHealth).some(s => s === 'DN')) ? 50 : 0;
+    const { nextHealth, scoreBonus } = incidentService.calculateHealing(state.serviceHealth, type);
     
-    if (healedCount > 0) {
-        state.setMitigationScore(prev => prev + (healedCount * 10) + bonus);
+    if (scoreBonus > 0) {
+        state.setMitigationScore(prev => prev + scoreBonus);
     }
 
-    return { serviceHealth: next };
+    return { serviceHealth: nextHealth };
   }),
 
   tickSlowBurn: (playAlert, declare) => {
     const { isSlowBurn, severity, slowBurnCountdown } = get();
     if (!isSlowBurn || severity === 'P0') return;
 
-    if (slowBurnCountdown <= 1) {
-        if (severity === 'NOMINAL') {
-            set({ severity: 'P3', status: 'MINOR DEGRADATION', slowBurnCountdown: 30, isDeclared: true });
-            declare(playAlert);
-        } else if (severity === 'P3') {
-            set({ severity: 'P1', status: 'CRITICAL ALERT', slowBurnCountdown: 30 });
-            playAlert('P1');
-        } else if (severity === 'P1') {
-            set({ severity: 'P0', status: 'BREACH DETECTED', slowBurnCountdown: 0 });
-            playAlert('P0');
+    const nextState = incidentService.getNextSlowBurnState(severity, slowBurnCountdown);
+    
+    if (nextState.nextSeverity !== severity || nextState.nextCountdown !== slowBurnCountdown) {
+        const update: Partial<IncidentState> = {
+            slowBurnCountdown: nextState.nextCountdown
+        };
+
+        if (nextState.nextSeverity !== severity) {
+            update.severity = nextState.nextSeverity;
+            if (nextState.nextStatus) update.status = nextState.nextStatus;
+            if (nextState.shouldDeclare) update.isDeclared = true;
         }
-    } else {
-        set({ slowBurnCountdown: slowBurnCountdown - 1 });
+
+        set(update);
+
+        if (nextState.shouldDeclare) {
+            declare(playAlert);
+        } else if (nextState.playAlert) {
+            playAlert(nextState.playAlert);
+        }
     }
   },
 
@@ -268,16 +264,7 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     const { severity, stack } = get();
     if (severity === 'NOMINAL') return;
     
-    // Pick 2-4 random nodes to fail
-    const systems = stackJargon[stack]?.systems || commonJargon.systems;
-    const shuffled = [...systems].sort(() => 0.5 - Math.random());
-    const count = Math.floor(Math.random() * 3) + 2; // 2 to 4
-    const failedNodes = shuffled.slice(0, count);
-    
-    const initialHealth: Record<string, 'UP' | 'DN'> = {};
-    systems.forEach(s => {
-        initialHealth[s.toUpperCase()] = failedNodes.includes(s) ? 'DN' : 'UP';
-    });
+    const initialHealth = incidentService.generateFailedNodes(stack);
 
     set((state) => ({ 
         status: 'BREACH DETECTED', 
@@ -295,9 +282,9 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     const apiKey = localStorage.getItem('gemini_api_key');
     let result;
     if (apiKey) {
-        result = await generateAIIncidentReport(severity, stack, apiKey);
+        result = await reportService.generateAIIncidentReport(severity, stack, apiKey);
     } else {
-        result = generateIncidentReport(severity, stack);
+        result = reportService.generateIncidentReport(severity, stack);
     }
     
     set({ 

@@ -203,12 +203,74 @@ export const useIncidentState = () => {
     ceaseTheatre: loggedCeaseTheatre,
     generateStrategy: incidentStore.generateStrategy,
     scenarios: SCENARIOS,
-    startScenario
+    startScenario,
+    clearInterruption: () => {
+        log('INCIDENT', 'CLEAR_INTERRUPTION');
+        incidentStore.setInterruption(null);
+    },
+    handlePhraseApprove: (phrase: string) => {
+        const active = incidentStore.activeApproval;
+        if (active && active.type === 'phrase' && active.phrase?.toLowerCase() === phrase.toLowerCase()) {
+            log('INCIDENT', 'PHRASE_APPROVED');
+            incidentStore.setApproval(null);
+            playMitigationSuccess();
+            incidentStore.incrementMitigationCount();
+            return { isValid: true, message: 'AUTHORIZATION_GRANTED' };
+        }
+        return { isValid: false, message: 'AUTHORIZATION_DENIED: INVALID_PHRASE' };
+    },
+    triggerApproval: (type) => {
+        log('INCIDENT', `TRIGGER_APPROVAL ${type || 'PHRASE'}`);
+        incidentStore.setApproval({ id: Math.random().toString(), type: type || 'phrase', message: 'Manual Auth' });
+    },
+    setTheme: (theme) => {
+        log('SYSTEM', `SET_THEME ${theme}`);
+        terminalStore.setTheme(theme);
+    },
+    copyPlaybook: () => {
+        log('SYSTEM', 'COPY_PLAYBOOK');
+        // implementation if needed
+    },
+    setView: (v) => {
+        log('SYSTEM', `SET_VIEW ${v}`);
+        incidentStore.setView(v);
+    },
+    handleLogout: () => {
+        log('SYSTEM', 'LOGOUT');
+        playLogoutChime();
+        // implement logout logic
+    },
+    getIsDeclared: () => useIncidentStore.getState().isDeclared
   });
 
   const handleCommand = useCallback((cmd: string) => {
+    incidentStore.addTerminalLine({ text: cmd, type: 'command' });
+
+    // Handle Active Override Mini-game - Use direct state access for freshness
+    const state = useIncidentStore.getState();
+    const activeOverride = state.activeOverride;
+    if (activeOverride) {
+        if (cmd.toUpperCase() === activeOverride.code.toUpperCase()) {
+            log('INCIDENT', 'OVERRIDE_SUCCESS');
+            incidentStore.setOverride(null);
+            playMitigationSuccess();
+            incidentStore.incrementMitigationCount();
+            incidentStore.addTerminalLine({ text: 'MANUAL OVERRIDE GRANTED. SYSTEM STABILIZED.', type: 'output' });
+            return { isValid: true, message: 'SUCCESS' };
+        } else {
+            log('INCIDENT', 'OVERRIDE_FAILURE');
+            incidentStore.setMoneyLost(prev => prev + 5000);
+            incidentStore.addTerminalLine({ text: 'ERROR: INVALID OVERRIDE CODE. FINANCIAL PENALTY INCURRED.', type: 'error' });
+            return { isValid: false, message: 'INVALID_CODE' };
+        }
+    }
+
     const result = internalHandleCommand(cmd);
     
+    if (result.message) {
+      incidentStore.addTerminalLine({ text: result.message, type: result.isValid ? 'output' : 'error' });
+    }
+
     // Auto-open Readout if strategy generated
     if (result.isValid && (cmd.toLowerCase().startsWith('strategy') || cmd.toLowerCase() === 'help')) {
         windowManager.openPane('readout');
@@ -221,7 +283,7 @@ export const useIncidentState = () => {
     }
 
     return result;
-  }, [internalHandleCommand, windowManager, isWaiting, resumeScenario, log]);
+  }, [internalHandleCommand, windowManager, isWaiting, resumeScenario, log, incidentStore, playMitigationSuccess]);
 
   useUrlSync({
     severity: incidentStore.severity,

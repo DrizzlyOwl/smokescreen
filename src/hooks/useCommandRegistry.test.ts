@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from 'vitest';
 import { useCommandRegistry, type CommandActions } from '../hooks/useCommandRegistry';
 import type { PaneId } from './useWindowManager';
@@ -5,6 +6,7 @@ import type { Severity, Stack } from '../data/incidents';
 
 describe('useCommandRegistry', () => {
   const mockActions = {
+    gameMode: 'SANDBOX' as const,
     togglePane: vi.fn<(id: PaneId) => void>(),
     openPane: vi.fn<(id: PaneId) => void>(),
     closePane: vi.fn<(id: PaneId) => void>(),
@@ -14,21 +16,29 @@ describe('useCommandRegistry', () => {
     setStack: vi.fn<(s: Stack) => void>(),
     setAudio: vi.fn<(on: boolean) => void>(),
     setSlowBurn: vi.fn<(on: boolean) => void>(),
-    setTheme: vi.fn<(theme: 'classic' | 'amber' | 'cobalt' | 'dracula' | 'monokai') => void>(),
-
-
+    setTheme: vi.fn<(theme: any) => void>(),
     handleEject: vi.fn<() => void>(),
+    handleDeclare: vi.fn<() => void>(),
     handleCease: vi.fn<() => void>(),
     copyPlaybook: vi.fn<() => void>(),
     setView: vi.fn<(v: 'HOME' | 'TICKET') => void>(),
-    playPing: vi.fn<(type: 'slack' | 'teams') => void>(),
     handleLogout: vi.fn<() => void>(),
     help: vi.fn<() => void>(),
-    startPlaybook: vi.fn<(id: string) => void>(),
+    startScenario: vi.fn<(id: string) => void>(),
+    setLogMultiplier: vi.fn<(m: number) => void>(),
+    setChatMultiplier: vi.fn<(m: number) => void>(),
     setEcoMode: vi.fn<(on: boolean) => void>(),
+    setIsDebugMode: vi.fn<(on: boolean) => void>(),
+    setIsChaos: vi.fn<(on: boolean) => void>(),
     triggerApproval: vi.fn<(type?: 'phrase' | 'hold' | 'slider') => void>(),
     mitigationCount: 0,
-    isDeclared: false
+    incrementMitigationCount: vi.fn<() => void>(),
+    isDeclared: false,
+    generateStrategy: vi.fn<() => Promise<void>>(),
+    clearInterruption: vi.fn<() => void>(),
+    handlePhraseApprove: vi.fn<(phrase: string) => any>(),
+    getMitigationCount: vi.fn<() => number>(),
+    getIsDeclared: vi.fn<() => boolean>(),
   };
 
   it('correctly identifies and executes a threat level command', () => {
@@ -69,7 +79,7 @@ describe('useCommandRegistry', () => {
   it('returns usage message for commands missing arguments', () => {
     const { handleCommand } = useCommandRegistry(mockActions as unknown as CommandActions);
     
-    const result = handleCommand('playbook');
+    const result = handleCommand('scenario');
     
     expect(result.isValid).toBe(false);
     expect(result.message).toContain('USAGE:');
@@ -133,7 +143,13 @@ describe('useCommandRegistry', () => {
 
   it('enforces Remediation Guard on resolve command', () => {
     // Case 1: Declared but no mitigation
-    const actionsWithNoMitigation = { ...mockActions, isDeclared: true, mitigationCount: 0 };
+    const actionsWithNoMitigation = { 
+        ...mockActions, 
+        isDeclared: true, 
+        mitigationCount: 0,
+        getIsDeclared: () => true,
+        getMitigationCount: () => 0
+    };
     const { handleCommand: handleCommand1 } = useCommandRegistry(actionsWithNoMitigation as unknown as CommandActions);
     
     const result1 = handleCommand1('resolve');
@@ -141,7 +157,13 @@ describe('useCommandRegistry', () => {
     expect(result1.message).toContain('RESOLUTION DENIED. NO MITIGATION ACTIONS LOGGED.');
 
     // Case 2: Declared and has mitigation
-    const actionsWithMitigation = { ...mockActions, isDeclared: true, mitigationCount: 1 };
+    const actionsWithMitigation = { 
+        ...mockActions, 
+        isDeclared: true, 
+        mitigationCount: 1,
+        getIsDeclared: () => true,
+        getMitigationCount: () => 1
+    };
     const { handleCommand: handleCommand2 } = useCommandRegistry(actionsWithMitigation as unknown as CommandActions);
     
     const result2 = handleCommand2('resolve');
@@ -160,7 +182,7 @@ describe('useCommandRegistry', () => {
     expect(handleCommand('PANES SET LOGS ON').isValid).toBe(true);
     
     // Commands with arguments
-    expect(handleCommand('PLAYBOOK l1-routine-patch').isValid).toBe(true);
-    expect(mockActions.startPlaybook).toHaveBeenCalledWith('l1-routine-patch');
+    expect(handleCommand('SCENARIO l1-routine-patch').isValid).toBe(true);
+    expect(mockActions.startScenario).toHaveBeenCalledWith('l1-routine-patch');
   });
 });

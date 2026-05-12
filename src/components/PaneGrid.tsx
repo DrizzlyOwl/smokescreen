@@ -103,6 +103,9 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
   scrollRef,
   logMultiplier
 }) => {
+  const moneyLost = useIncidentStore(state => state.moneyLost);
+  const ticketId = useIncidentStore(state => state.ticketId);
+
   const renderPane = (id: PaneId) => {
     const commonProps = {
       zIndex: zIndices[id],
@@ -147,7 +150,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           {...commonProps}
           severity={severity}
           logMultiplier={logMultiplier}
-          terminalId={useIncidentStore.getState().ticketId}
+          terminalId={ticketId}
         />;
       case 'map':
         return <OutageMap 
@@ -160,7 +163,7 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           key={id}
           {...commonProps}
           severity={severity} 
-          moneyLost={useIncidentStore.getState().moneyLost}
+          moneyLost={moneyLost}
         />;
       case 'deploy':
         return <DeploymentStatus 

@@ -1,5 +1,6 @@
 import { TechnicalPane } from './TechnicalPane';
 import { HelpIcon } from './Icons';
+import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/HowToPane.scss';
 
 interface HowToPaneProps {
@@ -31,12 +32,15 @@ export const HowToPane = ({
   initialPos,
   initialSize
 }: HowToPaneProps) => {
+  const gameMode = useIncidentStore(state => state.gameMode);
+  const isArcade = gameMode === 'ARCADE';
+
   return (
     <TechnicalPane
       id="howTo"
-      title="SMOKESCREEN_GAME_MANUAL_v6.0"
-      paneTitle="PROTOCOL: MISSION_OPERATIONS"
-      classification="TOP_SECRET // EYES_ONLY"
+      title={isArcade ? "SMOKESCREEN_ARCADE_PROTOCOL" : "SMOKESCREEN_SANDBOX_MANUAL"}
+      paneTitle={isArcade ? "CERTIFICATION_IN_PROGRESS" : "SYSTEM_EXPLORATION_MODE"}
+      classification={isArcade ? "RESTRICTED // ARCADE_LEVEL" : "UNCLASSIFIED // PUBLIC_RELEASE"}
       icon={<HelpIcon />}
       zIndex={zIndex}
       onFocus={onFocus}
@@ -51,76 +55,146 @@ export const HowToPane = ({
       initialPos={initialPos || { x: 150, y: 50 }}
       initialSize={initialSize || { width: 650, height: 750 }}
       metadata={{
-        version: 'v6.0.4-ARCADE',
-        source: 'SRE_TACTICAL_DIV',
-        authority: 'TERMINABLE_OFFENCE'
+        version: isArcade ? 'v6.1-ARCADE' : 'v6.1-SANDBOX',
+        source: isArcade ? 'SRE_ACADEMY' : 'SRE_OPS_RESOURCES',
+        authority: isArcade ? 'CHIEF_OPERATOR' : 'SYSTEM_ADMIN'
       }}
     >
-      <section>
-        <p className="text-lead">
-          SMOKESCREEN is an interactive "Technical Incident Theatre" simulator. As an elite SRE Operator, you must navigate catastrophic system failures, execute complex overrides, and balance the company's burn rate under extreme pressure. This manual provides the protocols necessary for system survival.
-        </p>
+      <section className="manual-intro">
+        {isArcade ? (
+          <p className="text-lead">
+            Welcome to the <b>ARCADE</b> training program. This is a high-stakes simulation environment where you must follow specific playbooks to earn your Operator Certification. Manual overrides are restricted; precision is everything.
+          </p>
+        ) : (
+          <p className="text-lead">
+            Welcome to the <b>SANDBOX</b> environment. This is your personal playground for learning the SMOKESCREEN systems. Feel free to break things, experiment with commands, and learn the cloud stacks at your own pace.
+          </p>
+        )}
       </section>
 
       <div className="how-to">
-        <section>
-          <h2>01. THE CORE LOOP (HOW TO PLAY)</h2>
-          <p>
-            SMOKESCREEN is driven by the terminal. The core gameplay loop consists of three distinct phases:
-          </p>
+        <section className="manual-section">
+          <h2>01. {isArcade ? "ARCADE PROTOCOLS" : "QUICK START: YOUR FIRST MISSION"}</h2>
+          {isArcade ? (
+            <div className="step-guide">
+              <div className="step">
+                <span className="step-number">PHASE 1</span>
+                <div className="step-content">
+                  <p><b>Load a Training Scenario.</b> You cannot manually trigger incidents. Start a mission via:</p>
+                  <code>scenario l0-certification</code>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-number">PHASE 2</span>
+                <div className="step-content">
+                  <p><b>Follow Objectives.</b> Watch the bottom-left Mission HUD. Complete each task as it appears to progress through the story.</p>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-number">PHASE 3</span>
+                <div className="step-content">
+                  <p><b>Protect the Budget.</b> Every second of downtime costs the company money. Failure to mitigate threats will drain your capital and lower your final score.</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="step-guide">
+              <div className="step">
+                <span className="step-number">STEP 1</span>
+                <div className="step-content">
+                  <p><b>Choose your battlefield.</b> Use the terminal to pick a cloud provider:</p>
+                  <code>aws</code>, <code>gcp</code>, or <code>azure</code>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-number">STEP 2</span>
+                <div className="step-content">
+                  <p><b>Start the chaos.</b> Trigger an incident by typing:</p>
+                  <code>declare</code>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-number">STEP 3</span>
+                <div className="step-content">
+                  <p><b>Save the stack.</b> Use the <b>Map [F3]</b> and <b>Deploy [F2]</b> panes to fix failing nodes and pods.</p>
+                </div>
+              </div>
+              <div className="step">
+                <span className="step-number">STEP 4</span>
+                <div className="step-content">
+                  <p><b>Clock out.</b> Once everything is green, type:</p>
+                  <code className="text-green">resolve</code>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="manual-section">
+          <h2>02. MASTERING THE TERMINAL [F1]</h2>
+          <p>The terminal is your primary interface. Commands are restricted based on your mode:</p>
+          <div className="command-grid">
+            <div className="command-item">
+              <span className="command-name">analyze / sitrep</span>
+              <span className="command-desc">Generates a detailed AI report of the failure. Essential when Executives demand updates.</span>
+            </div>
+            {!isArcade && (
+              <div className="command-item">
+                <span className="command-name">p0 / p1 / p3</span>
+                <span className="command-desc"><b>SANDBOX ONLY:</b> Manually adjust the Severity level to test system reactions.</span>
+              </div>
+            )}
+            <div className="command-item">
+              <span className="command-name">panes [id] [on/off]</span>
+              <span className="command-desc">Toggle observability windows like <code>logs</code>, <code>chat</code>, or <code>map</code>.</span>
+            </div>
+            <div className="command-item">
+              <span className="command-name">scenario list</span>
+              <span className="command-desc">View all available training missions and certifications.</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="manual-section">
+          <h2>03. INTERACTIVE FIXES</h2>
+          <p>When the alarms go off, static monitoring isn't enough. Action is required:</p>
           <ul>
-            <li><b className="text-amber">Monitor & Analyze:</b> Keep an eye on system metrics, Kubernetes pod statuses, and kernel logs. Arrange your observability panes from the top bar to stay ahead of any issues.</li>
-            <li><b className="text-amber">Declare & Mitigate:</b> When a failure occurs, type <b className="text-red">declare</b> in the terminal. This triggers the theatre and begins burning the company's capital. You must solve puzzles and interact with the system to stabilize it.</li>
-            <li><b className="text-amber">Resolve:</b> Only after successfully mitigating the threat and handling executive SITREP demands, type <b className="text-green">resolve</b> to conclude the incident and receive your After-Action Report (AAR).</li>
+            <li>
+                <b className="text-amber">Traffic Failover:</b> 
+                Open <b>Map [F3]</b>. Drag lines from failing (red) regions to healthy (green) ones to reroute user traffic.
+            </li>
+            <li>
+                <b className="text-amber">Pod Restarts:</b> 
+                In <b>Deploy [F2]</b>, click any pod in <code>Error</code> or <code>CrashLoop</code> to manually attempt a stabilization sequence.
+            </li>
+            <li>
+                <b className="text-amber">Critical Overrides:</b> 
+                System locks require authorization codes. Type the flashing code into the terminal perfectly. <b>Incorrect keys drain budget.</b>
+            </li>
           </ul>
         </section>
 
-        <section>
-          <h2>02. TERMINAL COMMANDS & USAGE</h2>
-          <p>
-            The <b>SYSTEM_TERMINAL_CORE</b> (press <b className="text-amber">[F1]</b> to focus) is your primary interaction point. To execute a command, type it and press <b>[ENTER]</b>. Essential commands include:
-          </p>
-          <ul>
-            <li><b className="text-amber">declare</b> / <b className="text-green">resolve</b>: Starts or ends the active incident.</li>
-            <li><b className="text-amber">aws</b> / <b className="text-amber">gcp</b> / <b className="text-amber">azure</b>: Switches the target infrastructure stack.</li>
-            <li><b className="text-amber">p3</b> / <b className="text-amber">p1</b> / <b className="text-amber">p0</b>: Manually changes the incident severity.</li>
-            <li><b className="text-amber">chat</b> / <b className="text-amber">logs</b>: Opens the specified panes.</li>
-            <li><b className="text-amber">help</b>: Displays a complete list of all available terminal commands.</li>
-          </ul>
-        </section>
+        {isArcade && (
+          <section className="manual-section">
+            <h2>04. ARCADE SURVIVAL RULES</h2>
+            <p>
+              In Arcade mode, your performance is measured by <b>Time to Resolution (TTR)</b> and <b>Capital Burn</b>.
+            </p>
+            <ul className="pro-tips">
+              <li><b>Zero Tolerance:</b> You cannot change your cloud provider or severity levels once a mission starts.</li>
+              <li><b>Playbook Mandatory:</b> You must follow the exact mission objectives. Deviating or ignoring objectives will stall your certification.</li>
+              <li><b>High Score:</b> Fast mitigation + minimal burn = Gold Certification.</li>
+            </ul>
+          </section>
+        )}
 
-        <section>
-          <h2>03. INTERACTIVE MITIGATION PUZZLES</h2>
-          <p>
-            During an active incident, you must solve puzzles to mitigate the threat. Failure to act or making mistakes incurs immediate financial penalties:
-          </p>
-          <ul>
-            <li><b className="text-amber">Terminal Overrides:</b> The terminal will occasionally lock during critical failures. You must type the exact 12-character alphanumeric code displayed on-screen within a strict time limit (e.g., 20 seconds). <b>Punitive Typing:</b> Every incorrect keystroke significantly increases the burn rate.</li>
-            <li><b className="text-amber">Failover Puzzles:</b> In the <b>Outage Map</b> pane, you will see network nodes. When a node turns red or amber, click and drag a line from the failing node to a healthy (green) infrastructure node to reroute traffic.</li>
-            <li><b className="text-amber">Approval Modals:</b> High-risk actions require explicit authorization. You will be prompted to either <b>type a specific authorization phrase</b> accurately, <b>hold down a button</b> for 3 seconds, or <b>drag a slider</b> to 100% within a designated time window.</li>
+        <section className="manual-section">
+          <h2>05. PRO TIPS</h2>
+          <ul className="pro-tips">
+            <li><b>Shortcut Mastery:</b> Use <code>F1</code>-<code>F4</code> to quickly toggle your most critical views.</li>
+            <li><b>Tab Completion:</b> Use <code>TAB</code> in the terminal to speed up command entry.</li>
+            <li><b>Mode Switch:</b> If you want to switch modes, type <code>game sandbox</code> or <code>game arcade</code>.</li>
           </ul>
-        </section>
-
-        <section>
-          <h2>04. THE WAR ROOM & OBSERVABILITY</h2>
-          <p>
-            Survival requires monitoring multiple data streams and managing communications in the <b>War Room</b>.
-          </p>
-          <ul>
-            <li><b className="text-amber">Smart Unread System:</b> Messages require a 3-second "dwell" time (keeping them visible on screen) to be marked as read.</li>
-            <li><b className="text-amber">Executive Interruptions:</b> High-stakes stakeholders (VP Eng, CISO, CTO) will demand immediate SITREPs (Situation Reports). You must execute the <b className="text-green">sitrep</b> command in the terminal quickly. Ignoring an executive for too long results in catastrophic financial loss.</li>
-            <li><b className="text-amber">Operator Bios:</b> Click any operator's avatar in the War Room to view their technical specialization and role.</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2>05. SYSTEM MECHANICS</h2>
-          <p>
-            The SMOKESCREEN environment utilizes <b>Deep URL Synchronization</b>—your exact app state, theme, severity, and active panes are serialized in the URL for instant sharing and persistence.
-          </p>
-          <p>
-            <b>Global Audio Extract:</b> To toggle the procedural audio engine (environmental fan noise and procedural hums), use the terminal commands <b className="text-amber">audio on</b> and <b className="text-amber">audio off</b>.
-          </p>
         </section>
       </div>
     </TechnicalPane>
