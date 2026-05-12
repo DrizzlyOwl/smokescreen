@@ -35,7 +35,7 @@ vi.mock('../utils/chatGenerator', () => ({
 describe('useIncidentChat hook', () => {
   const mockOnNewMessage = vi.fn();
   const mockPlayPing = vi.fn();
-  const mockPlayTagPing = vi.fn();
+  const mockPlayDirectPing = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -107,7 +107,7 @@ describe('useIncidentChat hook', () => {
 
   it('plays tag ping when @ is present in incoming message', () => {
     renderHook(() => useIncidentChat(
-      'NOMINAL', 'AWS', 'Operator', 'room-1', mockOnNewMessage, mockPlayPing, mockPlayTagPing
+      'NOMINAL', 'AWS', 'Operator', 'room-1', mockOnNewMessage, mockPlayPing, mockPlayDirectPing
     ));
 
     act(() => {
@@ -117,7 +117,7 @@ describe('useIncidentChat hook', () => {
       });
     });
 
-    expect(mockPlayTagPing).toHaveBeenCalled();
+    expect(mockPlayDirectPing).toHaveBeenCalled();
     expect(mockOnNewMessage).toHaveBeenCalledWith(true);
   });
 
@@ -168,7 +168,7 @@ describe('useIncidentChat hook', () => {
   it('respects chatMultiplier for message delays', async () => {
     // chatMultiplier = 0.1 (10x faster)
     renderHook(() => useIncidentChat(
-      'P0', 'AWS', 'Operator', 'room-1', mockOnNewMessage, mockPlayPing, mockPlayTagPing, true, false, 0.1
+      'P0', 'AWS', 'Operator', 'room-1', mockOnNewMessage, mockPlayPing, mockPlayDirectPing, true, false, 0.1
     ));
 
     // Base delay for P0 is 3000ms. With 0.1 multiplier it's 300ms.

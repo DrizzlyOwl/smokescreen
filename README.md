@@ -16,7 +16,7 @@ Share your exact simulation configuration. Every parameter—from active observa
 Draggable and resizable panes are automatically constrained to the viewport. The system ensures that headers remain accessible and panes never become "lost" outside the visible area, even during high-chaos simulations.
 
 ### 📟 Intelligent War Room
-A Slack-fidelity chat experience featuring:
+A high-fidelity chat experience featuring:
 - **Smart Unread Indicators**: Tracks user attention via `IntersectionObserver`.
 - **Dwell Verification**: Messages mark as read only after 3 seconds of active view.
 - **Dynamic Identities**: User avatars and technical bios generated on-the-fly.

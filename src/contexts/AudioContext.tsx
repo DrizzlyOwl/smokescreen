@@ -28,13 +28,13 @@ export function AudioProvider({
     engine.current.stopAll();
   }, []);
 
-  const playSlackPing = useCallback(() => {
+  const playSimplePing = useCallback(() => {
     if (!isAudioOn) return;
     engine.current.playTone(800, 'sine', 0.1, 0.1, 0);
     engine.current.playTone(600, 'sine', 0.1, 0.1, 0.05);
   }, [isAudioOn]);
 
-  const playTeamsPing = useCallback(() => {
+  const playSequencePing = useCallback(() => {
     if (!isAudioOn) return;
     const notes = [659.25, 783.99, 880.0, 1046.5];
     notes.forEach((freq, i) => {
@@ -42,7 +42,7 @@ export function AudioProvider({
     });
   }, [isAudioOn]);
 
-  const playTagPing = useCallback(() => {
+  const playDirectPing = useCallback(() => {
     if (!isAudioOn) return;
     engine.current.playTone(1200, 'sine', 0.15, 0.1, 0);
     engine.current.playTone(1200, 'sine', 0.15, 0.1, 0.08);
@@ -51,6 +51,11 @@ export function AudioProvider({
   const playAlert = useCallback((type: Severity) => {
     if (!isAudioOn) return;
     engine.current.playAlert(type);
+  }, [isAudioOn]);
+
+  const playDegauss = useCallback(() => {
+    if (!isAudioOn) return;
+    engine.current.playDegauss();
   }, [isAudioOn]);
 
   const playLoginChime = useCallback(() => {
@@ -107,10 +112,11 @@ export function AudioProvider({
       isAudioOn,
       setIsAudioOn,
       initAudio,
-      playSlackPing,
-      playTeamsPing,
-      playTagPing,
+      playSimplePing,
+      playSequencePing,
+      playDirectPing,
       playAlert,
+      playDegauss,
       playLoginChime,
       playLogoutChime,
       playPostBeep,

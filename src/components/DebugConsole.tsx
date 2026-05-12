@@ -25,10 +25,9 @@ const DebugMenuControls = memo(({
     setLogMultiplier: (val: number) => void
 }) => {
     const { 
-      playSlackPing, 
-      playTeamsPing, 
-      playTagPing, 
-      playLoginChime, 
+      playSimplePing,
+      playSequencePing,
+      playDirectPing,      playLoginChime, 
       playLogoutChime, 
       playPostBeep, 
       playMitigationSuccess,
@@ -95,9 +94,9 @@ const DebugMenuControls = memo(({
               <div className="debug-menu__audio-group">
                 <h4 className="debug-menu__sub-label">NOTIFICATION_PINGS</h4>
                 <div className="debug-menu__button-row">
-                  <Button onClick={playSlackPing} size="x-small">SLACK</Button>
-                  <Button onClick={playTeamsPing} size="x-small">TEAMS</Button>
-                  <Button onClick={playTagPing} size="x-small">TAG</Button>
+                  <Button onClick={playSimplePing} size="x-small">SIMPLE</Button>
+                  <Button onClick={playSequencePing} size="x-small">SEQUENCE</Button>
+                  <Button onClick={playDirectPing} size="x-small">DIRECT</Button>
                   <Button onClick={playPostBeep} size="x-small">POST</Button>
                 </div>
               </div>

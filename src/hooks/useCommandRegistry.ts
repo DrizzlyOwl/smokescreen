@@ -44,15 +44,17 @@ export interface CommandActions {
   setIsDebugMode: (on: boolean) => void;
   setIsChaos: (on: boolean) => void;
   triggerApproval: (type?: 'phrase' | 'hold' | 'slider') => void;
+  playDegauss: () => void;
   mitigationCount: number;
-  incrementMitigationCount: () => void;
-  isDeclared: boolean;
+  incrementMitigationCount: () => void;  isDeclared: boolean;
   generateStrategy: () => Promise<void>;
+  scenarios: Record<string, import('../data/scenarios/types').Scenario>;
   clearInterruption: () => void;
   handlePhraseApprove: (phrase: string) => CommandResult;
   // For freshness in tests
   getMitigationCount?: () => number;
   getIsDeclared?: () => boolean;
+  getIncidentReport?: () => string | null;
 }
 
 export const useCommandRegistry = (actions: CommandActions) => {

@@ -7,8 +7,8 @@ import { useTerminalStore } from '../store/useTerminalStore';
 // Mock dependencies
 vi.mock('./useAudio', () => ({
   useAudio: () => ({
-    playSlackPing: vi.fn(),
-    playTagPing: vi.fn(),
+    playSimplePing: vi.fn(),
+    playDirectPing: vi.fn(),
     playAlert: vi.fn(),
     playLoginChime: vi.fn(),
     playLogoutChime: vi.fn(),

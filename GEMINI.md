@@ -16,7 +16,7 @@
 - **Dynamic Boot Sequencing**: Hardware-accurate BIOS sequence loads modules based on active URL parameters.
 - **Intelligent Chat**: 
     - **Smart Unread System**: IntersectionObserver + 3s "dwell" requirement.
-    - **Visual Grouping**: Slack-fidelity message grouping.
+    - **Visual Grouping**: high-fidelity message grouping.
     - **Interactive Bios**: Technical specialization (SRE, DBA, etc.) shown on click.
     - **Executive Interruptions**: High-stakes multitasking. VP Eng, CISO, CTO demand SITREPs. Failure to reply = massive financial penalties.
 - **Authentic CRT Simulation**: Theme-aware warm-up expansions + jitter.

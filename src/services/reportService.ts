@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Severity, Stack, stackJargon, commonJargon } from '../data/incidents';
+import type { Severity, Stack } from '../data/incidents';
+import { stackJargon, commonJargon } from '../data/incidents';
 
 const recoveryTimes = ['5 minutes', '20 minutes', 'an hour', 'the rest of the afternoon', 'a while'];
 

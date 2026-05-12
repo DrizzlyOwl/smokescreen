@@ -29,8 +29,9 @@ export const useIncidentState = () => {
     playLogoutChime, 
     playPostBeep, 
     playMitigationSuccess,
-    playSlackPing,
-    playTagPing,
+    playSimplePing,
+    playDirectPing,
+    playDegauss,
     stopAllSounds 
   } = useAudioHook();
 
@@ -86,8 +87,8 @@ export const useIncidentState = () => {
     terminalStore.operatorName, 
     terminalStore.terminalId, 
     handleNewChatMessage, 
-    playSlackPing, 
-    playTagPing,
+    playSimplePing, 
+    playDirectPing,
     windowManager.panes.chat && !windowManager.minimizedPanes.chat,
     windowManager.activePane === 'chat',
     incidentStore.chatMultiplier,
@@ -198,12 +199,15 @@ export const useIncidentState = () => {
     mitigationCount: incidentStore.mitigationCount,
     isDeclared: incidentStore.isDeclared,
     getMitigationCount: () => useIncidentStore.getState().mitigationCount,
+    getIsDeclared: () => useIncidentStore.getState().isDeclared,
     getIncidentReport: () => useIncidentStore.getState().incidentReport,
-    declareIncident: loggedHandleDeclare,
-    ceaseTheatre: loggedCeaseTheatre,
     generateStrategy: incidentStore.generateStrategy,
     scenarios: SCENARIOS,
-    startScenario,
+    startScenario: (id: string) => {
+        const scenario = (SCENARIOS as any)[id];
+        if (scenario) startScenario(scenario);
+    },
+    playDegauss,
     clearInterruption: () => {
         log('INCIDENT', 'CLEAR_INTERRUPTION');
         incidentStore.setInterruption(null);
@@ -239,8 +243,7 @@ export const useIncidentState = () => {
         log('SYSTEM', 'LOGOUT');
         playLogoutChime();
         // implement logout logic
-    },
-    getIsDeclared: () => useIncidentStore.getState().isDeclared
+    }
   });
 
   const handleCommand = useCallback((cmd: string) => {
@@ -340,7 +343,7 @@ export const useIncidentState = () => {
     ...audioStore,
     messages, sendMessage, typingUsers, markAsRead, markAllAsRead,
     commands, handleCommand,
-    playLoginChime, playLogoutChime, playPostBeep, playMitigationSuccess, stopAllSounds,
+    playLoginChime, playLogoutChime, playPostBeep, playMitigationSuccess, playDegauss, stopAllSounds,
     activeScenario, startScenario, stopScenario, resumeScenario,
     currentEventIndex,
     loggedHandleDeclare, loggedCeaseTheatre,

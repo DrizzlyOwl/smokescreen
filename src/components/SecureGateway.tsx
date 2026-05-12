@@ -8,9 +8,14 @@ import '../styles/_gateway.scss';
 interface SecureGatewayProps {
   onComplete: () => void;
   playLoginChime?: () => void;
+  playDegauss?: () => void;
 }
 
-export const SecureGateway: React.FC<SecureGatewayProps> = ({ onComplete, playLoginChime }) => {
+export const SecureGateway: React.FC<SecureGatewayProps> = ({ 
+  onComplete, 
+  playLoginChime,
+  playDegauss 
+}) => {
   const [step, setAppState] = useState<'LOGIN' | 'LOADING' | 'GRANTED'>('LOGIN');
   const [activeField, setActiveField] = useState<'NAME' | 'MODE' | 'SUBMIT'>('NAME');
   
@@ -81,6 +86,10 @@ export const SecureGateway: React.FC<SecureGatewayProps> = ({ onComplete, playLo
       }
     }
   }, [step, activeField, gameMode, setGameMode, startSession]);
+
+  useEffect(() => {
+    playDegauss?.();
+  }, [playDegauss]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

@@ -100,7 +100,7 @@ export const ChatPane = ({
     return Math.abs(mins1 - mins2) <= 1;
   };
 
-  const slackFontStack = '"Slack-Lato", "appleLogo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
+  const systemFontStack = '"Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
 
   return (
     <Pane
@@ -138,7 +138,7 @@ export const ChatPane = ({
         <Virtuoso
           ref={virtuosoRef}
           className="chat-pane__chat-container"
-          style={{ fontFamily: slackFontStack }}
+          style={{ fontFamily: systemFontStack }}
           data={messages}
           initialTopMostItemIndex={messages.length > 0 ? messages.length - 1 : 0}
           followOutput="smooth"

@@ -1,4 +1,5 @@
-import { Severity, Stack, stackJargon, commonJargon } from '../data/incidents';
+import type { Severity, Stack } from '../data/incidents';
+import { stackJargon, commonJargon } from '../data/incidents';
 import { getNodeType, NodeType } from '../utils/nodeTypes';
 
 /**

@@ -15,7 +15,7 @@ export const useIncidentChat = (
     terminalId: string,
     onNewMessage: (isTag: boolean) => void,
     playPing?: () => void,
-    playTagPing?: () => void,
+    playDirectPing?: () => void,
     isActive: boolean = true,
     isFocused: boolean = false,
     chatMultiplier: number = 1,
@@ -101,7 +101,7 @@ export const useIncidentChat = (
                 const isTag = text.includes('@operator') || text.includes(operatorTag);
                 
                 if (isTag) {
-                    playTagPing?.();
+                    playDirectPing?.();
                 } else {
                     playPing?.();
                 }
@@ -118,7 +118,7 @@ export const useIncidentChat = (
             }
         });
         return unsubscribe;
-    }, [subscribe, onNewMessage, playPing, playTagPing, isFocused, getAvatarForUser, operatorName]);
+    }, [subscribe, onNewMessage, playPing, playDirectPing, isFocused, getAvatarForUser, operatorName]);
 
     const sendMessage = useCallback((text: string, user: string, id?: string, isBot: boolean = false, bioOverride?: string) => {
         const { name, bio: defaultBio } = processUserAndBio(user, isBot);
@@ -275,7 +275,7 @@ export const useIncidentChat = (
         return () => {
             clearInterval(interval);
         };
-    }, [severity, terminalId, onNewMessage, playPing, playTagPing, getDynamicMessage, isActive, send, chatMultiplier, log, isPaused]);
+    }, [severity, terminalId, onNewMessage, playPing, playDirectPing, getDynamicMessage, isActive, send, chatMultiplier, log, isPaused]);
 
     return { messages, sendMessage, typingUsers, markAsRead, markAllAsRead };
 };

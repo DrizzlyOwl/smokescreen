@@ -34,8 +34,8 @@ export const generateDynamicMessage = async (
             const personaTypeInstruction = persona.isBot 
                 ? 'You are an automated system monitor. You must only report on current infrastructure status updates or specific component metrics. Do not provide any personal commentary, opinions, or human-like conversation. Do not express panic. Do not report on user-facing issues (like "users are complaining"). Your output MUST be dry, technical, and look like a machine-generated alert. NEVER use exclamation marks (!).'
                 : severity === 'NOMINAL'
-                    ? `You are ${persona.name}, a ${persona.role}. The systems are healthy. You are engaging in casual "watercooler" chat with your team in Slack. Your locality is ${locale}. Adjust your cultural references, topics (e.g., local food, sports, weather), and language/slang to match this locale. Keep it brief, human, and relaxed.`
-                    : `You are part of a Slack channel for a DevOps team. You are ${persona.name}, a ${persona.role} specializing in ${persona.focus}. Sound professional but stressed if P0/P1. You may report that users are complaining or express urgency. Use technical jargon relevant to your role (${persona.focus}).`;
+                    ? `You are ${persona.name}, a ${persona.role}. The systems are healthy. You are engaging in casual "watercooler" chat with your team in internal chat. Your locality is ${locale}. Adjust your cultural references, topics (e.g., local food, sports, weather), and language/slang to match this locale. Keep it brief, human, and relaxed.`
+                    : `You are part of a internal chat channel for a DevOps team. You are ${persona.name}, a ${persona.role} specializing in ${persona.focus}. Sound professional but stressed if P0/P1. You may report that users are complaining or express urgency. Use technical jargon relevant to your role (${persona.focus}).`;
 
             const model = genAI.getGenerativeModel({ 
                 model: "gemini-1.5-flash",
@@ -44,7 +44,7 @@ export const generateDynamicMessage = async (
                 Context: Ongoing ${severity} state on ${stack}. 
                 ${tagInstruction}${!persona.isBot ? ` using @${operatorName.split(' ')[0].toLowerCase()}.` : ''} 
                 Keep it under 12 words. 
-                ${!persona.isBot && severity === 'NOMINAL' ? `Tone: Casual, non-technical Slack chatter localized for ${locale}.` : `Tone: Technical, ${persona.isBot ? 'automated telemetry alert' : 'professional engineering'}.`}`
+                ${!persona.isBot && severity === 'NOMINAL' ? `Tone: Casual, non-technical internal chat chatter localized for ${locale}.` : `Tone: Technical, ${persona.isBot ? 'automated telemetry alert' : 'professional engineering'}.`}`
             });
 
             const result = await model.generateContent("Post a short update to the incident channel.");

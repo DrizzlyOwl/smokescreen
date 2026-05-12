@@ -87,10 +87,11 @@ export interface AudioContextType {
   isAudioOn: boolean;
   setIsAudioOn: (on: boolean) => void;
   initAudio: () => AudioContext | null;
-  playSlackPing: () => void;
-  playTeamsPing: () => void;
-  playTagPing: () => void;
+  playSimplePing: () => void;
+  playSequencePing: () => void;
+  playDirectPing: () => void;
   playAlert: (type: Severity) => void;
+  playDegauss: () => void;
   playLoginChime: () => void;
   playLogoutChime: () => void;
   playPostBeep: () => void;

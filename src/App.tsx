@@ -21,14 +21,14 @@ function AppContent() {
   }, [state.theme]);
 
   if (state.appState === 'SPLASH') {
-    return <SecureGateway 
+    return <SecureGateway
         onComplete={() => {
             log('SYSTEM', 'GATEWAY_SUCCESS');
             state.setAppState('READY');
-        }} 
+        }}
         playLoginChime={state.playLoginChime}
-    />;
-  }
+        playDegauss={state.playDegauss}
+    />;  }
 
   if (state.appState === 'BOOT') {
     return <BootScreen 

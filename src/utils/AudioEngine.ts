@@ -110,6 +110,24 @@ export class AudioEngine {
     }
   }
 
+  playDegauss() {
+    const ctx = this.init();
+    if (!ctx || !this.masterGain) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(60, ctx.currentTime);
+    
+    gain.gain.setValueAtTime(0.8, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+    
+    osc.connect(gain).connect(this.masterGain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1.5);
+  }
+
   setMasterVolume(target: number, time: number = 0.1) {
     if (this.ctx && this.masterGain) {
       this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, time);
