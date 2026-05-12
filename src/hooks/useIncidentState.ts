@@ -188,6 +188,7 @@ export const useIncidentState = () => {
         log('SYSTEM', `SET_DEBUG_MODE ${on}`);
         terminalStore.setIsDebugMode(on);
     },
+    getDiagnosticToken: () => useIncidentStore.getState().diagnosticToken,
     setAudio: (on) => {
         log('AUDIO', `SET_AUDIO_ENABLED ${on}`);
         audioStore.setIsAudioOn(on);

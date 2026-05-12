@@ -44,6 +44,7 @@ export const SystemLog = ({
     const [logs, setLogs] = useState<string[]>([]);
     const { send } = useSync();
     const isPaused = useIncidentStore(state => state.isPaused);
+    const setDiagnosticToken = useIncidentStore(state => state.setDiagnosticToken);
     const workerRef = useRef<Worker | null>(null);
 
     useEffect(() => {
@@ -53,12 +54,16 @@ export const SystemLog = ({
             workerRef.current.onmessage = (e) => {
                 if (e.data.type === 'LOG') {
                     if (isPaused) return;
-                    const { log: newLog, spike } = e.data;
+                    const { log: newLog, spike, overrideToken } = e.data;
                     setLogs(prev => [...prev, newLog].slice(-200));
                     send({ type: 'LOG_MESSAGE', log: newLog });
 
                     if (spike) {
                         window.dispatchEvent(new CustomEvent('METRIC_SPIKE', { detail: spike }));
+                    }
+
+                    if (overrideToken) {
+                        setDiagnosticToken(overrideToken);
                     }
                 }
             };

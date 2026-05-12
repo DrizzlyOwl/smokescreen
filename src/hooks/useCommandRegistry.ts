@@ -6,7 +6,7 @@ import { getCommands } from '../data/commands.config';
 export interface Command {
   id: string;
   patterns: string[];
-  action: (context: Record<string, unknown>) => void;
+  action: (context: Record<string, any>) => void | CommandResult;
   description: string;
   category: 'PANES' | 'THREAT' | 'STACK' | 'SYSTEM' | 'ACTION';
   usage: string;
@@ -51,6 +51,7 @@ export interface CommandActions {
   scenarios: Record<string, import('../data/scenarios/types').Scenario>;
   clearInterruption: () => void;
   handlePhraseApprove: (phrase: string) => CommandResult;
+  getDiagnosticToken?: () => string | null;
   // For freshness in tests
   getMitigationCount?: () => number;
   getIsDeclared?: () => boolean;
@@ -174,7 +175,11 @@ export const useCommandRegistry = (actions: CommandActions) => {
         };
       }
 
-      match.action({});
+      const actionResult = match.action({});
+      if (actionResult && !actionResult.isValid) {
+        return actionResult;
+      }
+
       return { 
         isValid: true, 
         message: match.confirmation || `EXECUTING: ${match.id.toUpperCase()}... [OK]` 
@@ -201,7 +206,11 @@ export const useCommandRegistry = (actions: CommandActions) => {
         return { isValid: false, message: `USAGE: ${match.usage}` };
       }
 
-      match.action({ arg });
+      const actionResult = match.action({ arg });
+      if (actionResult && !actionResult.isValid) {
+        return actionResult;
+      }
+
       return { 
         isValid: true, 
         message: match.confirmation 

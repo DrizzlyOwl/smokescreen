@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DeploymentStatus } from './DeploymentStatus';
+import { useIncidentStore } from '../store/useIncidentStore';
 
 // Mock useIncidentStore
 vi.mock('../store/useIncidentStore', () => ({
-  useIncidentStore: (selector: any) => selector({
-    isDeployStabilized: false,
-    isPaused: false
-  }),
+  useIncidentStore: vi.fn()
 }));
 
 // Mock Pane
@@ -22,6 +20,9 @@ vi.mock('./Pane', () => ({
 }));
 
 describe('DeploymentStatus', () => {
+  const mockTickPods = vi.fn();
+  const mockStabilizePod = vi.fn();
+
   const mockProps = {
     severity: 'P0' as const,
     stack: 'AWS' as const,
@@ -35,41 +36,44 @@ describe('DeploymentStatus', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    (useIncidentStore as any).mockReturnValue({
+      activePods: [
+        { name: 'web-0', status: 'Running', cpu: '100m', memory: '256Mi', restarts: 0, age: '10m' },
+        { name: 'db-0', status: 'Error', cpu: '0m', memory: '0Mi', restarts: 1, age: '1s' }
+      ],
+      tickPods: mockTickPods,
+      stabilizePod: mockStabilizePod,
+      isPaused: false
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
-  it('renders correctly with stack name', () => {
+  it('renders correctly with stack name and pod data', () => {
     render(<DeploymentStatus {...mockProps} />);
     expect(screen.getByText('AWS_WORKLOAD_STATUS')).toBeDefined();
-    // AWS stack from data/incidents usually has 'EKS control plane', etc.
-    expect(screen.getByText(/eks-control-plane-0/)).toBeDefined();
+    expect(screen.getByText('web-0')).toBeDefined();
+    expect(screen.getByText('db-0')).toBeDefined();
+    expect(screen.getByText('Error')).toBeDefined();
   });
 
-  it('shows error status in P0', () => {
-    // Mock Math.random to force an error status
-    vi.spyOn(Math, 'random').mockReturnValue(0.01); 
-    
+  it('calls tickPods on interval', () => {
     render(<DeploymentStatus {...mockProps} />);
     
-    // Fast-forward to trigger useEffect update
     vi.advanceTimersByTime(3000);
-
-    const errorStatuses = screen.getAllByText(/CrashLoopBackOff|Error|Terminating/);
-    expect(errorStatuses.length).toBeGreaterThan(0);
+    expect(mockTickPods).toHaveBeenCalledWith('P0', false);
   });
 
-  it('shows running status in NOMINAL', () => {
-    render(<DeploymentStatus {...mockProps} severity="NOMINAL" />);
+  it('calls stabilizePod when clicking on a failed pod', () => {
+    render(<DeploymentStatus {...mockProps} />);
     
-    vi.advanceTimersByTime(3000);
+    const failedStatus = screen.getByText('Error');
+    fireEvent.click(failedStatus);
 
-    const runningStatuses = screen.getAllByText('Running');
-    // All pods should be running in NOMINAL (or if stabilized)
-    expect(runningStatuses.length).toBeGreaterThan(0);
+    expect(mockStabilizePod).toHaveBeenCalledWith('db-0');
   });
 
   it('renders terraform logs in non-nominal states', () => {
@@ -77,16 +81,8 @@ describe('DeploymentStatus', () => {
     
     vi.advanceTimersByTime(1000);
 
-    const logsContainer = screen.getByText('TERRAFORM_APPLY_STDOUT').nextElementSibling!;
+    const logsTitle = screen.getByText('TERRAFORM_APPLY_STDOUT');
+    const logsContainer = logsTitle.nextElementSibling!;
     expect(logsContainer.children.length).toBeGreaterThan(0);
-  });
-
-  it('changes pod list when stack changes', () => {
-    const { rerender } = render(<DeploymentStatus {...mockProps} />);
-    expect(screen.getByText(/eks-control-plane-0/)).toBeDefined();
-
-    rerender(<DeploymentStatus {...mockProps} stack="GCP" />);
-    // GCP stack usually has 'GKE Autopilot cluster', etc.
-    expect(screen.getByText(/gke-autopilot-cluster-0/)).toBeDefined();
   });
 });

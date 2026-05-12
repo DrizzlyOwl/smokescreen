@@ -576,25 +576,33 @@ export const getCommands = (actions: CommandActions): Command[] => [
     {
       id: 'vault_seal',
       patterns: ['vault seal', 'vault-seal'],
-      action: () => {
+      action: (context) => {
+        const token = actions.getDiagnosticToken?.();
+        if (token && context.arg?.toUpperCase() !== token.toUpperCase()) {
+            return { isValid: false, message: 'ERROR: AUTH REQUIRED. SEE SYSTEM LOGS [F2] FOR DIAGNOSTIC_TOKEN.' };
+        }
         useIncidentStore.getState().healNodes(NodeType.VAULT);
         actions.incrementMitigationCount();
       },
       description: 'Emergency seal of kernel secret vault',
       category: 'ACTION',
-      usage: 'vault seal',
+      usage: 'vault seal <token>',
       confirmation: 'SECRET_VAULT_SEALED_IMMEDIATELY... [OK]',
     },
     {
       id: 'probe_override',
       patterns: ['probe override', 'probe-override'],
-      action: () => {
+      action: (context) => {
+        const token = actions.getDiagnosticToken?.();
+        if (token && context.arg?.toUpperCase() !== token.toUpperCase()) {
+            return { isValid: false, message: 'ERROR: AUTH REQUIRED. SEE SYSTEM LOGS [F2] FOR DIAGNOSTIC_TOKEN.' };
+        }
         useIncidentStore.getState().healNodes(NodeType.PROBE);
         actions.incrementMitigationCount();
       },
       description: 'Manual override for service topology probes',
       category: 'ACTION',
-      usage: 'probe override',
+      usage: 'probe override <token>',
       confirmation: 'PROBE_OVERRIDE_ACCEPTED... [OK]',
     },
     {

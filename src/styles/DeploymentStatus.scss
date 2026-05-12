@@ -40,6 +40,28 @@
     &--running { color: var(--status-nominal); }
     &--pending { color: var(--status-p3); font-weight: bold; }
     &--error { color: var(--status-p0); font-weight: bold; }
+
+    &--interactive {
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--status-p3);
+            text-decoration: underline;
+        }
+
+        &:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+  }
+
+  &__fix-hint {
+    font-size: rem(10);
+    opacity: 0.6;
+    letter-spacing: rem(1);
+    font-weight: normal;
   }
 
   &__logs {

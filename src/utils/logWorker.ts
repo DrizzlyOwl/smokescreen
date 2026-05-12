@@ -72,8 +72,16 @@ self.onmessage = (e: MessageEvent) => {
         
         interval = self.setInterval(() => {
             const pool = KERNEL_LOGS[severity] || KERNEL_LOGS.NOMINAL;
-            const log = pool[Math.floor(Math.random() * pool.length)];
+            let log = pool[Math.floor(Math.random() * pool.length)];
             
+            let overrideToken = null;
+            // 10% chance to inject a diagnostic token during high severity
+            if ((severity === 'P1' || severity === 'P0') && Math.random() < 0.1) {
+                const token = Math.random().toString(36).substring(2, 7).toUpperCase();
+                log = `[AUTH] REQUIRED_DIAGNOSTIC_TOKEN: ${token}`;
+                overrideToken = token;
+            }
+
             let spike = null;
             if (log.includes('Out of memory') || log.includes('oom-kill') || log.includes('MEMORY_CORRUPTION')) {
                 spike = { metric: 'ram', target: 28 + Math.random() * 4, duration: 6000 };
@@ -81,7 +89,7 @@ self.onmessage = (e: MessageEvent) => {
                 spike = { metric: 'cpu', target: 95 + Math.random() * 5, duration: 8000 };
             }
 
-            self.postMessage({ type: 'LOG', log, spike });
+            self.postMessage({ type: 'LOG', log, spike, overrideToken });
         }, delay);
     }
 

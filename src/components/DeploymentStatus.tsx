@@ -1,18 +1,9 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { DeployIcon } from './Icons';
-import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
+import { type Severity, type Stack } from '../data/incidents';
 import { Pane } from './Pane';
 import { useIncidentStore } from '../store/useIncidentStore';
 import '../styles/DeploymentStatus.scss';
-
-interface PodStatus {
-  name: string;
-  status: 'Running' | 'CrashLoopBackOff' | 'ImagePullBackOff' | 'Terminating' | 'Pending' | 'Error';
-  restarts: number;
-  age: string;
-  cpu: string;
-  memory: string;
-}
 
 export const DeploymentStatus = ({ 
     severity, 
@@ -45,43 +36,20 @@ export const DeploymentStatus = ({
     isSnappedMain?: boolean,
     onSnapMainToggle?: () => void
 }) => {
-  const isDeployStabilized = useIncidentStore(state => state.isDeployStabilized);
-  const isPaused = useIncidentStore(state => state.isPaused);
-  const effectiveSeverity = isDeployStabilized ? 'NOMINAL' : severity;
+  const { activePods, initializePods, tickPods, stabilizePod, isPaused } = useIncidentStore();
 
-  const workloadNames = useMemo(() => {
-    const systems = stackJargon[stack]?.systems || commonJargon.systems;
-    return systems.map((name, index) => ({
-        raw: name,
-        id: `${name.toLowerCase().replace(/\s+/g, '-')}-${index}`
-    }));
-  }, [stack]);
+  useEffect(() => {
+    if (activePods.length === 0) {
+      initializePods(stack);
+    }
+  }, [stack, activePods.length, initializePods]);
 
-  const [pods, setPods] = useState<PodStatus[]>(() => workloadNames.map(item => ({
-    name: item.id,
-    status: 'Running',
-    restarts: 0,
-    age: effectiveSeverity === 'NOMINAL' ? '12d' : '1s',
-    cpu: '12m',
-    memory: '128Mi'
-  })));
-
-  // Sync state during render when workloadNames or severity changes
-  const [prevWorkloadNames, setPrevWorkloadNames] = useState(workloadNames);
-  const [prevSeverity, setPrevSeverity] = useState(effectiveSeverity);
-
-  if (workloadNames !== prevWorkloadNames || effectiveSeverity !== prevSeverity) {
-    setPrevWorkloadNames(workloadNames);
-    setPrevSeverity(effectiveSeverity);
-    setPods(workloadNames.map(item => ({
-        name: item.id,
-        status: 'Running',
-        restarts: 0,
-        age: effectiveSeverity === 'NOMINAL' ? '12d' : '1s',
-        cpu: '12m',
-        memory: '128Mi'
-    })));
-  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      tickPods(severity, isPaused);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [severity, isPaused, tickPods]);
 
   const [tfLog, setTfLog] = useState<string[]>([]);
   const tfScrollRef = useRef<HTMLDivElement>(null);
@@ -93,59 +61,9 @@ export const DeploymentStatus = ({
   }, [tfLog]);
 
   useEffect(() => {
-    if (pods.length === 0) return;
-
-    const updatePods = () => {
-      if (isPaused) return;
-      setPods(prev => prev.map(pod => {
-        // Base CPU/Mem simulation
-        let cpuVal, memVal;
-        
-        if (effectiveSeverity === 'NOMINAL') {
-          cpuVal = Math.floor(Math.random() * 50) + 10;
-          memVal = Math.floor(Math.random() * 100) + 128;
-          return { ...pod, status: 'Running', restarts: 0, cpu: `${cpuVal}m`, memory: `${memVal}Mi` };
-        }
-        
-        const chance = effectiveSeverity === 'P0' ? 0.6 : effectiveSeverity === 'P1' ? 0.2 : 0.05;
-        
-        // Severity-based resource scaling
-        const multiplier = effectiveSeverity === 'P0' ? 15 : effectiveSeverity === 'P1' ? 5 : 2;
-        cpuVal = Math.floor((Math.random() * 100 + 50) * multiplier);
-        memVal = Math.floor((Math.random() * 200 + 200) * (multiplier / 2));
-
-        if (Math.random() < chance) {
-          const statuses: PodStatus['status'][] = effectiveSeverity === 'P0' 
-            ? ['CrashLoopBackOff', 'Error', 'Terminating'] 
-            : ['CrashLoopBackOff', 'ImagePullBackOff', 'Pending'];
-          const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
-          return { 
-            ...pod, 
-            status: newStatus, 
-            restarts: pod.restarts + (newStatus === 'CrashLoopBackOff' ? 1 : 0),
-            age: effectiveSeverity === 'P0' ? '1s' : '2m',
-            cpu: newStatus === 'Running' ? `${cpuVal}m` : '0m',
-            memory: newStatus === 'Running' ? `${memVal}Mi` : '0Mi'
-          };
-        }
-        
-        return {
-          ...pod,
-          cpu: `${cpuVal}m`,
-          memory: `${memVal}Mi`
-        };
-      }));
-    };
-
-    updatePods();
-    const interval = setInterval(updatePods, 3000);
-    return () => clearInterval(interval);
-  }, [effectiveSeverity, pods.length, isPaused]);
-
-  useEffect(() => {
     const addLog = () => {
       if (isPaused) return;
-      if (effectiveSeverity === 'NOMINAL') {
+      if (severity === 'NOMINAL') {
         setTfLog([]);
         return;
       }
@@ -170,21 +88,21 @@ export const DeploymentStatus = ({
         `Error: Provider produced inconsistent final plan`
       ];
 
-      const pool = effectiveSeverity === 'P0' ? [...p0Logs, ...generalLogs] : generalLogs;
+      const pool = severity === 'P0' ? [...p0Logs, ...generalLogs] : generalLogs;
       setTfLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${pool[Math.floor(Math.random() * pool.length)]}`].slice(-10));
     };
 
     addLog();
-    const interval = setInterval(addLog, effectiveSeverity === 'P0' ? 1000 : 2500);
+    const interval = setInterval(addLog, severity === 'P0' ? 1000 : 2500);
     return () => clearInterval(interval);
-  }, [effectiveSeverity, isPaused]);
+  }, [severity, isPaused]);
 
   return (
     <Pane
       id="deploy"
       title={`${stack}_WORKLOAD_STATUS`}
       icon={<DeployIcon />}
-      iconColor={effectiveSeverity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
+      iconColor={severity === 'P0' ? 'var(--terminal-red)' : 'var(--terminal-green)'}
       initialPos={initialPos}
       initialSize={initialSize}
       zIndex={zIndex}
@@ -192,7 +110,7 @@ export const DeploymentStatus = ({
       isActive={isActive}
       isMinimized={isMinimized}
       onMinimizeToggle={onMinimizeToggle}
-      severityColor={effectiveSeverity === 'P0' ? 'var(--terminal-red)' : undefined}
+      severityColor={severity === 'P0' ? 'var(--terminal-red)' : undefined}
       onClose={onClose}
       isPoppedOut={isPoppedOut}
       onPopOutToggle={onPopOutToggle}
@@ -212,15 +130,20 @@ export const DeploymentStatus = ({
             </tr>
           </thead>
           <tbody>
-            {pods.map((pod, i) => (
+            {activePods.map((pod, i) => (
               <tr key={i}>
                 <td>{pod.name}</td>
-                <td className={`deploy-status__pod-status ${
-                  pod.status === 'Running' ? 'deploy-status__pod-status--running' : 
-                  pod.status === 'Pending' ? 'deploy-status__pod-status--pending' : 
-                  'deploy-status__pod-status--error'
-                }`}>
+                <td 
+                    className={`deploy-status__pod-status ${
+                        pod.status === 'Running' ? 'deploy-status__pod-status--running' : 
+                        pod.status === 'Pending' ? 'deploy-status__pod-status--pending' : 
+                        'deploy-status__pod-status--error deploy-status__pod-status--interactive'
+                    }`}
+                    onClick={() => pod.status !== 'Running' && stabilizePod(pod.name)}
+                    title={pod.status !== 'Running' ? 'CLICK_TO_RESTART_POD' : undefined}
+                >
                   {pod.status}
+                  {pod.status !== 'Running' && <span className="deploy-status__fix-hint"> [FIX]</span>}
                 </td>
                 <td className={parseInt(pod.cpu) > 1000 ? 'deploy-status__metric--critical' : parseInt(pod.cpu) > 400 ? 'deploy-status__metric--warning' : ''}>
                     {pod.cpu}

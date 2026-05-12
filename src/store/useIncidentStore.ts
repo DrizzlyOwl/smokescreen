@@ -1,6 +1,6 @@
 import { NodeType } from '../utils/nodeTypes';
 import { create } from 'zustand';
-import { type Severity, type Stack } from '../data/incidents';
+import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
 import { getInitialStateFromUrl } from '../hooks/useUrlSync';
 import type { Objective } from '../contexts/types';
 import { incidentService } from '../services/incidentService';
@@ -39,6 +39,15 @@ export interface ExecutiveInterruption {
 
 export type GameMode = 'ARCADE' | 'SANDBOX';
 
+export interface PodStatus {
+  name: string;
+  status: 'Running' | 'CrashLoopBackOff' | 'ImagePullBackOff' | 'Terminating' | 'Pending' | 'Error';
+  restarts: number;
+  age: string;
+  cpu: string;
+  memory: string;
+}
+
 interface IncidentState {
   // Incident Core
   gameMode: GameMode;
@@ -72,6 +81,10 @@ interface IncidentState {
   setIsDeclared: (val: boolean) => void;
   isDeployStabilized: boolean;
   setIsDeployStabilized: (val: boolean) => void;
+  activePods: PodStatus[];
+  initializePods: (stack: Stack) => void;
+  tickPods: (severity: Severity, isPaused: boolean) => void;
+  stabilizePod: (podName: string) => void;
   isResolving: boolean;
   setIsResolving: (val: boolean) => void;
   isPaused: boolean;
@@ -120,6 +133,8 @@ interface IncidentState {
   setOverride: (override: TerminalOverrideState | null) => void;
   activeInterruption: ExecutiveInterruption | null;
   setInterruption: (interruption: ExecutiveInterruption | null) => void;
+  diagnosticToken: string | null;
+  setDiagnosticToken: (token: string | null) => void;
 
   // Mission HUD
   activeObjective: Objective | null;
@@ -141,7 +156,10 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   })),
   
   stack: initialState.stack || 'AWS',
-  setStack: (stack) => set({ stack }),
+  setStack: (stack) => {
+    set({ stack });
+    get().initializePods(stack);
+  },
   
   incidentReport: '',
   setIncidentReport: (incidentReport) => set({ incidentReport }),
@@ -186,6 +204,68 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   setIsDeclared: (isDeclared) => set({ isDeclared }),
   isDeployStabilized: true,
   setIsDeployStabilized: (isDeployStabilized) => set({ isDeployStabilized }),
+  
+  activePods: [],
+  initializePods: (stack) => {
+    const systems = stackJargon[stack]?.systems || commonJargon.systems;
+    const pods = systems.map((name: string, index: number) => ({
+      name: `${name.toLowerCase().replace(/\s+/g, '-')}-${index}`,
+      status: 'Running' as const,
+      restarts: 0,
+      age: '12d',
+      cpu: '12m',
+      memory: '128Mi'
+    }));
+    set({ activePods: pods, isDeployStabilized: true });
+  },
+  tickPods: (severity, isPaused) => {
+    if (isPaused) return;
+    const { activePods } = get();
+    if (activePods.length === 0) return;
+
+    const nextPods = activePods.map(pod => {
+      let cpuVal, memVal;
+      if (severity === 'NOMINAL') {
+        cpuVal = Math.floor(Math.random() * 50) + 10;
+        memVal = Math.floor(Math.random() * 100) + 128;
+        return { ...pod, status: 'Running' as const, restarts: 0, cpu: `${cpuVal}m`, memory: `${memVal}Mi` };
+      }
+
+      const chance = severity === 'P0' ? 0.4 : severity === 'P1' ? 0.15 : 0.05;
+      const multiplier = severity === 'P0' ? 15 : severity === 'P1' ? 5 : 2;
+      cpuVal = Math.floor((Math.random() * 100 + 50) * multiplier);
+      memVal = Math.floor((Math.random() * 200 + 200) * (multiplier / 2));
+
+      if (Math.random() < chance && pod.status === 'Running') {
+        const statuses: PodStatus['status'][] = severity === 'P0' 
+          ? ['CrashLoopBackOff', 'Error', 'Terminating'] 
+          : ['CrashLoopBackOff', 'ImagePullBackOff', 'Pending'];
+        const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+        return { 
+          ...pod, 
+          status: newStatus, 
+          restarts: pod.restarts + (newStatus === 'CrashLoopBackOff' ? 1 : 0),
+          age: severity === 'P0' ? '1s' : '2m',
+          cpu: '0m',
+          memory: '0Mi'
+        };
+      }
+
+      return { ...pod, cpu: `${cpuVal}m`, memory: `${memVal}Mi` };
+    });
+
+    const allRunning = nextPods.every(p => p.status === 'Running');
+    set({ activePods: nextPods, isDeployStabilized: allRunning });
+  },
+  stabilizePod: (podName) => {
+    const { activePods } = get();
+    const nextPods = activePods.map(pod => 
+      pod.name === podName ? { ...pod, status: 'Running' as const, age: '1s', restarts: 0 } : pod
+    );
+    const allRunning = nextPods.every(p => p.status === 'Running');
+    set({ activePods: nextPods, isDeployStabilized: allRunning });
+  },
+
   isResolving: false,
   setIsResolving: (isResolving) => set({ isResolving }),
   isPaused: false,
@@ -273,6 +353,7 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
         isDeployStabilized: false,
         serviceHealth: initialHealth
     }));
+    get().initializePods(stack);
     playAlert(severity);
     await get().generateStrategy();
   },
@@ -317,8 +398,10 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     timeInP0: 0,
     isResolving: false,
     isDeployStabilized: true,
+    activePods: [],
     mitigationCount: 0,
-    lastScoreEarned: 0
+    lastScoreEarned: 0,
+    diagnosticToken: null
   }),
 
   // UI state from existing store
@@ -351,6 +434,8 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   setOverride: (activeOverride) => set({ activeOverride }),
   activeInterruption: null,
   setInterruption: (activeInterruption) => set({ activeInterruption }),
+  diagnosticToken: null,
+  setDiagnosticToken: (diagnosticToken) => set({ diagnosticToken }),
 
   // Mission HUD
   activeObjective: null,
