@@ -86,7 +86,7 @@ export const SystemLog = ({
         return () => {
             window.removeEventListener('INJECT_LOG', handleInjectLog);
         };
-    }, [severity, send, logMultiplier, isPaused, terminalId]);
+    }, [severity, send, logMultiplier, isPaused, terminalId, setDiagnosticToken]);
 
     useEffect(() => {
         return () => {

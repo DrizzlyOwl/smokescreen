@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mockSetInterval = vi.fn((_cb: any, _delay: any) => 123);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mockClearInterval = vi.fn((_id: any) => {});
 
 vi.stubGlobal('setInterval', mockSetInterval);
@@ -9,6 +11,7 @@ vi.stubGlobal('clearInterval', mockClearInterval);
 
 const selfMock: any = {
     onmessage: null,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     postMessage: vi.fn((_msg: any) => {}),
     setInterval: mockSetInterval,
     clearInterval: mockClearInterval

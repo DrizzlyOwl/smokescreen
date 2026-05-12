@@ -6,7 +6,7 @@ import { getCommands } from '../data/commands.config';
 export interface Command {
   id: string;
   patterns: string[];
-  action: (context: Record<string, any>) => void | CommandResult;
+  action: (context: { arg?: string }) => void | CommandResult;
   description: string;
   category: 'PANES' | 'THREAT' | 'STACK' | 'SYSTEM' | 'ACTION';
   usage: string;
