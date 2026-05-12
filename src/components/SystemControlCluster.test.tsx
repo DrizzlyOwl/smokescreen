@@ -106,6 +106,7 @@ describe('SystemControlCluster', () => {
     gameMode: 'SANDBOX',
     activeObjective: null,
     commands: [],
+    handleResolve: vi.fn(),
     executeCeaseTheatre: vi.fn(),
     isChaos: false,
     isEcoMode: false,

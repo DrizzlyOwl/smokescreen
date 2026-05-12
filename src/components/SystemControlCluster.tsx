@@ -73,6 +73,7 @@ export interface SystemControlClusterProps extends WindowManagerActions {
   sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
   typingUsers: string[];
   commands: Command[];
+  handleResolve: () => void;
   executeCeaseTheatre: () => void;
   incidentReport: string;
   setIncidentReport: (r: string) => void;
@@ -146,7 +147,7 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
         severity={props.severity}
         isDeclared={props.isDeclared}
         onDeclare={props.loggedHandleDeclare}
-        onResolve={props.executeCeaseTheatre}
+        onResolve={props.handleResolve}
         mitigationCount={props.mitigationCount}
         unreadChat={props.unreadChat}
         gameMode={props.gameMode}

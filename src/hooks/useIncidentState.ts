@@ -312,18 +312,6 @@ export const useIncidentState = () => {
   });
 
   useEffect(() => {
-    const isResolving = incidentStore.isResolving;
-    const setIsResolving = incidentStore.setIsResolving;
-    if (isResolving) {
-        const timeout = setTimeout(() => { 
-            loggedCeaseTheatre(); 
-            setIsResolving(false); 
-        }, 5000);
-        return () => clearTimeout(timeout);
-    }
-  }, [incidentStore.isResolving, loggedCeaseTheatre, incidentStore.setIsResolving]);
-
-  useEffect(() => {
     const isSlowBurn = incidentStore.isSlowBurn;
     const severity = incidentStore.severity;
     const isPaused = incidentStore.isPaused;
@@ -350,6 +338,7 @@ export const useIncidentState = () => {
     loggedTogglePane, loggedSetStack, loggedSetSeverity, loggedSetIsSlowBurn,
     scrollRef,
     handleNewChatMessage,
+    handleResolve: handleCommandCease,
     executeCeaseTheatre: loggedCeaseTheatre,
     onFocus: (id: PaneId) => {
         windowManager.bringToFront(id);
