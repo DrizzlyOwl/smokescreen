@@ -585,4 +585,88 @@ export const getCommands = (actions: CommandActions): Command[] => [
       usage: 'vault seal',
       confirmation: 'SECRET_VAULT_SEALED_IMMEDIATELY... [OK]',
     },
+    {
+      id: 'probe_override',
+      patterns: ['probe override', 'probe-override'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.PROBE);
+        actions.incrementMitigationCount();
+      },
+      description: 'Manual override for service topology probes',
+      category: 'ACTION',
+      usage: 'probe override',
+      confirmation: 'PROBE_OVERRIDE_ACCEPTED... [OK]',
+    },
+    {
+      id: 'compute_cycle',
+      patterns: ['compute cycle', 'compute-cycle'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.COMPUTE);
+        actions.incrementMitigationCount();
+      },
+      description: 'Emergency power cycle for compute nodes',
+      category: 'ACTION',
+      usage: 'compute cycle',
+      confirmation: 'COMPUTE_NODES_CYCLING... [OK]',
+    },
+    {
+      id: 'cdn_purge',
+      patterns: ['cdn purge', 'cdn-purge'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.CDN);
+        actions.incrementMitigationCount();
+      },
+      description: 'Global cache purge for edge network',
+      category: 'ACTION',
+      usage: 'cdn purge',
+      confirmation: 'CDN_CACHE_PURGE_INITIATED... [OK]',
+    },
+    {
+      id: 'queue_flush',
+      patterns: ['queue flush', 'queue-flush'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.QUEUE);
+        actions.incrementMitigationCount();
+      },
+      description: 'Emergency flush of message queue buffers',
+      category: 'ACTION',
+      usage: 'queue flush',
+      confirmation: 'MESSAGE_QUEUES_FLUSHED... [OK]',
+    },
+    {
+      id: 'network_reset',
+      patterns: ['network reset', 'network-reset'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.NETWORK);
+        actions.incrementMitigationCount();
+      },
+      description: 'Soft reset of virtual network interfaces',
+      category: 'ACTION',
+      usage: 'network reset',
+      confirmation: 'VIRTUAL_NETWORK_RESET_COMPLETE... [OK]',
+    },
+    {
+      id: 'storage_sync',
+      patterns: ['storage sync', 'storage-sync'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.STORAGE);
+        actions.incrementMitigationCount();
+      },
+      description: 'Force state synchronization for block storage',
+      category: 'ACTION',
+      usage: 'storage sync',
+      confirmation: 'STORAGE_SYNC_COMPLETE... [OK]',
+    },
+    {
+      id: 'system_override',
+      patterns: ['system override', 'system-override'],
+      action: () => {
+        useIncidentStore.getState().healNodes(NodeType.UNKNOWN);
+        actions.incrementMitigationCount();
+      },
+      description: 'Manual override for unknown system nodes',
+      category: 'ACTION',
+      usage: 'system override',
+      confirmation: 'SYSTEM_OVERRIDE_ACCEPTED... [OK]',
+    },
 ];

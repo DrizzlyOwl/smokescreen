@@ -42,8 +42,40 @@ describe('nodeTypes utility', () => {
       expect(getNodeType('IAM policy engine')).toBe(NodeType.VAULT);
     });
 
+    it('identifies PROBE nodes', () => {
+      expect(getNodeType('Prometheus scraper')).toBe(NodeType.PROBE);
+      expect(getNodeType('Health monitor')).toBe(NodeType.PROBE);
+      expect(getNodeType('Logplex router')).toBe(NodeType.PROBE);
+    });
+
+    it('identifies COMPUTE nodes', () => {
+      expect(getNodeType('Compute Engine instance')).toBe(NodeType.COMPUTE);
+      expect(getNodeType('Bare-metal blade')).toBe(NodeType.COMPUTE);
+      expect(getNodeType('Lambda runtime')).toBe(NodeType.K8S); // Lambda is still K8S due to priority and keywords
+      expect(getNodeType('Heroku dyno')).toBe(NodeType.COMPUTE);
+    });
+
+    it('identifies CDN nodes', () => {
+      expect(getNodeType('CloudFront distribution')).toBe(NodeType.CDN);
+      expect(getNodeType('Cloudflare Workers')).toBe(NodeType.CDN);
+      expect(getNodeType('Azure Front Door')).toBe(NodeType.CDN);
+    });
+
+    it('identifies QUEUE nodes', () => {
+      expect(getNodeType('Kinesis stream')).toBe(NodeType.QUEUE);
+      expect(getNodeType('SQS queue')).toBe(NodeType.QUEUE);
+      expect(getNodeType('Pub/Sub topic')).toBe(NodeType.QUEUE);
+    });
+
+    it('identifies STORAGE nodes', () => {
+      expect(getNodeType('S3 bucket')).toBe(NodeType.STORAGE);
+      expect(getNodeType('Blob Storage')).toBe(NodeType.STORAGE);
+      expect(getNodeType('SAN storage array')).toBe(NodeType.STORAGE);
+      expect(getNodeType('NFS mount')).toBe(NodeType.STORAGE);
+    });
+
     it('returns UNKNOWN for unmatched names', () => {
-      expect(getNodeType('Random-Service')).toBe(NodeType.UNKNOWN);
+      expect(getNodeType('Mysterious-System-X')).toBe(NodeType.UNKNOWN);
       expect(getNodeType('')).toBe(NodeType.UNKNOWN);
     });
   });
@@ -55,7 +87,13 @@ describe('nodeTypes utility', () => {
       expect(NODE_TYPE_REMEDIATION[NodeType.BGP]).toBe('bgp reset');
       expect(NODE_TYPE_REMEDIATION[NodeType.MESH]).toBe('mesh restart');
       expect(NODE_TYPE_REMEDIATION[NodeType.VAULT]).toBe('vault seal');
-      expect(NODE_TYPE_REMEDIATION[NodeType.UNKNOWN]).toBe('manual override');
+      expect(NODE_TYPE_REMEDIATION[NodeType.PROBE]).toBe('probe override');
+      expect(NODE_TYPE_REMEDIATION[NodeType.COMPUTE]).toBe('compute cycle');
+      expect(NODE_TYPE_REMEDIATION[NodeType.CDN]).toBe('cdn purge');
+      expect(NODE_TYPE_REMEDIATION[NodeType.QUEUE]).toBe('queue flush');
+      expect(NODE_TYPE_REMEDIATION[NodeType.NETWORK]).toBe('network reset');
+      expect(NODE_TYPE_REMEDIATION[NodeType.STORAGE]).toBe('storage sync');
+      expect(NODE_TYPE_REMEDIATION[NodeType.UNKNOWN]).toBe('system override');
     });
   });
 });
