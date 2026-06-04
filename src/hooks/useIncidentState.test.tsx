@@ -27,14 +27,6 @@ vi.mock('./useClientStats', () => ({
   })
 }));
 
-let urlSyncCallback: (updates: import('./useUrlSync').UrlSyncState) => void = () => {};
-vi.mock('./useUrlSync', () => ({
-  useUrlSync: vi.fn((_state, onUpdate) => {
-    urlSyncCallback = onUpdate;
-  }),
-  getInitialStateFromUrl: vi.fn(() => ({}))
-}));
-
 vi.mock('./useSync', () => ({
   useSync: () => ({
     send: vi.fn(),
@@ -279,35 +271,6 @@ describe('useIncidentState', () => {
     expect(result.current.terminalHistory.some(line => 
       line.text.includes('RESOLUTION DENIED')
     )).toBe(true);
-  });
-
-  it('handles updates from URL synchronization', () => {
-    renderHook(() => useIncidentState());
-    
-    act(() => {
-      urlSyncCallback({
-        severity: 'P0',
-        stack: 'GCP',
-        theme: 'amber',
-        isEcoMode: true,
-        isDebugMode: true,
-        isAudioOn: true,
-        panes: { 
-          chat: true, logs: false, map: false, deploy: false, burn: false, 
-          howTo: false, settings: false, playbooks: false,
- 
-          incidentPlaybook: false, readout: false, terminal: false, debug: false 
-        }
-      });
-      useIncidentStore.setState({ isDeployStabilized: true });
-    });
-
-    const state = useIncidentStore.getState();
-    expect(state.severity).toBe('P0');
-    expect(state.stack).toBe('GCP');
-    expect(useTerminalStore.getState().theme).toBe('amber');
-    expect(useTerminalStore.getState().isEcoMode).toBe(true);
-    expect(useTerminalStore.getState().isDebugMode).toBe(true);
   });
 
   it('provides logged callbacks for state transitions', () => {

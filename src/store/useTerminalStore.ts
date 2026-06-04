@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { AppState, Theme } from '../contexts/types';
-import { getInitialStateFromUrl } from '../hooks/useUrlSync';
+import { safeLocalStorageGet, safeLocalStorageSet, safeLocalStorageRemove } from '../utils/storage';
 
 interface TerminalStore {
   appState: AppState;
@@ -30,22 +30,20 @@ interface TerminalStore {
   handleLogout: () => void;
 }
 
-const urlState = getInitialStateFromUrl();
-
 export const useTerminalStore = create<TerminalStore>((set) => ({
   appState: 'BOOT',
   setAppState: (appState) => set({ appState }),
   
-  operatorName: localStorage.getItem('operator_name') || '',
+  operatorName: safeLocalStorageGet('operator_name', ''),
   setOperatorName: (operatorName) => {
-    localStorage.setItem('operator_name', operatorName);
+    safeLocalStorageSet('operator_name', operatorName);
     set({ operatorName });
   },
   
-  theme: (urlState.theme || localStorage.getItem('terminal_theme') || 'classic') as Theme,
+  theme: safeLocalStorageGet('terminal_theme', 'classic') as Theme,
   setTheme: (theme) => {
     document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('terminal_theme', theme);
+    safeLocalStorageSet('terminal_theme', theme);
     set({ theme });
   },
   
@@ -55,25 +53,25 @@ export const useTerminalStore = create<TerminalStore>((set) => ({
     terminalId: `SRE-${Math.random().toString(36).substring(2, 6).toUpperCase()}` 
   }),
   
-  isDebugMode: urlState.isDebugMode ?? (localStorage.getItem('debug_mode') === 'true'),
+  isDebugMode: safeLocalStorageGet('debug_mode', false),
   setIsDebugMode: (isDebugMode) => {
-    localStorage.setItem('debug_mode', String(isDebugMode));
+    safeLocalStorageSet('debug_mode', isDebugMode);
     set({ isDebugMode });
   },
   
-  isEcoMode: urlState.isEcoMode ?? (localStorage.getItem('eco_mode') === 'true'),
+  isEcoMode: safeLocalStorageGet('eco_mode', false),
   setIsEcoMode: (isEcoMode) => {
-    localStorage.setItem('eco_mode', String(isEcoMode));
+    safeLocalStorageSet('eco_mode', isEcoMode);
     if (isEcoMode) document.body.classList.add('eco-mode');
     else document.body.classList.remove('eco-mode');
     set({ isEcoMode });
   },
 
-  completedScenarios: JSON.parse(localStorage.getItem('completed_scenarios') || '[]'),
+  completedScenarios: safeLocalStorageGet<string[]>('completed_scenarios', []),
   markScenarioCompleted: (id) => set((state) => {
     if (state.completedScenarios.includes(id)) return state;
     const next = [...state.completedScenarios, id];
-    localStorage.setItem('completed_scenarios', JSON.stringify(next));
+    safeLocalStorageSet('completed_scenarios', next);
     return { completedScenarios: next };
   }),
 
@@ -86,7 +84,7 @@ export const useTerminalStore = create<TerminalStore>((set) => ({
   })),
 
   handleLogout: () => {
-    localStorage.removeItem('operator_name');
+    safeLocalStorageRemove('operator_name');
     set({ appState: 'SHUTDOWN', operatorName: '' });
   },
 }));

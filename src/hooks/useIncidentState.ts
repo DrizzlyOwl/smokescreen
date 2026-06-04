@@ -8,9 +8,9 @@ import { useDebugLogger } from './useDebugLogger';
 import { useScenarioEngine } from './useScenarioEngine';
 import { useIncidentChat } from './useIncidentChat';
 import { useCommandRegistry } from './useCommandRegistry';
-import { useUrlSync } from './useUrlSync';
 import { useChaosEvents } from './useChaosEvents';
 import { useOnboarding } from './useOnboarding';
+import { safeLocalStorageGet } from '../utils/storage';
 import type { Severity, Stack } from '../data/incidents';
 import { SCENARIOS } from '../data/scenarios';
 
@@ -37,7 +37,7 @@ export const useIncidentState = () => {
 
   const windowManager = useWindowManager({
     chat: false, logs: false, map: false, deploy: false,
-    burn: false, howTo: !localStorage.getItem('smokescreen_visited'), settings: false, playbooks: false, incidentPlaybook: false, readout: false, terminal: true, debug: false
+    burn: false, howTo: !safeLocalStorageGet('smokescreen_visited', false), settings: false, playbooks: false, incidentPlaybook: false, readout: false, terminal: true, debug: false
   });
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -288,29 +288,6 @@ export const useIncidentState = () => {
 
     return result;
   }, [internalHandleCommand, windowManager, isWaiting, resumeScenario, log, incidentStore, playMitigationSuccess]);
-
-  useUrlSync({
-    severity: incidentStore.severity,
-    stack: incidentStore.stack,
-    panes: windowManager.panes,
-    theme: terminalStore.theme,
-    isEcoMode: terminalStore.isEcoMode,
-    isDebugMode: terminalStore.isDebugMode,
-    isAudioOn: audioStore.isAudioOn
-  }, (updates) => {
-    if (updates.severity) incidentStore.setSeverity(updates.severity);
-    if (updates.stack) incidentStore.setStack(updates.stack);
-    if (updates.theme) terminalStore.setTheme(updates.theme);
-    if (updates.isEcoMode !== undefined) terminalStore.setIsEcoMode(updates.isEcoMode);
-    if (updates.isDebugMode !== undefined) terminalStore.setIsDebugMode(updates.isDebugMode);
-    if (updates.isAudioOn !== undefined) audioStore.setIsAudioOn(updates.isAudioOn);
-    if (updates.panes) {
-        Object.entries(updates.panes).forEach(([id, active]) => {
-            if (active) windowManager.openPane(id as PaneId);
-            else windowManager.closePane(id as PaneId);
-        });
-    }
-  });
 
   useEffect(() => {
     const isSlowBurn = incidentStore.isSlowBurn;

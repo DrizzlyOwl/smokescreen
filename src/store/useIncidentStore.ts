@@ -1,10 +1,11 @@
 import { NodeType } from '../utils/nodeTypes';
 import { create } from 'zustand';
+import { ErrorHandler } from '../utils/errorHandler';
 import { type Severity, type Stack, stackJargon, commonJargon } from '../data/incidents';
-import { getInitialStateFromUrl } from '../hooks/useUrlSync';
 import type { Objective } from '../contexts/types';
 import { incidentService } from '../services/incidentService';
 import { reportService } from '../services/reportService';
+import { safeLocalStorageGet, safeLocalStorageSet, safeLocalStorageRemove } from '../utils/storage';
 
 export interface TerminalLine {
   text: string;
@@ -15,8 +16,6 @@ export interface CommandResult {
   isValid: boolean;
   message?: string;
 }
-
-const initialState = getInitialStateFromUrl();
 
 export interface ApprovalState {
   id: string;
@@ -108,6 +107,7 @@ interface IncidentState {
   generateStrategy: () => Promise<void>;
   ceaseTheatre: () => void;
   tickSlowBurn: (playAlert: (s: Severity) => void, declare: (playAlertFn: (s: Severity) => void) => void) => void;
+  loadGameSession: (savedState: Record<string, any>) => void;
 
   // UI State
   unreadChat: number;
@@ -142,7 +142,7 @@ interface IncidentState {
 }
 
 export const useIncidentStore = create<IncidentState>((set, get) => ({
-  severity: initialState.severity || 'NOMINAL',
+  severity: 'NOMINAL',
   setSeverity: (s) => set((state) => ({ 
     severity: s, 
     isSlowBurn: state.isSlowBurn, 
@@ -155,7 +155,7 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
             s === 'P1' ? 'CRITICAL ALERT' : 'BREACH DETECTED'
   })),
   
-  stack: initialState.stack || 'AWS',
+  stack: 'AWS',
   setStack: (stack) => {
     set({ stack });
     get().initializePods(stack);
@@ -191,10 +191,10 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     slowBurnCountdown: typeof updater === 'function' ? updater(state.slowBurnCountdown) : updater 
   })),
   
-  mitigationScore: parseInt(localStorage.getItem('mitigation_score') || '0'),
+  mitigationScore: safeLocalStorageGet<number>('mitigation_score', 0),
   setMitigationScore: (updater) => set((state) => {
     const next = typeof updater === 'function' ? updater(state.mitigationScore) : updater;
-    localStorage.setItem('mitigation_score', next.toString());
+    safeLocalStorageSet('mitigation_score', next);
     return { mitigationScore: next };
   }),
   lastScoreEarned: 0,
@@ -270,10 +270,10 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   setIsResolving: (isResolving) => set({ isResolving }),
   isPaused: false,
   setIsPaused: (isPaused) => set({ isPaused }),
-  onboardingStep: localStorage.getItem('smokescreen_onboarded') === 'true' ? -1 : 0,
+  onboardingStep: safeLocalStorageGet<boolean>('smokescreen_onboarded', false) ? -1 : 0,
   setOnboardingStep: (onboardingStep) => {
     if (onboardingStep === -1) {
-        localStorage.setItem('smokescreen_onboarded', 'true');
+        safeLocalStorageSet('smokescreen_onboarded', true);
     }
     set({ onboardingStep });
   },
@@ -360,7 +360,7 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
 
   generateStrategy: async () => {
     const { severity, stack } = get();
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = safeLocalStorageGet('gemini_api_key', '');
     let result;
     if (apiKey) {
         result = await reportService.generateAIIncidentReport(severity, stack, apiKey);
@@ -376,33 +376,51 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     });
   },
 
-  ceaseTheatre: () => set({
-    severity: 'NOMINAL',
-    incidentReport: '',
-    ticketId: '',
-    moneyLost: 0,
-    isSlowBurn: false,
-    isChaos: false,
-    slowBurnCountdown: 30,
-    status: 'SYSTEMS NOMINAL',
-    isDeclared: false,
-    gameMode: 'SANDBOX',
-    selectedPlaybookId: null,
-    activeBeacons: [],
-    serviceHealth: {},
-    activeApproval: null,
-    activeOverride: null,
-    activeInterruption: null,
-    activeObjective: null,
-    strikes: 5,
-    timeInP0: 0,
-    isResolving: false,
-    isDeployStabilized: true,
-    activePods: [],
-    mitigationCount: 0,
-    lastScoreEarned: 0,
-    diagnosticToken: null
-  }),
+  ceaseTheatre: () => {
+    safeLocalStorageRemove('smokescreen_saved_game');
+    set({
+      severity: 'NOMINAL',
+      incidentReport: '',
+      ticketId: '',
+      moneyLost: 0,
+      isSlowBurn: false,
+      isChaos: false,
+      slowBurnCountdown: 30,
+      status: 'SYSTEMS NOMINAL',
+      isDeclared: false,
+      gameMode: 'SANDBOX',
+      selectedPlaybookId: null,
+      activeBeacons: [],
+      serviceHealth: {},
+      activeApproval: null,
+      activeOverride: null,
+      activeInterruption: null,
+      activeObjective: null,
+      strikes: 5,
+      timeInP0: 0,
+      isResolving: false,
+      isDeployStabilized: true,
+      activePods: [],
+      mitigationCount: 0,
+      lastScoreEarned: 0,
+      diagnosticToken: null
+    });
+  },
+
+  loadGameSession: (savedState) => {
+    try {
+      if (!savedState || typeof savedState !== 'object') {
+        throw new Error('Malformed state data');
+      }
+      set((state) => ({
+        ...state,
+        ...savedState
+      }));
+      console.log('[SMOKESCREEN_OS: STORAGE] Game session successfully restored.');
+    } catch (error) {
+      ErrorHandler.handle(error, 'INCIDENT_STORE:RESTORE_SESSION');
+    }
+  },
 
   // UI state from existing store
   unreadChat: 0,

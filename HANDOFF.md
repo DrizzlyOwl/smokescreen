@@ -25,7 +25,7 @@
 - **BEM**: Strictly follow BEM for SCSS.
 - **No Globals**: Use context/Zustand for state. No global window variables.
 - **Type Safety**: Zero `any`. Use interfaces in `src/contexts/types.ts`.
-- **URL Sync**: All UI state should serialize to URL via `useUrlSync`.
+- **Session State**: All UI state persists locally in user sessions (no query parameter syncing).
 
 ---
 *Generated: 2026-05-12*

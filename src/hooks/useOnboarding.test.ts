@@ -27,11 +27,6 @@ vi.mock('./useClientStats', () => ({
   })
 }));
 
-vi.mock('./useUrlSync', () => ({
-  useUrlSync: vi.fn(),
-  getInitialStateFromUrl: vi.fn(() => ({}))
-}));
-
 vi.mock('./useSync', () => ({
   useSync: () => ({
     send: vi.fn(),
