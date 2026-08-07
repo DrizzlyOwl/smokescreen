@@ -15,6 +15,8 @@ interface StatusBarProps {
   gameMode: GameMode;
   activeObjective: Objective | null;
   playbookProgress?: { current: number, total: number };
+  /** ESC logout confirmation pending */
+  escConfirmPending?: boolean;
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({ 
@@ -25,7 +27,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   setIsEcoMode,
   gameMode,
   activeObjective,
-  playbookProgress
+  playbookProgress,
+  escConfirmPending = false
 }) => {
   const { fps, batteryLevel, isCharging, connectionType, downlink } = useClientStats();
   const [time, setTime] = useState(new Date().toLocaleTimeString());
@@ -52,6 +55,11 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
   return (
     <div className={`status-bar status-bar--${severity.toLowerCase()} ${isDeclared ? 'status-bar--declared' : ''}`}>
+        {escConfirmPending && (
+          <div className="status-bar__esc-confirm">
+            Press ESC again to confirm logout
+          </div>
+        )}
         <div className="status-line">
             <div className="status-line__left">
                 <span className="status-line__os-ver">SMOKESCREEN_OS v6.0.4</span>

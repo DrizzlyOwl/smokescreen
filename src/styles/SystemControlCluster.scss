@@ -10,11 +10,13 @@
   font-family: var(--font-mono);
   font-size: rem(11);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   z-index: 1000;
   white-space: nowrap;
   user-select: none;
   flex-shrink: 0;
+  position: relative;
 
   &--p3 { border-bottom-color: var(--status-p3); .status-line__status { color: var(--status-p3); } }
   &--p1 { border-bottom-color: var(--status-p1); .status-line__status { color: var(--status-p1); } }
@@ -27,6 +29,28 @@
   &--declared {
     background: #000;
   }
+
+  &__esc-confirm {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--terminal-amber);
+    color: #000;
+    padding: 0 rem(12);
+    font-weight: bold;
+    font-size: rem(10);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    animation: esc-flash 0.5s infinite alternate;
+    z-index: 1;
+  }
+}
+
+@keyframes esc-flash {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
 }
 
 .status-line {
@@ -297,6 +321,14 @@
   flex-direction: column;
   background: var(--bg-color);
   overflow: hidden;
+
+  /* Screen mode: StatusBar, ScreenContainer (flex), TerminalStrip, CommandStrip */
+  &--screen-mode {
+    .screen-container {
+      flex: 1;
+      min-height: 0;
+    }
+  }
 }
 
 .cluster-content-wrapper {

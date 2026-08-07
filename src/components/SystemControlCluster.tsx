@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { StatusBar } from './StatusBar';
-import { PaneGrid } from './PaneGrid';
+import { ScreenContainer } from './ScreenContainer';
+import { TerminalStrip } from './TerminalStrip';
+import { DebugOverlay } from './DebugOverlay';
 import { CommandStrip } from './CommandStrip';
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useScreenShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useScreenManager, type ScreenId } from '../hooks/useScreenManager';
 import type { Severity, Stack } from '../data/incidents';
-import type { PaneId, WindowManagerActions } from '../hooks/useWindowManager';
 import type { ChatMessage, Objective } from '../contexts/types';
 import type { ApprovalState, TerminalOverrideState, GameMode } from '../store/useIncidentStore';
 import type { CommandResult, TerminalLine } from '../hooks/useIncidentState';
@@ -12,7 +14,7 @@ import type { Command } from '../hooks/useCommandRegistry';
 import type { Scenario } from '../data/scenarios/types';
 import type { Theme } from '../contexts/types';
 
-export interface SystemControlClusterProps extends WindowManagerActions {
+export interface SystemControlClusterProps {
   severity: Severity;
   stack: Stack;
   isDeclared: boolean;
@@ -21,7 +23,6 @@ export interface SystemControlClusterProps extends WindowManagerActions {
   gameMode: GameMode;
   activeObjective: Objective | null;
   currentEventIndex: number;
-  loggedTogglePane: (id: PaneId) => void;
   addCommandToHistory: (cmd: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -41,11 +42,6 @@ export interface SystemControlClusterProps extends WindowManagerActions {
   startScenario: (p: Scenario) => void;
   stopScenario: () => void;
   resumeScenario: () => void;
-  onFocus: (id: PaneId) => void;
-  onClose: (id: PaneId) => void;
-  toggleMinimize: (id: PaneId) => void;
-  onPopOutToggle: (id: PaneId) => void;
-  onSnapMainToggle: (id: PaneId) => void;
   isChaos: boolean;
   setIsChaos: (on: boolean) => void;
   activeBeacons: string[];
@@ -67,7 +63,6 @@ export interface SystemControlClusterProps extends WindowManagerActions {
   handleLogout: () => void;
   moneyLost: number;
   lastScoreEarned: number;
-  bringToFront: (id: PaneId) => void;
   terminalId: string;
   messages: ChatMessage[];
   sendMessage: (text: string, user: string, id?: string, isBot?: boolean) => void;
@@ -91,13 +86,27 @@ export interface SystemControlClusterProps extends WindowManagerActions {
 
 export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [escConfirmPending, setEscConfirmPending] = useState(false);
+
+  // Screen manager state
+  const screenManager = useScreenManager('howTo');
+
+  // Handle screen navigation with logging
+  const handleSetActiveScreen = useCallback((id: ScreenId) => {
+    screenManager.setActiveScreen(id);
+  }, [screenManager]);
 
   // Handle global keyboard shortcuts
-  useKeyboardShortcuts({
-    loggedTogglePane: props.loggedTogglePane,
+  useScreenShortcuts({
+    setActiveScreen: handleSetActiveScreen,
+    toggleTerminalCollapsed: screenManager.toggleTerminalCollapsed,
+    toggleDebug: screenManager.toggleDebug,
     togglePause: () => props.setIsPaused(!props.isPaused),
-    isDeclared: props.isDeclared
+    handleLogout: props.handleLogout,
+    isDeclared: props.isDeclared,
+    onEscConfirmChange: setEscConfirmPending,
   });
+
   // Handle auto-scroll for readout
   React.useEffect(() => {
     if (scrollRef.current) {
@@ -120,7 +129,7 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
     .filter(e => e.type === 'OBJECTIVE' && (e.payload as Objective).status !== 'complete').length || 0;
 
   return (
-    <div className="cluster-layout">
+    <div className="cluster-layout cluster-layout--screen-mode">
       <StatusBar 
         severity={props.severity}
         stack={props.stack}
@@ -133,16 +142,59 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
           current: Math.max(1, currentActionableCount), 
           total: actionableEvents.length 
         }}
+        escConfirmPending={escConfirmPending}
       />
-      <PaneGrid
-        {...props}
-        onCommand={handleTerminalCommand}
+
+      <ScreenContainer
+        activeScreen={screenManager.activeScreen}
+        severity={props.severity}
+        stack={props.stack}
+        isDeclared={props.isDeclared}
+        messages={props.messages}
+        sendMessage={props.sendMessage}
+        typingUsers={props.typingUsers}
+        markAsRead={props.markAsRead}
+        markAllAsRead={props.markAllAsRead}
+        operatorName={props.operatorName}
+        logMultiplier={props.logMultiplier}
+        ticketId={props.ticketId}
+        theme={props.theme}
+        setTheme={props.setTheme}
         onSelectScenario={props.startScenario}
+        activeScenario={props.activeScenario}
+        completedScenarios={props.completedScenarios}
+        activeObjective={props.activeObjective}
+        incidentReport={props.incidentReport}
+        setIncidentReport={props.setIncidentReport}
+        displayText={props.displayText}
         scrollRef={scrollRef}
+        moneyLost={props.moneyLost}
       />
+
+      <TerminalStrip
+        height={screenManager.terminalHeight}
+        collapsed={screenManager.terminalCollapsed}
+        onHeightChange={screenManager.setTerminalHeight}
+        onToggleCollapse={screenManager.toggleTerminalCollapsed}
+        onCommand={handleTerminalCommand}
+        terminalHistory={props.terminalHistory}
+        setTerminalHistory={props.setTerminalHistory}
+        commandHistory={props.commandHistory}
+        commands={props.commands}
+        operatorName={props.operatorName}
+        isActive={true}
+      />
+
+      <DebugOverlay
+        isOpen={screenManager.debugOpen}
+        onClose={screenManager.closeDebug}
+      />
+
       <CommandStrip 
-        panes={props.panes} 
-        loggedTogglePane={props.loggedTogglePane} 
+        activeScreen={screenManager.activeScreen}
+        setActiveScreen={handleSetActiveScreen}
+        toggleTerminal={screenManager.toggleTerminalCollapsed}
+        terminalCollapsed={screenManager.terminalCollapsed}
         handleLogout={props.handleLogout}
         severity={props.severity}
         isDeclared={props.isDeclared}
@@ -155,4 +207,3 @@ export const SystemControlCluster: React.FC<SystemControlClusterProps> = (props)
     </div>
   );
 };
-

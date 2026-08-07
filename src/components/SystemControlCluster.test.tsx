@@ -5,45 +5,12 @@ import { describe, it, expect, vi } from 'vitest';
 // Mock child components to keep test focused
 vi.mock('./StatusBar', () => ({ StatusBar: () => <div data-testid="status-bar" /> }));
 vi.mock('./CommandStrip', () => ({ CommandStrip: () => <div data-testid="command-strip" /> }));
-vi.mock('./PaneGrid', () => ({ PaneGrid: () => <div data-testid="pane-grid" /> }));
+vi.mock('./ScreenContainer', () => ({ ScreenContainer: () => <div data-testid="screen-container" /> }));
+vi.mock('./TerminalStrip', () => ({ TerminalStrip: () => <div data-testid="terminal-strip" /> }));
+vi.mock('./DebugOverlay', () => ({ DebugOverlay: () => <div data-testid="debug-overlay" /> }));
 
 describe('SystemControlCluster', () => {
   const mockProps: SystemControlClusterProps = {
-    panes: { 
-      chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, playbooks: false,
-      incidentPlaybook: false, readout: false, terminal: true, debug: false 
-    },
-    minimizedPanes: { 
-      chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, playbooks: false,
-      incidentPlaybook: false, readout: false, terminal: false, debug: false 
-    },
-    zIndices: { 
-      chat: 101, logs: 102, map: 103, deploy: 104, burn: 105, 
-      howTo: 106, settings: 107, playbooks: 108,
-      incidentPlaybook: 109, readout: 110, terminal: 111, debug: 112 
-    },
-    poppedOutPanes: { 
-      chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, playbooks: false,
-      incidentPlaybook: false, readout: false, terminal: false, debug: false 
-    },
-    snappedMainPanes: { 
-      chat: false, logs: false, map: false, deploy: false, burn: false, 
-      howTo: false, settings: false, playbooks: false,
-      incidentPlaybook: false, readout: false, terminal: false, debug: false 
-    },
-    onPopOutToggle: vi.fn(),
-    onSnapMainToggle: vi.fn(),
-    togglePopOut: vi.fn(),
-    toggleSnapMain: vi.fn(),
-    onFocus: vi.fn(),
-    onClose: vi.fn(),
-    activePane: null,
-    bringToFront: vi.fn(),
-    loggedTogglePane: vi.fn(),
-    toggleMinimize: vi.fn(),
     messages: [],
     sendMessage: vi.fn(),
     isDeclared: false,
@@ -111,21 +78,14 @@ describe('SystemControlCluster', () => {
     isChaos: false,
     isEcoMode: false,
     setIsEcoMode: vi.fn(),
-    setMinimized: vi.fn(),
-    setActivePane: vi.fn(),
-    setPanes: vi.fn(),
-    openPane: vi.fn(),
-    closePane: vi.fn(),
-    togglePane: vi.fn(),
-    closeAll: vi.fn(),
-    openAll: vi.fn(),
   };
 
   it('renders correctly with base props', () => {
     render(<SystemControlCluster {...mockProps} />);
     expect(screen.getByTestId('status-bar')).toBeInTheDocument();
     expect(screen.getByTestId('command-strip')).toBeInTheDocument();
-    expect(screen.getByTestId('pane-grid')).toBeInTheDocument();
+    expect(screen.getByTestId('screen-container')).toBeInTheDocument();
+    expect(screen.getByTestId('terminal-strip')).toBeInTheDocument();
   });
 
   it('sets correct theme on mount', () => {
