@@ -25,7 +25,8 @@ export const ChatPane = ({
     isSnappedMain,
     onSnapMainToggle,
     initialPos = { x: 40, y: 40 },
-    initialSize = { width: 450, height: 400 }
+    initialSize = { width: 450, height: 400 },
+    screenMode = false
 }: { 
     messages: ChatMessage[],
     typingUsers: string[],
@@ -45,7 +46,8 @@ export const ChatPane = ({
     isSnappedMain?: boolean,
     onSnapMainToggle?: () => void,
     initialPos?: { x: number, y: number },
-    initialSize?: { width: number, height: number }
+    initialSize?: { width: number, height: number },
+    screenMode?: boolean
 }) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [inputText, setInputText] = useState('');
@@ -119,6 +121,7 @@ export const ChatPane = ({
       isSnappedMain={isSnappedMain}
       onSnapMainToggle={onSnapMainToggle}
       onClose={onClose}
+      screenMode={screenMode}
     >
       <div className="chat-pane">
         {messages.length === 0 && (

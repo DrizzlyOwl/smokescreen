@@ -29,6 +29,7 @@ interface ReadoutBoxProps {
   onSnapMainToggle?: () => void;
   initialPos?: { x: number, y: number };
   initialSize?: { width: number, height: number };
+  screenMode?: boolean;
 }
 
 export const ReadoutBox = ({ 
@@ -51,7 +52,8 @@ export const ReadoutBox = ({
   isSnappedMain,
   onSnapMainToggle,
   initialPos = { x: 450, y: 100 },
-  initialSize = { width: 500, height: 450 }
+  initialSize = { width: 500, height: 450 },
+  screenMode = false
 }: ReadoutBoxProps) => {
   return (
     <Pane
@@ -70,6 +72,7 @@ export const ReadoutBox = ({
       onClose={onClose}
       initialPos={initialPos}
       initialSize={initialSize}
+      screenMode={screenMode}
     >
       <div className={`readout-box ${className}`} style={{ ...style, height: '100%', border: 'none', marginTop: 0 }}>
         {(label || headerRight) && (

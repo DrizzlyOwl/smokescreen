@@ -22,6 +22,7 @@ interface TechnicalPaneProps {
   onPopOutToggle?: () => void;
   isSnappedMain?: boolean;
   onSnapMainToggle?: () => void;
+  screenMode?: boolean;
   metadata?: {
     version?: string;
     source?: string;
@@ -49,6 +50,7 @@ export const TechnicalPane = ({
   onPopOutToggle,
   isSnappedMain = false,
   onSnapMainToggle,
+  screenMode = false,
   metadata,
   children,
 }: TechnicalPaneProps) => {
@@ -72,6 +74,7 @@ export const TechnicalPane = ({
       onClose={onClose}
       initialPos={initialPos}
       initialSize={initialSize}
+      screenMode={screenMode}
     >
       <div className="technical-pane">
         <header 

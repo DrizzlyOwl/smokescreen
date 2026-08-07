@@ -33,7 +33,8 @@ export const BurnRateDashboard = ({
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
-    onSnapMainToggle
+    onSnapMainToggle,
+    screenMode = false
 }: { 
     severity: Severity, 
     zIndex: number, 
@@ -48,7 +49,8 @@ export const BurnRateDashboard = ({
     isPoppedOut?: boolean,
     onPopOutToggle?: () => void,
     isSnappedMain?: boolean,
-    onSnapMainToggle?: () => void
+    onSnapMainToggle?: () => void,
+    screenMode?: boolean
 }) => {
     const isPaused = useIncidentStore(state => state.isPaused);
     const [tickerIndex, setTickerIndex] = useState(0);
@@ -117,6 +119,7 @@ export const BurnRateDashboard = ({
           onPopOutToggle={onPopOutToggle}
           isSnappedMain={isSnappedMain}
           onSnapMainToggle={onSnapMainToggle}
+          screenMode={screenMode}
         >
             <div className="burn-dashboard">
                 <div className="burn-dashboard__display">

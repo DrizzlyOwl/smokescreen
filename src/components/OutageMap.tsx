@@ -39,7 +39,8 @@ export const OutageMap = ({
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
-    onSnapMainToggle
+    onSnapMainToggle,
+    screenMode = false
 }: { 
     severity: Severity, 
     zIndex: number, 
@@ -53,7 +54,8 @@ export const OutageMap = ({
     isPoppedOut?: boolean,
     onPopOutToggle?: () => void,
     isSnappedMain?: boolean,
-    onSnapMainToggle?: () => void
+    onSnapMainToggle?: () => void,
+    screenMode?: boolean
 }) => {
     const [nodes, setNodes] = useState<IncidentNode[]>([]);
     const { isEcoMode } = useTerminal();
@@ -257,6 +259,7 @@ export const OutageMap = ({
           onPopOutToggle={onPopOutToggle}
           isSnappedMain={isSnappedMain}
           onSnapMainToggle={onSnapMainToggle}
+          screenMode={screenMode}
         >
             <div 
                 ref={mapRef}

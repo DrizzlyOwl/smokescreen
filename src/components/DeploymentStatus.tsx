@@ -19,7 +19,8 @@ export const DeploymentStatus = ({
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
-    onSnapMainToggle
+    onSnapMainToggle,
+    screenMode = false
 }: { 
     severity: Severity, 
     stack: Stack,
@@ -34,7 +35,8 @@ export const DeploymentStatus = ({
     isPoppedOut?: boolean,
     onPopOutToggle?: () => void,
     isSnappedMain?: boolean,
-    onSnapMainToggle?: () => void
+    onSnapMainToggle?: () => void,
+    screenMode?: boolean
 }) => {
   const { activePods, initializePods, tickPods, stabilizePod, isPaused } = useIncidentStore();
 
@@ -116,6 +118,7 @@ export const DeploymentStatus = ({
       onPopOutToggle={onPopOutToggle}
       isSnappedMain={isSnappedMain}
       onSnapMainToggle={onSnapMainToggle}
+      screenMode={screenMode}
     >
       <div className="deploy-status">
         <table className="deploy-status__table">

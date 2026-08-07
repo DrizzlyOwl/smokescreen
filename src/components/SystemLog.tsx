@@ -23,7 +23,8 @@ export const SystemLog = ({
     isPoppedOut,
     onPopOutToggle,
     isSnappedMain,
-    onSnapMainToggle
+    onSnapMainToggle,
+    screenMode = false
 }: { 
     severity: Severity, 
     logMultiplier: number,
@@ -39,7 +40,8 @@ export const SystemLog = ({
     isPoppedOut?: boolean,
     onPopOutToggle?: () => void,
     isSnappedMain?: boolean,
-    onSnapMainToggle?: () => void
+    onSnapMainToggle?: () => void,
+    screenMode?: boolean
 }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const { send } = useSync();
@@ -123,6 +125,7 @@ export const SystemLog = ({
           onPopOutToggle={onPopOutToggle}
           isSnappedMain={isSnappedMain}
           onSnapMainToggle={onSnapMainToggle}
+          screenMode={screenMode}
         >
           <div className="system-log-wrapper" style={{ flex: 1, height: '100%', minHeight: 0 }}>
             <Virtuoso
