@@ -4,6 +4,53 @@ import { PlaybookIcon } from './Icons';
 import type { Scenario } from '../data/scenarios/types';
 import '../styles/PlaybookPane.scss';
 
+/**
+ * Safely renders a line of text with **bold** and `code` formatting.
+ * Does NOT use dangerouslySetInnerHTML - all content is properly escaped.
+ */
+function renderFormattedLine(line: string, lineIndex: number): React.ReactNode {
+  // Parse the line into segments: plain text, bold, or code
+  const segments: React.ReactNode[] = [];
+  let remaining = line;
+  let segmentKey = 0;
+
+  while (remaining.length > 0) {
+    // Find the next formatting marker
+    const boldMatch = remaining.match(/\*\*(.*?)\*\*/);
+    const codeMatch = remaining.match(/`(.*?)`/);
+
+    // Determine which comes first
+    const boldIndex = boldMatch?.index ?? Infinity;
+    const codeIndex = codeMatch?.index ?? Infinity;
+
+    if (boldIndex === Infinity && codeIndex === Infinity) {
+      // No more formatting - add the rest as plain text
+      if (remaining) {
+        segments.push(<span key={segmentKey++}>{remaining}</span>);
+      }
+      break;
+    }
+
+    if (boldIndex <= codeIndex && boldMatch) {
+      // Bold comes first
+      if (boldIndex > 0) {
+        segments.push(<span key={segmentKey++}>{remaining.slice(0, boldIndex)}</span>);
+      }
+      segments.push(<strong key={segmentKey++}>{boldMatch[1]}</strong>);
+      remaining = remaining.slice(boldIndex + boldMatch[0].length);
+    } else if (codeMatch) {
+      // Code comes first
+      if (codeIndex > 0) {
+        segments.push(<span key={segmentKey++}>{remaining.slice(0, codeIndex)}</span>);
+      }
+      segments.push(<code key={segmentKey++}>{codeMatch[1]}</code>);
+      remaining = remaining.slice(codeIndex + codeMatch[0].length);
+    }
+  }
+
+  return <p key={lineIndex}>{segments}</p>;
+}
+
 interface IncidentPlaybookPaneProps {
   zIndex: number;
   onFocus: () => void;
@@ -78,17 +125,8 @@ export const IncidentPlaybookPane: React.FC<IncidentPlaybookPaneProps> = ({
                       return <h1 key={i}>{line.replace('# ', '')}</h1>;
                     }
                     
-                    // Basic bold and code replacement
-                    const formatted = line
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/`(.*?)`/g, '<code>$1</code>');
-                      
-                    return (
-                      <p 
-                        key={i} 
-                        dangerouslySetInnerHTML={{ __html: formatted }}
-                      />
-                    );
+                    // Safely render bold and code formatting without innerHTML
+                    return renderFormattedLine(line, i);
                   })}
                 </div>
               ) : (
