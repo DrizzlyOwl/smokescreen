@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useIncidentStore } from './useIncidentStore';
+import { safeLocalStorageGet } from '../utils/storage';
 
 describe('useIncidentStore', () => {
   beforeEach(() => {
-    useIncidentStore.setState(useIncidentStore.getInitialState());
     localStorage.clear();
+    useIncidentStore.setState(useIncidentStore.getInitialState());
   });
 
   it('initializes with default values', () => {
@@ -56,7 +57,7 @@ describe('useIncidentStore', () => {
   it('updates mitigation score and persists to localStorage', () => {
     useIncidentStore.getState().setMitigationScore(1000);
     expect(useIncidentStore.getState().mitigationScore).toBe(1000);
-    expect(localStorage.getItem('mitigation_score')).toBe('1000');
+    expect(safeLocalStorageGet('mitigation_score', 0)).toBe(1000);
   });
 
   it('handles onboarding step progression', () => {
@@ -64,6 +65,6 @@ describe('useIncidentStore', () => {
     expect(useIncidentStore.getState().onboardingStep).toBe(1);
     
     useIncidentStore.getState().setOnboardingStep(-1);
-    expect(localStorage.getItem('smokescreen_onboarded')).toBe('true');
+    expect(safeLocalStorageGet('smokescreen_onboarded', false)).toBe(true);
   });
 });
