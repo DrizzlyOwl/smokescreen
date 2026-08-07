@@ -51,8 +51,8 @@ interface ScreenContainerProps {
 }
 
 /**
- * Stub props for legacy Pane compatibility.
- * These will be removed in Phase 2.4 when Pane is simplified.
+ * Props for legacy Pane compatibility in screen mode.
+ * The screenMode flag tells Pane to render without window controls.
  */
 const legacyPaneProps = {
   zIndex: 1,
@@ -61,6 +61,7 @@ const legacyPaneProps = {
   onClose: () => {},
   isMinimized: false,
   onMinimizeToggle: () => {},
+  screenMode: true,
 };
 
 /**

@@ -27,6 +27,32 @@
     user-select: none;
   }
 
+  /* Screen Mode - full viewport, no window controls */
+  &--screen {
+    border: none;
+    height: 100%;
+    flex: 1;
+
+    .pane__header {
+      padding: rem(8) rem(15);
+      min-height: rem(36);
+    }
+
+    .pane__title {
+      font-size: rem(12);
+    }
+
+    .pane__icon {
+      font-size: rem(16);
+      margin-right: rem(10);
+
+      svg {
+        width: rem(16);
+        height: rem(16);
+      }
+    }
+  }
+
   /* Tiled Mode */
   &--tiled {
     border: none;

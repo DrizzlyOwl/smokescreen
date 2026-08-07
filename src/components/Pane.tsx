@@ -27,6 +27,8 @@ interface PaneProps {
   onMinimizeToggle?: (minimized: boolean) => void;
   onClose?: () => void;
   headerExtras?: React.ReactNode;
+  /** Screen mode: hides window controls, fills container, no drag/resize */
+  screenMode?: boolean;
 }
 
 export const Pane = ({
@@ -49,10 +51,11 @@ export const Pane = ({
   defaultMinimized = false,
   onMinimizeToggle,
   onClose,
-  headerExtras
+  headerExtras,
+  screenMode = false,
 }: PaneProps) => {
   const [internalMinimized, setInternalMinimized] = useState(defaultMinimized);
-  const isMinimized = controlledMinimized !== undefined ? controlledMinimized : internalMinimized;
+  const isMinimized = screenMode ? false : (controlledMinimized !== undefined ? controlledMinimized : internalMinimized);
 
   // Use the explicit isPoppedOut prop
   const isTiled = !isPoppedOut;
@@ -64,8 +67,17 @@ export const Pane = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  const { position, setPosition, onMouseDown: onDragMouseDown, isDragging } = useDraggable(initialPos || { x: 50, y: 50 }, id);
-  const { size, onResizeMouseDown } = useResizable(initialSize || { width: 600, height: 400 }, id, position, setPosition);
+  // Only use drag/resize hooks if not in screen mode
+  const { position, setPosition, onMouseDown: onDragMouseDown, isDragging } = useDraggable(
+    initialPos || { x: 50, y: 50 }, 
+    id
+  );
+  const { size, onResizeMouseDown } = useResizable(
+    initialSize || { width: 600, height: 400 }, 
+    id, 
+    position, 
+    setPosition
+  );
 
   const toggleMinimize = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -76,6 +88,35 @@ export const Pane = ({
     }
   };
 
+  // Screen mode: simple full-height container
+  if (screenMode) {
+    return (
+      <div className="pane pane--screen">
+        <div className="pane__header">
+          <div className="pane__title">
+            {icon && (
+              <div className="pane__icon" style={{ color: iconColor || 'var(--terminal-green)' }}>
+                {icon}
+              </div>
+            )}
+            {title}
+          </div>
+          
+          {headerExtras && (
+            <div className="pane__header-extras">
+              {headerExtras}
+            </div>
+          )}
+        </div>
+
+        <div className="pane__content" style={{ flex: 1, minHeight: 0 }}>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
+  // Legacy window mode
   const paneStyle: React.CSSProperties = (isTiled && !isMobile) ? {
     position: 'relative',
     width: '100%',
@@ -88,7 +129,7 @@ export const Pane = ({
   } : isMobile ? {
     position: 'relative',
     width: '100%',
-    height: isMinimized ? 'auto' : 'auto', // Stacked on mobile
+    height: isMinimized ? 'auto' : 'auto',
     left: 0,
     top: 0,
     zIndex: isActive ? 100 : 1,
