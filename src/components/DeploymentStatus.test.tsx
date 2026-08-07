@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { DeploymentStatus } from './DeploymentStatus';
 import { useIncidentStore } from '../store/useIncidentStore';
 
@@ -63,7 +63,9 @@ describe('DeploymentStatus', () => {
   it('calls tickPods on interval', () => {
     render(<DeploymentStatus {...mockProps} />);
     
-    vi.advanceTimersByTime(3000);
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
     expect(mockTickPods).toHaveBeenCalledWith('P0', false);
   });
 
@@ -79,7 +81,9 @@ describe('DeploymentStatus', () => {
   it('renders terraform logs in non-nominal states', () => {
     render(<DeploymentStatus {...mockProps} />);
     
-    vi.advanceTimersByTime(1000);
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
 
     const logsTitle = screen.getByText('TERRAFORM_APPLY_STDOUT');
     const logsContainer = logsTitle.nextElementSibling!;
