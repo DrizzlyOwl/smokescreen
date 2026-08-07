@@ -3,6 +3,7 @@ import { Button } from './Button';
 import { StatReadout } from './StatReadout';
 import { TechnicalPane } from './TechnicalPane';
 import { ActivityIcon } from './Icons';
+import { formatCurrency } from '../utils/currency';
 import type { Severity, Stack } from '../data/incidents';
 import '../styles/AfterActionReport.scss';
 
@@ -83,7 +84,7 @@ export const AfterActionReport: React.FC<AfterActionReportProps> = ({
              <div className="aar__stats">
                 <StatReadout 
                     label="TOTAL_REVENUE_LOSS" 
-                    value={`$${moneyLost.toLocaleString()}`} 
+                    value={formatCurrency(moneyLost)} 
                     color="red"
                 />
                 <StatReadout 
@@ -105,7 +106,7 @@ export const AfterActionReport: React.FC<AfterActionReportProps> = ({
                 </p>
                 <div className="aar__actions">
                     <Button variant="primary" onClick={onClose} fullWidth>
-                        ACKNOWLEDGE_AND_CLOSE
+                        [ ACKNOWLEDGE_AND_CLOSE ]
                     </Button>
                 </div>
              </div>

@@ -107,7 +107,7 @@ export const ChatPane = ({
   return (
     <Pane
       id="chat"
-      title={`CENTRAL_SRE_INCIDENT_RESPONSE_CHANNEL ${unreadCount > 0 ? `(${unreadCount}_UNREAD)` : ''}`}
+      title={`SRE_WAR_ROOM ${unreadCount > 0 ? `(${unreadCount}_UNREAD)` : ''}`}
       icon={<ChatIcon />}
       initialPos={initialPos}
       initialSize={initialSize}

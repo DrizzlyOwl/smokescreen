@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from './Button';
 import { useTerminalStore } from '../store/useTerminalStore';
 import { useIncidentStore } from '../store/useIncidentStore';
+import { formatCurrency } from '../utils/currency';
 import '../styles/terminal.scss';
 
 export const TerminationScreen: React.FC = () => {
@@ -32,13 +33,13 @@ export const TerminationScreen: React.FC = () => {
                 <div className="shutdown-screen__stats" style={{ textAlign: 'left', display: 'inline-block', border: '1px solid var(--terminal-red)', padding: '2rem', marginBottom: '2rem' }}>
                     <div style={{ color: 'var(--ui-text-dim)', marginBottom: '1rem' }}>POST-INCIDENT PERFORMANCE REPORT:</div>
                     <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>FINAL_MITIGATION_SCORE: {mitigationScore}</div>
-                    <div style={{ fontSize: '1.2rem', color: 'var(--terminal-red)' }}>TOTAL_FINANCIAL_LOSS: £{moneyLost.toLocaleString()}</div>
+                    <div style={{ fontSize: '1.2rem', color: 'var(--terminal-red)' }}>TOTAL_FINANCIAL_LOSS: {formatCurrency(moneyLost)}</div>
                     <div style={{ marginTop: '1rem', color: 'var(--ui-text-dim)' }}>STATUS: FIRED_FOR_CAUSE</div>
                 </div>
 
                 <div style={{ width: '300px', margin: '0 auto' }}>
                     <Button variant="primary" onClick={handleReboot} fullWidth>
-                        REBOOT_SYSTEM_AND_WIPE_STRIKES
+                        [ SYSTEM_REBOOT ]
                     </Button>
                 </div>
 

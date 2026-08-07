@@ -126,7 +126,7 @@ export const STACK_MESSAGES: Record<Stack, Record<Severity, string[]>> = {
             'Lambdas are warm',
             'API Gateway is fast',
             'Step Functions are flowing',
-            'DynamoDB is chill'
+            'DynamoDB throughput nominal'
         ],
         P3: [
             'Cold start spikes on the Auth lambda',
@@ -137,7 +137,7 @@ export const STACK_MESSAGES: Record<Stack, Record<Severity, string[]>> = {
         ],
         P1: [
             'CONCURRENCY LIMIT REACHED - REQUESTS DROPPING',
-            'DynamoDB slashing on the users table',
+            'DynamoDB throttling on the users table',
             'API Gateway returning 504 Gateway Timeout',
             'Lambda execution times are through the roof',
             'Cold start hell on the checkout service',

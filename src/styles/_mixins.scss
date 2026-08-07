@@ -64,6 +64,13 @@ $breakpoints: (
   }
 }
 
+// Readable text width mixin - constrains text to optimal reading width
+// Default: 70ch (characters) - research-backed optimal for prose
+// Use 80ch for documentation, 100ch for terminal/code output
+@mixin readable-text($chars: 70) {
+  max-width: #{$chars}ch;
+}
+
 @mixin technical-typography {
   font-family: 'IBM Plex Mono', monospace;
   font-size: rem(14);

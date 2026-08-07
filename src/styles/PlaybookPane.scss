@@ -118,6 +118,8 @@
     }
 
     &__runbook-text {
+        max-width: 70ch;
+        
         p {
             margin-bottom: rem(12);
             line-height: 1.6;

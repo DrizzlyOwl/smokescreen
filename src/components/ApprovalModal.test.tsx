@@ -94,7 +94,7 @@ describe('ApprovalModal', () => {
     render(<ApprovalModal approval={holdApproval} onResolve={mockResolve} />);
     
     expect(screen.getByText('UNAUTHORIZED_ACCESS')).toBeDefined();
-    expect(screen.getByText('INITIATE_FAILOVER')).toBeDefined();
+    expect(screen.getByText('[ INITIATE_FAILOVER ]')).toBeDefined();
   });
 
   it('resolves after holding button for 3 seconds', () => {
@@ -136,7 +136,7 @@ describe('ApprovalModal', () => {
     expect(screen.getByText('50%')).toBeDefined();
 
     fireEvent.mouseUp(button);
-    expect(screen.getByText('INITIATE_FAILOVER')).toBeDefined();
+    expect(screen.getByText('[ INITIATE_FAILOVER ]')).toBeDefined();
     expect(mockResolve).not.toHaveBeenCalled();
   });
 
@@ -177,7 +177,7 @@ describe('ApprovalModal', () => {
     });
     
     fireEvent.mouseLeave(button);
-    expect(screen.getByText('INITIATE_FAILOVER')).toBeDefined();
+    expect(screen.getByText('[ INITIATE_FAILOVER ]')).toBeDefined();
     expect(mockResolve).not.toHaveBeenCalled();
   });
 });

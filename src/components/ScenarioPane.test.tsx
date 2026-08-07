@@ -24,7 +24,7 @@ describe('ScenarioPane', () => {
 
   it('unlocks the first scenario (L0) by default', () => {
     render(<ScenarioPane {...mockProps} />);
-    const l0Button = screen.getByText('START_CERTIFICATION');
+    const l0Button = screen.getByText('[ START_CERTIFICATION ]');
     expect(l0Button).not.toBeDisabled();
   });
 
@@ -41,7 +41,7 @@ describe('ScenarioPane', () => {
     
     render(<ScenarioPane {...mockProps} completedScenarios={[l0Id]} />);
     
-    const l1Button = screen.getByText('INITIALIZE_SCENARIO');
+    const l1Button = screen.getByText('[ INITIALIZE_SCENARIO ]');
     expect(l1Button).not.toBeDisabled();
   });
 

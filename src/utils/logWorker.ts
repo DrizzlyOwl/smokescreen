@@ -23,7 +23,7 @@ const KERNEL_LOGS: Record<string, string[]> = {
     P3: [
         'kernel: [ 2000.112] sda1: write-back cache enabled',
         'kernel: [ 2005.441] EXT4-fs warning: checktime reached',
-        'systemd-journald[42]: Vacuunming done, freed 0 bytes',
+        'systemd-journald[42]: Vacuuming done, freed 0 bytes',
         'kernel: [ 2010.882] TCP: request_sock_TCP: Possible SYN flooding on port 80. Sending cookies.',
         'kernel: [ 2015.121] CPU3: Core temperature above threshold, cpu clock throttled',
         'kernel: [ 2020.552] traps: nginx[1244] general protection fault ip:5588 sp:7ffd error:0',

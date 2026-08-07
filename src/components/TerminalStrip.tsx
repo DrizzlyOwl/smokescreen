@@ -164,7 +164,7 @@ export const TerminalStrip: React.FC<TerminalStripProps> = ({
         } else {
           setTerminalHistory(prev => [
             ...prev,
-            { text: `[ ${operatorName || 'OPERATOR'} ][@]SMOKESCREEN:~ $ ${input}`, type: 'command' },
+            { text: input, type: 'command' },
             { text: matches.join('  '), type: 'output' }
           ]);
         }
@@ -240,7 +240,7 @@ export const TerminalStrip: React.FC<TerminalStripProps> = ({
               itemContent={(_index, line) => (
                 <div className={`terminal-strip__line terminal-strip__line--${line.type}`}>
                   {line.type === 'command' && (
-                    <span className="terminal-strip__prefix">[{operatorName || 'OPERATOR'}][@]SMOKESCREEN:~ $ </span>
+                    <span className="terminal-strip__prefix">{operatorName || 'OP'}@SS:~$ </span>
                   )}
                   <span>{line.text}</span>
                 </div>
@@ -249,7 +249,7 @@ export const TerminalStrip: React.FC<TerminalStripProps> = ({
           )}
           
           <form onSubmit={handleSubmit} className="terminal-strip__input-area">
-            <span className="terminal-strip__prefix">[{operatorName || 'OPERATOR'}][@]SMOKESCREEN:~ $</span>
+            <span className="terminal-strip__prefix">{operatorName || 'OP'}@SS:~$</span>
             <div className={`block-input-wrapper ${isError ? 'block-input-wrapper--error' : ''}`} style={{ flex: 1 }}>
               <span className="block-input-wrapper__display">
                 {input}

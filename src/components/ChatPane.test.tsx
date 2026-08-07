@@ -85,7 +85,7 @@ describe('ChatPane', () => {
   it('shows unread banner when there are unread messages', () => {
     render(<ChatPane {...defaultProps} />);
     expect(screen.getByText(/1 new messages/)).toBeDefined();
-    expect(screen.getByText(/CENTRAL_SRE_INCIDENT_RESPONSE_CHANNEL \(1_UNREAD\)/)).toBeDefined();
+    expect(screen.getByText(/SRE_WAR_ROOM \(1_UNREAD\)/)).toBeDefined();
   });
 
   it('calls markAllAsRead when banner button is clicked', () => {

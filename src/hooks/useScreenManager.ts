@@ -55,18 +55,19 @@ export const SCREEN_TO_SHORTCUT: Record<ScreenId, string> = {
 
 /**
  * Display labels for each screen (used in CommandStrip).
+ * Max 4 characters for consistent width.
  */
 export const SCREEN_LABELS: Record<ScreenId, string> = {
   logs: 'LOGS',
-  deploy: 'K8S',
+  deploy: 'PODS',
   chat: 'CHAT',
-  tactical: 'TAC',
+  tactical: 'TACT',
   map: 'MAP',
   burn: 'BURN',
-  playbooks: 'DECK',
+  playbooks: 'LOAD',
   incidentPlaybook: 'PLAY',
   readout: 'READ',
-  settings: 'CFG',
+  settings: 'CONF',
   howTo: 'HELP',
 };
 

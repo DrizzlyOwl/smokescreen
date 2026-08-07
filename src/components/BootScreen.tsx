@@ -88,7 +88,7 @@ export const BootScreen = ({ terminalId, onComplete, playPostBeep }: { terminalI
         'DECRYPTING ENIGMA STREAM... [SUCCESS]',
         'LOCATING FLUX CAPACITOR... [OFFLINE]',
         'DIVIDING BY ZERO... [ERROR_PROTECTED]',
-        'OPTIMIZING VIBES... [MAXIMAL]',
+        'OPTIMIZING SIGNAL COHERENCE... [MAXIMAL]',
         'RETICULATING SPLINES...',
         'COMPILING CLOUD-NATIVE COFFEE... [DONE]',
         'BYPASSING THE MAINFRAME FIREWALL... [OK]',

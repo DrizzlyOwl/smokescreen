@@ -95,7 +95,7 @@ export const ScenarioPane = ({
                   fullWidth
                   disabled={!isUnlocked}
                 >
-                  {scenario.difficulty === 'L0' ? 'START_CERTIFICATION' : isUnlocked ? 'INITIALIZE_SCENARIO' : 'LOCKED_BY_PROCEDURE'}
+                  {scenario.difficulty === 'L0' ? '[ START_CERTIFICATION ]' : isUnlocked ? '[ INITIALIZE_SCENARIO ]' : 'LOCKED_BY_PROCEDURE'}
                 </Button>
               </div>
             );

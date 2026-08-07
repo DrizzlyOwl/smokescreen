@@ -4,6 +4,7 @@ import type { Severity } from '../data/incidents';
 import { Pane } from './Pane';
 import { getBurnRate } from '../utils/telemetry';
 import { useIncidentStore } from '../store/useIncidentStore';
+import { formatCurrency, formatCurrencyPerHour } from '../utils/currency';
 import '../styles/BurnRateDashboard.scss';
 
 const TICKER_ITEMS = [
@@ -103,7 +104,7 @@ export const BurnRateDashboard = ({
     return (
         <Pane
           id="burn"
-          title="SYSTEM_FINANCIAL_BURN_MONITOR"
+          title="BURN_MONITOR"
           icon={<BurnIcon />}
           iconColor={burnColor}
           initialPos={initialPos}
@@ -128,11 +129,11 @@ export const BurnRateDashboard = ({
                         color: burnColor, 
                         textShadow: severity === 'NOMINAL' ? 'none' : `0 0 10px ${burnColor}44`
                     }}>
-                        £{currentHourlySpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
+                        {formatCurrencyPerHour(currentHourlySpend)}
                     </div>
                     <div className="burn-dashboard__secondary">
                         <span className="burn-dashboard__secondary-label">CUMULATIVE_INCIDENT_LOSS: </span>
-                        <span className="burn-dashboard__secondary-value">£{moneyLost.toFixed(2)}</span>
+                        <span className="burn-dashboard__secondary-value">{formatCurrency(moneyLost)}</span>
                     </div>
                 </div>
 

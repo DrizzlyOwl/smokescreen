@@ -149,7 +149,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({ approval, onResolv
                         style={{ width: `${holdProgress}%` }}
                       />
                       <span className="approval-modal__button-text">
-                        {holdProgress > 0 ? `${Math.round(holdProgress)}%` : 'INITIATE_FAILOVER'}
+                        {holdProgress > 0 ? `${Math.round(holdProgress)}%` : '[ INITIATE_FAILOVER ]'}
                       </span>
                     </button>
                   </div>

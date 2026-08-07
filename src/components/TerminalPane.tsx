@@ -129,7 +129,7 @@ export const TerminalPane = ({
           // If already at common prefix and multiple matches, list them in history
           setTerminalHistory(prev => [
             ...prev,
-            { text: `[ ${operatorName || 'OPERATOR'} ][@]SMOKESCREEN:~ $ ${input}`, type: 'command' },
+            { text: input, type: 'command' },
             { text: matches.join('  '), type: 'output' }
           ]);
         }
@@ -187,7 +187,7 @@ export const TerminalPane = ({
             itemContent={(_index, line) => (
               <div className={`terminal-pane__line terminal-pane__line--${line.type}`}>
                 {line.type === 'command' && (
-                  <span className="terminal-pane__input-prefix">[{operatorName || 'OPERATOR'}][@]SMOKESCREEN:~ $ </span>
+                  <span className="terminal-pane__input-prefix">{operatorName || 'OP'}@SS:~$ </span>
                 )}
                 <span className="terminal-pane__content">{line.text}</span>
               </div>
@@ -196,7 +196,7 @@ export const TerminalPane = ({
         )}
         
         <form onSubmit={handleSubmit} className="terminal-pane__input-area">
-          <span className="terminal-pane__input-prefix">[{operatorName || 'OPERATOR'}][@]SMOKESCREEN:~ $</span>
+          <span className="terminal-pane__input-prefix">{operatorName || 'OP'}@SS:~$</span>
           <div className={`block-input-wrapper ${isError ? 'block-input-wrapper--error' : ''}`} style={{ flex: 1 }}>
               <span className="block-input-wrapper__display">
                 {input}
