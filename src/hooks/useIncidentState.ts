@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTerminalStore } from '../store/useTerminalStore';
 import { useIncidentStore, type TerminalLine, type CommandResult } from '../store/useIncidentStore';
 import { useAudioStore } from '../store/useAudioStore';
 import { useWindowManager, type PaneId } from './useWindowManager';
+import { useScreenManager, type ScreenId } from './useScreenManager';
 import { useAudio as useAudioHook } from './useAudio';
 import { useDebugLogger } from './useDebugLogger';
 import { useScenarioEngine } from './useScenarioEngine';
@@ -39,6 +40,13 @@ export const useIncidentState = () => {
     chat: false, logs: false, map: false, deploy: false,
     burn: false, howTo: !safeLocalStorageGet('smokescreen_visited', false), settings: false, playbooks: false, incidentPlaybook: false, readout: false, terminal: true, debug: false
   });
+
+  // New screen-based navigation (Phase 1)
+  const initialScreen: ScreenId = safeLocalStorageGet('smokescreen_visited', false) ? 'howTo' : 'howTo';
+  const screenManager = useScreenManager(initialScreen);
+
+  // ESC logout confirmation state
+  const [escConfirmPending, setEscConfirmPending] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -309,6 +317,22 @@ export const useIncidentState = () => {
     }
   }, [incidentStore.isSlowBurn, incidentStore.severity, incidentStore.isPaused]);
 
+  // Logged screen navigation
+  const loggedSetActiveScreen = useCallback((id: ScreenId) => {
+    log('SCREEN', `NAVIGATE ${id}`);
+    screenManager.setActiveScreen(id);
+  }, [screenManager, log]);
+
+  const loggedToggleTerminal = useCallback(() => {
+    log('TERMINAL', `TOGGLE_COLLAPSED ${!screenManager.terminalCollapsed}`);
+    screenManager.toggleTerminalCollapsed();
+  }, [screenManager, log]);
+
+  const loggedToggleDebug = useCallback(() => {
+    log('DEBUG', `TOGGLE_OVERLAY ${!screenManager.debugOpen}`);
+    screenManager.toggleDebug();
+  }, [screenManager, log]);
+
   return {
     ...terminalStore,
     ...incidentStore,
@@ -344,6 +368,13 @@ export const useIncidentState = () => {
     onSnapMainToggle: (id: PaneId) => {
         log('WINDOW', `TOGGLE_SNAPMAIN ${id}`);
         windowManager.toggleSnapMain(id);
-    }
+    },
+    // Screen manager (new navigation system)
+    ...screenManager,
+    loggedSetActiveScreen,
+    loggedToggleTerminal,
+    loggedToggleDebug,
+    escConfirmPending,
+    setEscConfirmPending,
   };
 };
