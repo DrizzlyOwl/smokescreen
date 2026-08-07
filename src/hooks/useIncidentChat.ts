@@ -12,7 +12,7 @@ export const useIncidentChat = (
     severity: Severity,
     stack: Stack,
     operatorName: string,
-    terminalId: string,
+    _terminalId: string,
     onNewMessage: (isTag: boolean) => void,
     playPing?: () => void,
     playDirectPing?: () => void,
@@ -28,6 +28,7 @@ export const useIncidentChat = (
     const lastMessageText = useRef<string>('');
     const { send, subscribe } = useSync();
     const userAvatars = useRef<Record<string, string>>({});
+    const cancelledRef = useRef(false);
 
     const getAvatarForUser = useCallback((user: string) => {
         if (userAvatars.current[user]) return userAvatars.current[user];
@@ -257,14 +258,24 @@ export const useIncidentChat = (
     useEffect(() => {
         if (!isActive || isPaused) return;
 
+        cancelledRef.current = false;
+
         const baseDelay = severity === 'P0' ? 3000 : severity === 'P1' ? 6000 : severity === 'P3' ? 12000 : 20000;
         const delay = baseDelay * chatMultiplier;
 
         const interval = setInterval(async () => {
+            // Don't start new messages if cancelled
+            if (cancelledRef.current) return;
+
             const newMessage = await getDynamicMessage(severity);
+
+            // Check again after async call
+            if (cancelledRef.current) return;
+
             if (log) log('CHAT', 'GENERATED_MESSAGE', { user: newMessage.user, isBot: newMessage.isBot });
             send({ type: 'TYPING_INDICATOR', user: newMessage.user, isTyping: true });
             
+            // Let typing complete even if cancelled - don't track this timeout
             setTimeout(() => {
                 send({ type: 'CHAT_MESSAGE', message: newMessage });
                 send({ type: 'TYPING_INDICATOR', user: newMessage.user, isTyping: false });
@@ -273,9 +284,11 @@ export const useIncidentChat = (
         }, delay);
 
         return () => {
+            cancelledRef.current = true;
             clearInterval(interval);
+            // Don't clear pending timeout - let typing indicator complete for better UX
         };
-    }, [severity, terminalId, onNewMessage, playPing, playDirectPing, getDynamicMessage, isActive, send, chatMultiplier, log, isPaused]);
+    }, [severity, getDynamicMessage, isActive, send, chatMultiplier, log, isPaused]);
 
     return { messages, sendMessage, typingUsers, markAsRead, markAllAsRead };
 };

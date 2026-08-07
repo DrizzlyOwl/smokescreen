@@ -289,17 +289,25 @@ export const useIncidentState = () => {
     return result;
   }, [internalHandleCommand, windowManager, isWaiting, resumeScenario, log, incidentStore, playMitigationSuccess]);
 
-  useEffect(() => {
-    const isSlowBurn = incidentStore.isSlowBurn;
-    const severity = incidentStore.severity;
-    const isPaused = incidentStore.isPaused;
-    const tickSlowBurn = incidentStore.tickSlowBurn;
+  // Refs to hold latest callbacks for stable timer interval
+  const tickSlowBurnRef = useRef(incidentStore.tickSlowBurn);
+  const playAlertRef = useRef(playAlert);
+  const declareRef = useRef(loggedHandleDeclare);
 
-    if (isSlowBurn && severity !== 'P0' && !isPaused) {
-      const interval = setInterval(() => tickSlowBurn(playAlert, loggedHandleDeclare), 1000);
+  // Keep refs current
+  useEffect(() => { tickSlowBurnRef.current = incidentStore.tickSlowBurn; });
+  useEffect(() => { playAlertRef.current = playAlert; });
+  useEffect(() => { declareRef.current = loggedHandleDeclare; });
+
+  // Stable timer effect - only depends on primitive values to preserve countdown position
+  useEffect(() => {
+    if (incidentStore.isSlowBurn && incidentStore.severity !== 'P0' && !incidentStore.isPaused) {
+      const interval = setInterval(() => {
+        tickSlowBurnRef.current(playAlertRef.current, declareRef.current);
+      }, 1000);
       return () => clearInterval(interval);
     }
-  }, [incidentStore.isSlowBurn, incidentStore.severity, incidentStore.isPaused, incidentStore.tickSlowBurn, playAlert, loggedHandleDeclare]);
+  }, [incidentStore.isSlowBurn, incidentStore.severity, incidentStore.isPaused]);
 
   return {
     ...terminalStore,

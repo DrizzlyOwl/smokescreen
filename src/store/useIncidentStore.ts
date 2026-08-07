@@ -88,6 +88,8 @@ interface IncidentState {
   setIsResolving: (val: boolean) => void;
   isPaused: boolean;
   setIsPaused: (val: boolean) => void;
+  canTogglePause: boolean;
+  lastPauseToggle: number;
   onboardingStep: number;
   setOnboardingStep: (step: number) => void;
   activeBeacons: string[];
@@ -269,7 +271,34 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
   isResolving: false,
   setIsResolving: (isResolving) => set({ isResolving }),
   isPaused: false,
-  setIsPaused: (isPaused) => set({ isPaused }),
+  canTogglePause: true,
+  lastPauseToggle: 0,
+  setIsPaused: (isPaused) => {
+    const { canTogglePause, lastPauseToggle } = get();
+    
+    // Resume is always allowed immediately
+    if (!isPaused) {
+      set({ isPaused: false });
+      return;
+    }
+    
+    // Pause requires debounce check
+    const now = Date.now();
+    if (!canTogglePause || (now - lastPauseToggle) < 5000) {
+      return; // Ignore - still in debounce window
+    }
+    
+    set({ 
+      isPaused: true, 
+      lastPauseToggle: now,
+      canTogglePause: false 
+    });
+    
+    // Re-enable pause after 5 seconds
+    setTimeout(() => {
+      set({ canTogglePause: true });
+    }, 5000);
+  },
   onboardingStep: safeLocalStorageGet<boolean>('smokescreen_onboarded', false) ? -1 : 0,
   setOnboardingStep: (onboardingStep) => {
     if (onboardingStep === -1) {

@@ -34,6 +34,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   const strikes = useIncidentStore(state => state.strikes);
   const isPaused = useIncidentStore(state => state.isPaused);
   const setIsPaused = useIncidentStore(state => state.setIsPaused);
+  const canTogglePause = useIncidentStore(state => state.canTogglePause);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -95,13 +96,16 @@ export const StatusBar: React.FC<StatusBarProps> = ({
             </div>
 
             <div className="status-line__right">
-                <div 
+                <button 
                     className={`status-line__pause ${isPaused ? 'paused' : ''}`}
                     onClick={() => setIsPaused(!isPaused)}
-                    title={isPaused ? "Resume Simulation" : "Pause Simulation"}
+                    disabled={!canTogglePause && !isPaused}
+                    title={isPaused ? "Resume Simulation" : (canTogglePause ? "Pause Simulation" : "Pause available in 5s")}
+                    aria-label={isPaused ? "Resume simulation" : "Pause simulation"}
+                    aria-pressed={isPaused}
                 >
                     {isPaused ? '[RESUME]' : '[PAUSE]'}
-                </div>
+                </button>
                 <span className="separator">|</span>
                 <div className="status-line__network">
                     <NetworkIcon connectionType={connectionType} downlink={downlink} />

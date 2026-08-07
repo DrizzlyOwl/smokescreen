@@ -51,6 +51,10 @@
   }
 
   &__pause {
+    // Reset button defaults
+    border: none;
+    font-family: inherit;
+    
     cursor: pointer;
     padding: 0 rem(5);
     background: var(--ui-border);
@@ -59,8 +63,14 @@
     border-radius: rem(2);
     font-size: rem(10);
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: var(--ui-text);
+    }
+    
+    &:disabled {
+        opacity: 0.4;
+        filter: grayscale(1);
+        cursor: not-allowed;
     }
 
     &.paused {
