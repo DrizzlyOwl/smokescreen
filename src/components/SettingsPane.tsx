@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { TechnicalPane } from './TechnicalPane';
 import { Button } from './Button';
 import { SettingsIcon } from './Icons';
@@ -40,47 +39,6 @@ export const SettingsPane = ({
   onSnapMainToggle
 }: SettingsPaneProps) => {
   const { isDebugMode, setIsDebugMode, isEcoMode, setIsEcoMode } = useTerminal();
-  const [apiKey, setApiKey] = useState(
-    () => localStorage.getItem('gemini_api_key') || ''
-  );
-  const [showKey, setShowKey] = useState(false);
-  const [status, setStatus] = useState<'IDLE' | 'VALIDATING' | 'SAVED' | 'ERROR'>('IDLE');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleSave = async () => {
-    if (!apiKey.trim()) {
-        localStorage.removeItem('gemini_api_key');
-        setStatus('SAVED');
-        setTimeout(() => setStatus('IDLE'), 2000);
-        return;
-    }
-
-    setStatus('VALIDATING');
-    setErrorMessage('');
-
-    try {
-        const { GoogleGenerativeAI } = await import('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
-            generationConfig: { maxOutputTokens: 1 }
-        });
-        await result.response;
-        
-        localStorage.setItem('gemini_api_key', apiKey);
-        setStatus('SAVED');
-        setTimeout(() => setStatus('IDLE'), 2000);
-    } catch (error: unknown) {
-        console.error("Validation Error:", error);
-        setStatus('ERROR');
-        const message = error instanceof Error ? error.message : '';
-        setErrorMessage(message.includes('API_KEY_INVALID') 
-            ? 'INVALID_API_KEY' 
-            : 'HANDSHAKE_FAILURE');
-        setTimeout(() => setStatus('IDLE'), 4000);
-    }
-  };
 
   return (
     <TechnicalPane
@@ -109,39 +67,7 @@ export const SettingsPane = ({
     >
       <div className="settings">
         <section className="settings__section">
-          <h2>01. GEMINI_API_KEY</h2>
-          <p className="text-dim">
-            Optional: Provide an AI key to generate hyper-realistic, context-aware technical incident reports tailored to your specific environment.
-          </p>
-          <div className="settings__input-wrapper">
-            <input
-              type={showKey ? 'text' : 'password'}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              disabled={status === 'VALIDATING'}
-              placeholder="ENTER_SECURE_KEY"
-              className={`settings__input ${status === 'ERROR' ? 'settings__input--error' : ''}`}
-            />
-            <Button
-              onClick={() => setShowKey(!showKey)}
-              size="x-small"
-              className="settings__input-toggle"
-            >
-              {showKey ? 'HIDE' : 'SHOW'}
-            </Button>
-          </div>
-          {status === 'ERROR' && (
-            <p className="text-red">
-                {'>'} ERROR: {errorMessage}
-            </p>
-          )}
-          <p className="text-dim" style={{ fontSize: '0.75rem' }}>
-            Keys are cached in <b>LOCAL_STORAGE</b>. No data is transmitted to central system servers.
-          </p>
-        </section>
-
-        <section className="settings__section">
-          <h2>02. VISUAL_THEMES</h2>
+          <h2>01. VISUAL_THEMES</h2>
           <p className="text-dim">
             Switch between hardware aesthetics to match your terminal emulator preference.
           </p>
@@ -245,7 +171,7 @@ export const SettingsPane = ({
         </section>
 
         <section className="settings__section">
-          <h2>03. SYSTEM_CONFIGURATION</h2>
+          <h2>02. SYSTEM_CONFIGURATION</h2>
           
           <label className="settings__option">
             <input
@@ -281,28 +207,6 @@ export const SettingsPane = ({
             </div>
           </label>
         </section>
-      </div>
-
-      <div className="settings__footer">
-        <Button 
-            onClick={handleSave} 
-            variant="primary" 
-            size="x-small" 
-            disabled={status === 'VALIDATING'}
-        >
-          {status === 'VALIDATING' ? 'VERIFYING...' : 
-           status === 'SAVED' ? 'SYNCED' : 'COMMIT_CHANGES'}
-        </Button>
-        {status === 'SAVED' && (
-          <span className="settings__status settings__status--saved">
-            SYNC_COMPLETE
-          </span>
-        )}
-        {status === 'ERROR' && (
-          <span className="settings__status settings__status--error">
-            KEY_REJECTED
-          </span>
-        )}
       </div>
     </TechnicalPane>
   );

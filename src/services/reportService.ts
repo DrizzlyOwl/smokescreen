@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Severity, Stack } from '../data/incidents';
 import { stackJargon, commonJargon } from '../data/incidents';
 
@@ -12,7 +11,7 @@ const indefiniteArticle = (word: string) => {
 };
 
 /**
- * Service for generating incident reports (Mock and AI-based).
+ * Service for generating incident reports.
  */
 export const reportService = {
   generateIncidentReport(severity: Severity, stack: Stack): { text: string; ticketId: string; scoreEarned: number } {
@@ -54,43 +53,5 @@ ${impacts[severity]}`;
     const scoreEarned = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
 
     return { text: report, ticketId, scoreEarned };
-  },
-
-  async generateAIIncidentReport(severity: Severity, stack: Stack, apiKey: string): Promise<{ text: string; ticketId: string; scoreEarned: number }> {
-    if (severity === 'NOMINAL') return { text: '', ticketId: '', scoreEarned: 0 };
-    
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: `You are a senior SRE. Generate a highly technical incident report in a structured Jira Ticket format. 
-      Use exactly this template:
-      [INC-XXXX] ISSUE_SUMMARY: Short technical summary
-      ------------------------------------------------------------
-      TYPE: INCIDENT | SEVERITY: [SEV] | STATUS: [STATUS]
-      STACK: [STACK] | COMPONENT: [COMPONENT] | EST_TTR: [TIME]
-
-      DESCRIPTION:
-      [2-3 sentences explaining the failure and the immediate remediation action.]
-
-      IMPACT:
-      [1 sentence explaining the blast radius.]
-      
-      Use heavy DevOps jargon. Sound urgent but professional.`
-    });
-
-    const prompt = `Generate a ${severity} incident report for a ${stack} environment failure.`;
-
-    try {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      const ticketId = generateTicketId();
-      const scoreEarned = severity === 'P0' ? 60 : severity === 'P1' ? 30 : 15;
-      
-      return { text: text.trim(), ticketId, scoreEarned };
-    } catch (error) {
-      console.error("Gemini Error:", error);
-      return this.generateIncidentReport(severity, stack);
-    }
   }
 };

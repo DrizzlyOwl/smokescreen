@@ -208,14 +208,13 @@ export const PaneGrid: React.FC<PaneGridProps> = ({
           label="AUTOMATED_RESPONSE_STRATEGY"
           initialPos={{ x: 600, y: 150 }}
           metadata={{
-            version: 'AI-v1.5-FLASH',
-            source: 'GEMINI_CORE',
-            authority: 'AUTONOMOUS_AGENT'
+            version: 'v1.0.0',
+            source: 'REPORT_SERVICE',
+            authority: 'SYSTEM_GENERATED'
           }}
           headerRight={
             <div className="readout-box__header-actions">
               <Button onClick={() => setIncidentReport('')} size="x-small" variant="ghost">[ CLEAR_READOUT ]</Button>
-              {localStorage.getItem('gemini_api_key') && <div className="ai-badge">AI_ENHANCED</div>}
             </div>
           }
           contentRef={scrollRef}

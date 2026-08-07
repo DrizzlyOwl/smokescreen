@@ -23,15 +23,6 @@
       display: flex;
       gap: rem(8);
       align-items: center;
-
-      .ai-badge {
-        font-size: 0.7rem;
-        background: var(--status-nominal);
-        color: var(--status-text);
-        padding: rem(2) rem(6);
-        border-radius: rem(2);
-        font-weight: bold;
-      }
     }
   }
 

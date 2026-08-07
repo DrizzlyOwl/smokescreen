@@ -1,4 +1,4 @@
-# GEMINI.md - SMOKESCREEN Project Context
+# PROJECT.md - SMOKESCREEN Project Context
 
 ## 1. Project Objective
 **SMOKESCREEN** is "Technical Incident Theatre" simulation game for Platform and DevOps engineers. Generate hyper-technical, immersive simulations of catastrophic system failures. Authentic hardware aesthetics + high-stakes arcade gameplay.
@@ -8,7 +8,7 @@
 - **Build Tool:** Vite
 - **Styling:** SCSS (BEM architecture, modular per-component styles, CSS Variable API).
 - **Audio:** Web Audio API (procedural synthesis, graph-based architecture, global mute orchestration).
-- **Simulation:** UI Avatars (Identities), Gemini 1.5 Flash (AI Intelligence).
+- **Simulation:** UI Avatars (Identities), Procedural Incident Generation.
 
 ## 3. Core Features (v6.0 - "Orchestrator Edition")
 - **Centralized State Management**: Unified handling of global app state, incident parameters, and UI preferences via context-based orchestrator.

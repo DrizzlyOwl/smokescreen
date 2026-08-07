@@ -6,9 +6,10 @@
 ## Recent Wins
 - **Deconstructed God Hook**: `useIncidentState` split into domain hooks (`useOnboarding`, `useChaosEvents`).
 - **Audio Engine Refactor**: Manual pooling replaced by unified `AudioEngine` utility.
-- **Store Refactor**: Complex logic (node healing, slow-burn) and Gemini API calls extracted to `incidentService` and `reportService`.
+- **Store Refactor**: Complex logic (node healing, slow-burn) extracted to `incidentService` and `reportService`.
 - **Test Coverage**: Added unit tests for `ChatPane`, `OutageMap`, `SystemLog`, `DeploymentStatus`, and core hooks (`useSync`, `useClientStats`).
 - **Dead Code Purge**: Removed unused components (`AccessDenied`) and redundant logic.
+- **AI Removal**: Removed Google Gemini AI integration; all features now use local procedural generation.
 
 ## Technical Debt / Known Issues
 - **Timer Race Conditions**: `useIncidentState` and `useIncidentChat` use raw `setInterval`. Risk of stale closures. Needs robust sync.

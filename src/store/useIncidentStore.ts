@@ -360,13 +360,7 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
 
   generateStrategy: async () => {
     const { severity, stack } = get();
-    const apiKey = safeLocalStorageGet('gemini_api_key', '');
-    let result;
-    if (apiKey) {
-        result = await reportService.generateAIIncidentReport(severity, stack, apiKey);
-    } else {
-        result = reportService.generateIncidentReport(severity, stack);
-    }
+    const result = reportService.generateIncidentReport(severity, stack);
     
     set({ 
         incidentReport: result.text,

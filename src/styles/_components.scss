@@ -1,14 +1,5 @@
 @use 'utils' as *;
 
-.ai-badge {
-  font-size: var(--text-l4); 
-  background: var(--terminal-green); 
-  color: var(--status-text); 
-  padding: rem(2) rem(8); 
-  font-weight: bold;
-  animation: flicker 2s infinite;
-}
-
 /* Button Styles */
 .button {
   all: unset;

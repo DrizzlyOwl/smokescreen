@@ -162,7 +162,7 @@ export const useIncidentChat = (
 
         try {
             const { generateDynamicMessage } = await import('../utils/chatGenerator');
-            const dynamicMsg = await generateDynamicMessage(currentSeverity, stack, operatorName, navigator.language);
+            const dynamicMsg = await generateDynamicMessage(currentSeverity, stack);
 
             if (dynamicMsg) {
                 if (dynamicMsg.user) userRaw = dynamicMsg.user;

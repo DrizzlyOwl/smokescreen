@@ -8,7 +8,7 @@
 
 ## 2. Complexity & Abstraction
 - [x] **Deconstruct God Hook:** Break down `src/hooks/useIncidentState.ts` (18KB orchestrator) into specialized, domain-specific hooks (e.g., `useOnboarding`, `useChaosEvents`, `useCommandHandling`).
-- [x] **Store Logic Separation:** Refactor `useIncidentStore.ts`. Move complex business logic (like node healing and Gemini API calls) out of the Zustand store into dedicated service modules or utility functions.
+- [x] **Store Logic Separation:** Refactor `useIncidentStore.ts`. Move complex business logic (like node healing and report generation) out of the Zustand store into dedicated service modules or utility functions.
 - [x] **Abstract Chat Data:** Extract massive static data objects from `src/hooks/useIncidentChat.ts` (23KB) into separate data files or configuration modules.
 - [ ] **Decouple UI Logic:** Refactor `ChatPane.tsx` and `ChatMessageItem.tsx`. Extract the complex `IntersectionObserver` logic used for tracking unread messages into a custom hook (e.g., `useUnreadTracker`) to improve testability.
 - [x] **Audio Engine Utility:** Replace the manual pooling logic in `src/contexts/AudioContext.tsx` with a dedicated Audio Engine utility for better maintainability.
