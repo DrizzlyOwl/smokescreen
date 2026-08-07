@@ -253,7 +253,7 @@ export const useIncidentChat = (
             isBot, 
             avatarUrl: isBot ? undefined : getAvatarForUser(userRaw) 
         };
-    }, [stack, operatorName, getAvatarForUser, processUserAndBio]);
+    }, [stack, getAvatarForUser, processUserAndBio]);
 
     useEffect(() => {
         if (!isActive || isPaused) return;
