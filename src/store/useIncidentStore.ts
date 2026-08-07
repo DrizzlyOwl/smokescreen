@@ -5,7 +5,7 @@ import { type Severity, type Stack, stackJargon, commonJargon } from '../data/in
 import type { Objective } from '../contexts/types';
 import { incidentService } from '../services/incidentService';
 import { reportService } from '../services/reportService';
-import { safeLocalStorageGet, safeLocalStorageSet, safeLocalStorageRemove } from '../utils/storage';
+import { safeLocalStorageGet, safeLocalStorageSet, safeLocalStorageRemove, type StorageState } from '../utils/storage';
 
 export interface TerminalLine {
   text: string;
@@ -107,7 +107,7 @@ interface IncidentState {
   generateStrategy: () => Promise<void>;
   ceaseTheatre: () => void;
   tickSlowBurn: (playAlert: (s: Severity) => void, declare: (playAlertFn: (s: Severity) => void) => void) => void;
-  loadGameSession: (savedState: Record<string, any>) => void;
+  loadGameSession: (savedState: StorageState) => void;
 
   // UI State
   unreadChat: number;

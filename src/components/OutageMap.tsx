@@ -142,12 +142,14 @@ export const OutageMap = ({
         });
     };
 
-    const handleMouseUp = (e: React.MouseEvent) => {
-        if (!dragStartNode || !mapRef.current) return;
-
-        const rect = mapRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
+    /**
+     * Shared drop handler for both mouse and touch events.
+     * @param x - X position as percentage (0-100)
+     * @param y - Y position as percentage (0-100)
+     * @param tolerance - Drop target tolerance in percentage (3 for mouse, 5 for touch)
+     */
+    const handleDrop = useCallback((x: number, y: number, tolerance: number) => {
+        if (!dragStartNode) return;
 
         // Check if dropped on a healthy node
         const targetNode = nodes.find(node => {
@@ -155,7 +157,7 @@ export const OutageMap = ({
             const pos = getPos(node.lat, node.lng);
             const dx = Math.abs(x - pos.xRaw);
             const dy = Math.abs(y - pos.yRaw);
-            return dx < 3 && dy < 3; // 3% tolerance (tighter for high-res map)
+            return dx < tolerance && dy < tolerance;
         });
 
         if (targetNode) {
@@ -187,6 +189,16 @@ export const OutageMap = ({
         }
 
         setDragStartNode(null);
+    }, [dragStartNode, nodes, getPos, playMitigationSuccess, incrementMitigationCount, severity, setSeverity]);
+
+    const handleMouseUp = (e: React.MouseEvent) => {
+        if (!dragStartNode || !mapRef.current) return;
+
+        const rect = mapRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        handleDrop(x, y, 3); // 3% tolerance for mouse
     };
 
     const handleTouchStart = (e: React.TouchEvent, node: IncidentNode) => {
@@ -215,49 +227,13 @@ export const OutageMap = ({
 
     const handleTouchEnd = (e: React.TouchEvent) => {
         if (!dragStartNode || !mapRef.current) return;
+
         const touch = e.changedTouches[0];
         const rect = mapRef.current.getBoundingClientRect();
         const x = ((touch.clientX - rect.left) / rect.width) * 100;
         const y = ((touch.clientY - rect.top) / rect.height) * 100;
 
-        // Check if dropped on a healthy node
-        const targetNode = nodes.find(node => {
-            if (node.status !== 'healthy') return false;
-            const pos = getPos(node.lat, node.lng);
-            const dx = Math.abs(x - pos.xRaw);
-            const dy = Math.abs(y - pos.yRaw);
-            return dx < 5 && dy < 5; // Higher tolerance for touch
-        });
-
-        if (targetNode) {
-            playMitigationSuccess();
-            incrementMitigationCount();
-            
-            const nextNodes = nodes.map(n => 
-                n.id === dragStartNode.id ? { ...n, status: 'healthy' as const } : n
-            );
-            setNodes(nextNodes);
-
-            // Scoring: 10pts for restoring a region, 50pts for all back online
-            const allOnlineBefore = !nodes.some(n => n.status !== 'healthy');
-            const allOnlineAfter = !nextNodes.some(n => n.status !== 'healthy');
-            const bonus = (allOnlineAfter && !allOnlineBefore) ? 50 : 0;
-            useIncidentStore.getState().setMitigationScore(prev => prev + 10 + bonus);
-
-            // Scale back priority as operator fixes issues
-            const criticalCount = nextNodes.filter(n => n.status === 'critical').length;
-            const warningCount = nextNodes.filter(n => n.status === 'warning').length;
-
-            if (severity === 'P0' && criticalCount === 0) {
-                setSeverity('P1');
-            } else if (severity === 'P1' && criticalCount === 0 && warningCount === 0) {
-                setSeverity('P3');
-            } else if (severity === 'P3' && warningCount === 0) {
-                setSeverity('NOMINAL');
-            }
-        }
-
-        setDragStartNode(null);
+        handleDrop(x, y, 5); // 5% tolerance for touch
     };
 
     const isP0 = severity === 'P0';
