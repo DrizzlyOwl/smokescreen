@@ -1,0 +1,243 @@
+@use 'utils' as *;
+@use 'mixins' as *;
+
+.terminal-strip {
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-bg);
+  border-top: rem(2) solid var(--terminal-green);
+  box-shadow: 0 rem(-2) rem(15) color-mix(in srgb, var(--terminal-green), transparent 80%);
+  transition: height 0.15s ease;
+  flex-shrink: 0;
+  
+  &--collapsed {
+    border-top-width: rem(1);
+    box-shadow: none;
+  }
+
+  &--dragging {
+    user-select: none;
+    transition: none;
+  }
+
+  &__drag-handle {
+    height: rem(6);
+    background: var(--ui-bg-alt);
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    
+    &::before {
+      content: '';
+      width: rem(40);
+      height: rem(2);
+      background: var(--ui-border);
+      border-radius: rem(1);
+      transition: background 0.15s ease;
+    }
+    
+    &:hover::before {
+      background: var(--terminal-green);
+    }
+
+    .terminal-strip--dragging & {
+      background: color-mix(in srgb, var(--terminal-green), transparent 90%);
+      
+      &::before {
+        background: var(--terminal-green);
+      }
+    }
+  }
+
+  &__header {
+    height: rem(26);
+    background: var(--ui-bg-alt);
+    padding: 0 rem(12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: rem(1) solid var(--ui-border);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: rem(8);
+    font-size: rem(11);
+    font-weight: bold;
+    color: var(--ui-text-dim);
+    text-transform: uppercase;
+    letter-spacing: rem(1);
+
+    svg {
+      width: rem(14);
+      height: rem(14);
+      color: var(--terminal-green);
+    }
+  }
+
+  &__shortcut {
+    font-size: rem(9);
+    opacity: 0.5;
+    margin-left: rem(4);
+  }
+
+  &__toggle {
+    all: unset;
+    cursor: pointer;
+    padding: rem(2) rem(6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ui-text-dim);
+    border: rem(1) solid var(--ui-border);
+    background: var(--ui-bg);
+    transition: all 0.15s ease;
+
+    svg {
+      width: rem(12);
+      height: rem(12);
+    }
+
+    &:hover {
+      color: var(--terminal-green);
+      border-color: var(--terminal-green);
+    }
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    font-family: var(--font-mono);
+  }
+
+  &__output {
+    flex: 1;
+    padding: rem(8) rem(12);
+    font-size: rem(13);
+    line-height: 1.5;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: rem(6);
+    }
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--ui-border);
+      border-radius: rem(3);
+    }
+  }
+
+  &__idle {
+    opacity: 0.3;
+    letter-spacing: rem(1);
+  }
+
+  &__line {
+    word-break: break-all;
+    white-space: pre-wrap;
+    margin-bottom: rem(2);
+    
+    &--command {
+      color: var(--terminal-green);
+      font-weight: bold;
+    }
+    
+    &--output {
+      color: var(--ui-text);
+      opacity: 0.9;
+    }
+
+    &--error {
+      color: var(--terminal-red);
+      font-weight: bold;
+    }
+
+    &--system {
+      color: var(--terminal-amber);
+      font-style: italic;
+      opacity: 0.7;
+    }
+  }
+
+  &__prefix {
+    color: var(--terminal-green);
+    font-weight: bold;
+  }
+
+  &__input-area {
+    padding: rem(6) rem(12) rem(8);
+    display: flex;
+    align-items: center;
+    gap: rem(8);
+    background: #000;
+    border-top: rem(1) solid var(--ui-border);
+    font-size: rem(13);
+  }
+}
+
+// Shared block input styles (same as terminal.scss)
+.block-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+
+  &--error {
+    animation: shake 0.3s ease;
+  }
+
+  &__display {
+    display: inline-flex;
+    align-items: center;
+    color: var(--ui-text);
+  }
+
+  &__cursor {
+    display: inline-block;
+    width: rem(8);
+    height: 1.2em;
+    background: var(--terminal-green);
+    margin-left: rem(1);
+    opacity: 0.7;
+
+    &--blinking {
+      animation: blink 1s step-end infinite;
+    }
+  }
+
+  &__ghost {
+    color: var(--ui-text-dim);
+    opacity: 0.4;
+  }
+
+  &__real-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    cursor: text;
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 0.7; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(rem(-4)); }
+  40%, 80% { transform: translateX(rem(4)); }
+}

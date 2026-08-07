@@ -1,0 +1,78 @@
+@use 'utils' as *;
+@use 'mixins' as *;
+
+.screen-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-color);
+
+  // Screen content fills available space
+  > * {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ui-text-dim);
+    font-family: var(--font-mono);
+    font-size: rem(14);
+    letter-spacing: rem(2);
+    animation: pulse 1s infinite;
+  }
+
+  &__empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: rem(12);
+    color: var(--ui-text-dim);
+    font-family: var(--font-mono);
+  }
+
+  &__empty-text {
+    font-size: rem(16);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: rem(2);
+    color: var(--terminal-amber);
+  }
+
+  &__empty-hint {
+    font-size: rem(12);
+    opacity: 0.6;
+  }
+
+  &__clear-btn {
+    all: unset;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: rem(10);
+    color: var(--ui-text-dim);
+    padding: rem(2) rem(6);
+    border: rem(1) solid var(--ui-border);
+    background: var(--ui-bg);
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: var(--terminal-green);
+      border-color: var(--terminal-green);
+      background: color-mix(in srgb, var(--terminal-green), transparent 90%);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
